@@ -25,7 +25,7 @@
   <body>
 
 <div class="page-header">
-  <h1>Example page header <small>Subtext for header</small> ${request.persona_button}</h1>
+  <h1>Not the Answer <small>A personal blog</small> ${request.persona_button}</h1>
 </div>
     <div class="container">
         <h1><%block name = "header"/></h1>
