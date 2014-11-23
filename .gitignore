@@ -1,4 +1,5 @@
 *.sqlite
+*.pid
 geany_run_script.bat
 # Byte-compiled / optimized / DLL files
 __pycache__/
