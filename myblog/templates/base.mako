@@ -14,7 +14,9 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
 
     <!-- Custom styles for this template -->
-    <link href="${request.static_url('myblog:static/custom-theme.css')}" rel="stylesheet">
+    <style>
+        <%include file="myblog:static/custom-theme.css"/>
+    </style>
 
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
