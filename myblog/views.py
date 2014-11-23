@@ -1,4 +1,6 @@
 import markdown
+import PyRSS2Gen
+import datetime
 from pyramid.response import Response
 from pyramid.view import view_config
 from pyramid.httpexceptions import (
@@ -39,6 +41,34 @@ try it again.
 """
 
 
+@view_config(route_name = 'rss')
+def render_rss_feed(request):
+    posts = DBSession.query(Post).order_by(desc(Post.created)).all()
+    items= []
+    for post in posts[:10]:
+        title = post.name
+        link = request.route_url('view_post', postname = title)
+        description = post.markdown[:200]
+        #guid = PyRSS2Gen.Guid('')
+        pub_date = post.created
+
+        item = PyRSS2Gen.RSSItem(title = title,
+                    link= link, description= description,
+                    #guid= guid,
+                    pubDate = pub_date)
+
+        items.append(item)
+
+    rss = PyRSS2Gen.RSS2(
+        title = "Not the Answer",
+        link = "https://blog.ismail-s.com",
+        description = "A personal blog about science, computers and life.",
+
+        lastBuildDate = datetime.datetime.utcnow(),
+
+        items = items)
+    # maybe write the file into the static folder and remake it whenever a post is modified...
+    return Response(rss.to_xml(), content_type = 'application/xml')
 
 #@view_config(renderer = 'templates/home.mako')
 @view_config(route_name = 'home', renderer = 'templates/post.mako')

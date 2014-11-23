@@ -46,6 +46,7 @@ def main(global_config, **settings):
     # this has not been done here.
     config.add_static_view('static', 'static', cache_max_age=3600)
     config.add_route('home', '/')
+    config.add_route('rss', '/rss')
     config.add_route('view_post', '/{postname}')
     config.add_route('add_post', '/{postname}/add')
     config.add_route('edit_post', '/{postname}/edit')
