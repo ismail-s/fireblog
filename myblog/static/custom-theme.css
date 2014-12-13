@@ -1,6 +1,9 @@
 body {
   padding-top: 50px;
   padding: 40px 15px;
+  text-align: left;
+}
+h1 {
   text-align: center;
 }
 .starter-template {

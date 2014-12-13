@@ -48,7 +48,7 @@ def render_rss_feed(request):
     for post in posts[:10]:
         title = post.name
         link = request.route_url('view_post', postname = title)
-        description = post.markdown[:200]
+        description = post.html
         #guid = PyRSS2Gen.Guid('')
         pub_date = post.created
 
