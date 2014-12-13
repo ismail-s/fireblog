@@ -26,6 +26,8 @@
   </head>
   <body>
 
+<%block name = "navbar"/>
+
 <div class="page-header">
   <h1>Not the Answer <small>A personal blog</small> ${request.persona_button}</h1>
 </div>
