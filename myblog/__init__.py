@@ -28,6 +28,14 @@ class Root(object):
     def __init__(self, request):
         self.request = request
 
+def add_routes(config):
+    config.add_static_view('static', 'static', cache_max_age=3600)
+    config.add_route('home', '/')
+    config.add_route('rss', '/rss')
+    config.add_route('view_post', '/{postname}')
+    config.add_route('add_post', '/{postname}/add')
+    config.add_route('edit_post', '/{postname}/edit')
+    config.add_route('del_post', '/{postname}/del')
 
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
@@ -44,12 +52,6 @@ def main(global_config, **settings):
     config.set_authentication_policy(authn_policy)
     # Pyramid_persona has already set an authorization policy, so
     # this has not been done here.
-    config.add_static_view('static', 'static', cache_max_age=3600)
-    config.add_route('home', '/')
-    config.add_route('rss', '/rss')
-    config.add_route('view_post', '/{postname}')
-    config.add_route('add_post', '/{postname}/add')
-    config.add_route('edit_post', '/{postname}/edit')
-    config.add_route('del_post', '/{postname}/del')
+    add_routes(config)
     config.scan()
     return config.make_wsgi_app()
