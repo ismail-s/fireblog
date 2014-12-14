@@ -23,9 +23,9 @@
       <ul class="nav navbar-nav">
       <form class="navbar-form navbar-left" role="search">
         <div class="form-group">
-          <input type="text" class="form-control" placeholder="Title of post">
+          <input type="text" id="page_to_add" class="form-control" placeholder="Title of post">
         </div>
-        <button type="Submit" class="btn btn-default">Add</button>
+        <button type="Submit" id="add_button" class="btn btn-default">Add</button>
       </form>
         <li><a href="${request.route_url('edit_post', postname = title)}">Edit this page</a></li>
         <li><a href="${request.route_url('del_post', postname = title)}">Delete this page</a></li>
@@ -43,6 +43,19 @@
 % endif
 </%block>
 
+<%block name="navbar_js">
+<script type="text/javascript">
+$(document).ready(function(){
+    $("#add_button").click(function(event){
+        var page_to_add = $("#page_to_add").val();
+        if (page_to_add != ""){
+            window.location.href = "/"+page_to_add+"/add";
+        }
+        event.preventDefault();
+    });
+});
+</script>
+</%block>
 <%block name="content">
 ${html|n}
 

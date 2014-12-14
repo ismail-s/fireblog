@@ -45,5 +45,6 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
     <script src="https://login.persona.org/include.js" type="text/javascript"></script>
     <script type="text/javascript">${request.persona_js}</script>
+    <%block name = "navbar_js"/>
   </body>
 </html>
