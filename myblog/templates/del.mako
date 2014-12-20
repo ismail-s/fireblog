@@ -1,4 +1,4 @@
-<%inherit file="base.mako"/>
+<%inherit file="navbar.mako"/>
 
 <%block name="header">${title}</%block>
 
