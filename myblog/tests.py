@@ -1,7 +1,10 @@
 import transaction
 import pytest
 from sqlalchemy import create_engine
-import datetime, copy
+import webtest
+from webtest.app import AppError
+import requests
+import datetime, copy, re
 
 from pyramid import testing
 from pyramid.httpexceptions import HTTPNotFound
@@ -9,6 +12,12 @@ from pyramid.httpexceptions import HTTPNotFound
 from myblog.models import DBSession, Base, Post, Users
 import myblog.views as views
 from myblog import add_routes
+import myblog
+
+
+data = requests.get('http://personatestuser.org/email_with_assertion/http%3A%2F%2Flocalhost').json()
+email = data['email']
+assertion = data['assertion']
 
 @pytest.fixture
 def pyramid_req():
@@ -33,7 +42,10 @@ def mydb(request, scope='module'):
     with transaction.manager:
         me = Users(userid = 'id5489746@mockmyid.com',
                     group = 'g:admin')
+        him = Users(userid = email,
+                    group = 'g:admin')
         DBSession.add(me)
+        DBSession.add(him)
     def fin():
         DBSession.remove()
     request.addfinalizer(fin)
@@ -50,6 +62,15 @@ def pyramid_config(mydb, request):
         mydb.rollback()
     request.addfinalizer(fin)
     return config
+
+@pytest.fixture
+def testapp(mydb, scope = 'module'):
+        settings =  {'sqlalchemy.url': 'sqlite://',
+                    'persona.audiences': 'http://localhost',
+                    'persona.secret': 'some_secret'}
+        app = myblog.main({}, **settings)
+        testapp = webtest.TestApp(app)
+        return testapp
 
 
 class Test_home:
@@ -155,3 +176,75 @@ class Test_del_post:
         del pyramid_req.params['form.submitted']
         response = views.view_post(pyramid_req)
         assert type(response) == HTTPNotFound
+
+class Test_functional_tests:
+    def get_csrf_token(self, testapp):
+        res = testapp.get('http://localhost/')
+        return re.search(r"csrf_token: '(?P<token>[a-zA-Z0-9]+)'",
+                            str(res.html)).group('token')
+
+    def login(self, testapp):
+        csrf_token = self.get_csrf_token(testapp)
+        viewer_login = '/login?csrf_token={}'.format(csrf_token)
+        return testapp.post(viewer_login, dict(assertion=assertion,
+                                                came_from = '/'))
+
+    def logout(self, testapp):
+        csrf_token = self.get_csrf_token(testapp)
+        return testapp.post('/logout?csrf_token={}'.format(csrf_token),
+                            dict(came_from = '/'))
+
+    def test_homepage(self, testapp):
+        res = testapp.get('http://localhost/')
+        assert res.status == '200 OK'
+        assert '<h1>Page2</h1>' in str(res.html)
+        assert '<p>This is page 2</p>' in str(res.html)
+
+    def test_login(self, testapp, pyramid_req):
+        res = self.login(testapp)
+        assert res.status == '200 OK'
+
+        correct_res = {'success': True, 'redirect': '/'}
+        assert res.json == correct_res
+        self.logout(testapp)
+
+    def test_logout(self, testapp):
+        res = self.logout(testapp)
+        assert res.status == '200 OK'
+        assert res.json == {'redirect': '/'}
+
+    def test_can_access_edit_pages_after_logging_in(self, testapp):
+        self.login(testapp)
+        res = testapp.get('/Page2/edit')
+        assert res.status == '200 OK'
+        assert 'This is page 2' in str(res.html)
+        self.logout(testapp)
+
+    def test_can_access_del_pages_after_logging_in(self, testapp):
+        self.login(testapp)
+        res = testapp.get('/Page2/del')
+        assert res.status == '200 OK'
+        # TODO-add more checks over here maybe
+        self.logout(testapp)
+
+    def test_can_access_add_pages_after_logging_in(self, testapp):
+        self.login(testapp)
+        res = testapp.get('/some new page/add')
+        assert res.status == '200 OK'
+        assert 'some new page' in str(res.html)
+        self.logout(testapp)
+
+    def test_cant_access_edit_pages_without_logging_in(self, testapp):
+        with pytest.raises(AppError) as excinfo:
+            res = testapp.get('/Page2/edit')
+        assert '403 Forbidden' in str(excinfo.value)
+
+    def test_cant_access_del_pages_without_logging_in(self, testapp):
+        with pytest.raises(AppError) as excinfo:
+            res = testapp.get('/Page2/del')
+        assert '403 Forbidden' in str(excinfo.value)
+
+    def test_cant_access_add_pages_without_logging_in(self, testapp):
+        with pytest.raises(AppError) as excinfo:
+            res = testapp.get('/some random page/add')
+        assert '403 Forbidden' in str(excinfo.value)
