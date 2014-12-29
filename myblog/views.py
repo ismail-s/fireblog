@@ -117,7 +117,7 @@ def add_post(request):
 
     if 'form.submitted' in request.params:
         body = request.params['body']
-        html = markdown.markdown(body)
+        html = markdown.markdown(body, extensions = ['markdown.extensions.codehilite', 'markdown.extensions.fenced_code'])
         DBSession.add(Post(name = postname,
                         markdown = body,
                         html = html))
@@ -142,7 +142,7 @@ def edit_post(request):
                 one()
     if 'form.submitted' in request.params:
         post.markdown = request.params['body']
-        post.html = markdown.markdown(request.params['body'])
+        post.html = markdown.markdown(request.params['body'], extensions = ['markdown.extensions.codehilite', 'markdown.extensions.fenced_code'])
         DBSession.add(post)
         return HTTPFound(location = request.route_url('view_post',
                                                 postname = postname))

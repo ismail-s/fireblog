@@ -3,6 +3,21 @@
 <%block name="header">${title}</%block>
 
 <%block name="content">
+
+<%
+if 'class="codehilite"' in html:
+     from pygments.formatters import HtmlFormatter
+     extra_styles = HtmlFormatter.get_style_defs(HtmlFormatter())
+else:
+    extra_styles = None
+%>
+
+% if extra_styles:
+<style>
+${extra_styles}
+</style>
+% endif
+
 ${html|n}
 
 <ul class="pager">
