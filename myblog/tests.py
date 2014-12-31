@@ -4,6 +4,7 @@ from sqlalchemy import create_engine
 import webtest
 from webtest.app import AppError
 import requests
+import PyRSS2Gen
 import datetime, copy, re
 
 from pyramid import testing
@@ -176,6 +177,28 @@ class Test_del_post:
         del pyramid_req.params['form.submitted']
         response = views.view_post(pyramid_req)
         assert type(response) == HTTPNotFound
+
+class Test_rss:
+    # Basically, the lastBuildDate depends on when the render_rss_feed
+    # function is called. So, I've separated the output into 2 strings,
+    # omitting the lastBuildDate datetime. So everything else except
+    # that is checked.
+    rss_success_text_1 = \
+    '''<?xml version="1.0" encoding="iso-8859-1"?>\n<rss version="2.0"><channel><title''' +\
+    '''>Not the Answer</title><link>https://blog.ismail-s.com</link><description>A pers''' +\
+    '''onal blog about science, computers and life.</description><lastBuildDate>'''
+    rss_success_text_2 = '''</lastBuildDate><generator>PyRSS2Gen-1.1.0</generator><doc''' +\
+    '''s>http://blogs.law.harvard.edu/tech/rss</docs><item><title>Page2</title><link>ht''' +\
+    '''tp://example.com/Page2</link><description>&lt;p&gt;This is page 2&lt;/p&gt;</des''' +\
+    '''cription><pubDate>Wed, 01 Jan 2014 00:00:00 GMT</pubDate></item><item><title>Hom''' +\
+    '''epage</title><link>http://example.com/Homepage</link><description>&lt;p&gt;This''' +\
+    ''' is the front page&lt;/p&gt;</description><pubDate>Tue, 01 Jan 2013 00:00:00 GMT<''' +\
+    '''/pubDate></item></channel></rss>'''
+    def test_success(self, pyramid_config, pyramid_req):
+        response = views.render_rss_feed(pyramid_req)
+        assert self.rss_success_text_1 in response.text
+        assert self.rss_success_text_2 in response.text
+
 
 class Test_functional_tests:
     def get_csrf_token(self, testapp):
