@@ -19,7 +19,7 @@ ${extra_styles}
 % endif
 
 ${html|n}
-
+<p style="text-align: center"><small>Created ${post_date}</small></p>
 <ul class="pager">
 
 % if prev_page:

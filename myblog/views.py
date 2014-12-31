@@ -1,4 +1,5 @@
 import markdown
+import ago
 import PyRSS2Gen
 import datetime
 from pyramid.response import Response
@@ -104,6 +105,7 @@ def view_post(request):
             next = None
         return dict(title = page.name,
                     html = page.html,
+                    post_date = ago.human(page.created, precision = 1),
                     prev_page = previous,
                     next_page = next)
     return HTTPNotFound('no such page exists')
