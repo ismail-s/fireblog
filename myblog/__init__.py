@@ -3,7 +3,7 @@ from sqlalchemy import engine_from_config
 from sqlalchemy.orm.exc import NoResultFound
 from pyramid.security import Allow, ALL_PERMISSIONS
 from pyramid.authentication import AuthTktAuthenticationPolicy
-from .models import (
+from myblog.models import (
     DBSession,
     Base,
     Users
