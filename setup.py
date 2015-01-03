@@ -19,7 +19,8 @@ requires = [
     'zope.sqlalchemy',
     'waitress',
     'markdown',
-    'ago'
+    'ago',
+    'shortuuid'
     ]
 
 setup(name='myblog',
