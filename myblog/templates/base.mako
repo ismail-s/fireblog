@@ -35,6 +35,7 @@
     <div class="container">
         <h1><%block name = "header"/></h1>
         <%block name = "content"/>
+        <footer><a href = "${request.route_url('rss')}">rss</a></footer>
     </div><!-- /.container -->
 
 
