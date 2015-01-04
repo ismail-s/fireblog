@@ -281,6 +281,12 @@ class Test_functional_tests:
         assert '<h1>Page2</h1>' in str(res.html)
         assert '<p>This is page 2</p>' in str(res.html)
 
+    def test_get_page(self, testapp):
+        res = testapp.get('http://localhost/Page2')
+        assert res.status == '200 OK'
+        assert '<h1>Page2</h1>' in str(res.html)
+        assert '<p>This is page 2</p>' in str(res.html)
+
     def test_login(self, testapp, pyramid_req):
         res = self.login(testapp)
         assert res.status == '200 OK'
@@ -329,3 +335,41 @@ class Test_functional_tests:
         with pytest.raises(AppError) as excinfo:
             res = testapp.get('/some random page/add')
         assert '403 Forbidden' in str(excinfo.value)
+
+    def test_crud(self, testapp):
+        """Testing all CRUD operations in one big test."""
+        self.login(testapp)
+
+        # 1. Create a post
+        res = testapp.get('/some new page/add')
+        form = res.forms["edit-post"]
+        form["body"] = 'This is a test body.'
+        res = form.submit('form.submitted')
+
+        # 2. Read the post
+        res = testapp.get('/some new page')
+        assert res.status == '200 OK'
+        assert '<h1>some new page</h1>' in str(res.html)
+        assert '<p>This is a test body.</p>' in str(res.html)
+
+        # 3. Edit the post
+        res = res.click(href = r'.*/edit')
+        form = res.forms["edit-post"]
+        form["body"] = 'This is a brand new test body.'
+        res = form.submit('form.submitted')
+
+        # 4. Test the post has been updated
+        res = testapp.get('/some new page')
+        assert res.status == '200 OK'
+        assert '<h1>some new page</h1>' in str(res.html)
+        assert '<p>This is a brand new test body.</p>' in str(res.html)
+
+        # 5. Delete the post
+        res = res.click(href = r'.*/del')
+        form = res.forms["del-post"]
+        res = form.submit('form.submitted')
+
+        # 6. Test we get a 404 on trying to read the post
+        with pytest.raises(AppError) as excinfo:
+            res = testapp.get('/some new page')
+        assert '404 Not Found' in str(excinfo.value)

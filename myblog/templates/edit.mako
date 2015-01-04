@@ -3,7 +3,7 @@
 <%block name="header">${title}</%block>
 
 <%block name="content">
-<form action = "${save_url}" method = "post">
+<form id = "edit-post" action = "${save_url}" method = "post">
     <div class="form-group">
         <textarea name = "body" autofocus = "true"
                 cols = "80" rows = "10"
