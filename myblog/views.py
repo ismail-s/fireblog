@@ -16,7 +16,7 @@ from myblog.models import (
     )
 
 
-LENGTH_OF_EACH_POST_TO_INCLUDE_IN_ALL_POST_VIEW = 200
+LENGTH_OF_EACH_POST_TO_INCLUDE_IN_ALL_POST_VIEW = 1000
 
 @view_config(route_name = 'rss')
 def render_rss_feed(request):
