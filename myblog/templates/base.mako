@@ -11,12 +11,12 @@
     <title>Not the answer--a blog</title>
 
     <!-- Latest compiled and minified CSS -->
-    <!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.css">-->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
 
     <!-- Custom styles for this template -->
     <style>
         <%include file="myblog:static/custom-theme.css"/>
-        <%include file="myblog:static/bootstrap-cleaned.css"/>
+        ## <%include file="myblog:static/bootstrap-cleaned.css"/>
     </style>
 
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
