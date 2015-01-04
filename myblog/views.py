@@ -160,6 +160,7 @@ def edit_post(request):
 @view_config(route_name = 'del_post', renderer = 'templates/del.mako',
             permission = 'del')
 def del_post(request):
+    # TODO-maybe don't allow deletion of a post if it is the only one.
     postname = request.matchdict['postname']
     if not DBSession.query(Post).\
                     filter_by(name = postname).count() == 1:
