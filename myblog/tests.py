@@ -84,6 +84,17 @@ class Test_home:
 
 
 class Test_add_post:
+    @staticmethod
+    def submit_add_post(request, postname, body):
+        request.matchdict['postname'] = postname
+        request.params['form.submitted'] = True
+        request.params['body'] = body
+        res = views.add_post(request)
+        del request.params['body']
+        del request.params['form.submitted']
+        del request.matchdict['postname']
+        return res
+
     def test_GET_success(self, pyramid_config, pyramid_req):
         pyramid_req.matchdict['postname'] = 'somenewpage'
         response = views.add_post(pyramid_req)
@@ -97,14 +108,12 @@ class Test_add_post:
         assert response.location == 'http://example.com/Homepage/edit'
 
     def test_POST_success(self, pyramid_config, pyramid_req):
-        pyramid_req.matchdict['postname'] = 'somenewpage'
-        pyramid_req.params['form.submitted'] = True
-        pyramid_req.params['body'] = 'Some test body.'
-        response = views.add_post(pyramid_req)
+        postname = 'somenewpage'
+        response = self.submit_add_post(pyramid_req, postname = postname,
+                                        body = 'Some test body.')
         assert response.location == 'http://example.com/somenewpage'
 
-        del pyramid_req.params['body']
-        del pyramid_req.params['form.submitted']
+        pyramid_req.matchdict['postname'] = postname
         response = views.view_post(pyramid_req)
         assert response['title'] == 'somenewpage'
         assert response['prev_page'] == 'http://example.com/Page2'
@@ -125,6 +134,41 @@ class Test_view_post:
         pyramid_req.matchdict['postname'] = 'nonexisting page'
         response = views.view_post(pyramid_req)
         assert type(response) == HTTPNotFound
+
+
+class Test_view_all_posts:
+    def test_success(self, pyramid_config, pyramid_req):
+        response = views.view_all_posts(pyramid_req)
+        assert response["code_styles"] == False
+        posts = response["posts"]
+
+        actual_posts = [("Homepage", "<p>This is the front page</p>"),
+                        ("Page2", "<p>This is page 2</p>")]
+        post_names = [x[0] for x in actual_posts]
+
+        for post in posts:
+            assert post["name"] in post_names
+            i = post_names.index(post["name"])
+            actual_post = actual_posts[i]
+            assert actual_post[1] in post["html"]
+            # TODO-check that long posts are truncated correctly
+
+    def test_success_with_pygments_code_css_included(self,
+                                                    pyramid_config,
+                                                    pyramid_req):
+        post_body = '''some test body
+
+```
+#!python
+def test(dfgv):
+    pass
+```
+
+that is all.'''
+        Test_add_post.submit_add_post(pyramid_req, postname = 'tdghdht',
+                                    body = post_body)
+        response = views.view_all_posts(pyramid_req)
+        assert response["code_styles"] == True
 
 
 class Test_edit_post:
@@ -177,6 +221,7 @@ class Test_del_post:
         del pyramid_req.params['form.submitted']
         response = views.view_post(pyramid_req)
         assert type(response) == HTTPNotFound
+
 
 class Test_rss:
     # Basically, the lastBuildDate depends on when the render_rss_feed
