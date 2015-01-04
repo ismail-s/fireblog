@@ -1,0 +1,4 @@
+[run]
+omit =
+    myblog/tests.py
+    myblog/scripts/*
