@@ -12,7 +12,7 @@ from pyramid.httpexceptions import HTTPNotFound
 
 from myblog.models import DBSession, Base, Post, Users
 import myblog.views as views
-from myblog import add_routes
+from myblog import add_routes, groupfinder
 import myblog
 
 
@@ -198,6 +198,19 @@ class Test_rss:
         response = views.render_rss_feed(pyramid_req)
         assert self.rss_success_text_1 in response.text
         assert self.rss_success_text_2 in response.text
+
+
+class Test_groupfinder:
+    @pytest.mark.parametrize('email_address',[
+        'id5489746@mockmyid.com',
+        email])
+    def test_success(self, email_address, pyramid_config, pyramid_req):
+        res = groupfinder(email_address, pyramid_req)
+        assert res == ['g:admin']
+
+    def test_failure(self, pyramid_config, pyramid_req):
+        res = groupfinder('some_fake_address@example.com', pyramid_req)
+        assert res == None
 
 
 class Test_functional_tests:
