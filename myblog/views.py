@@ -16,6 +16,7 @@ from myblog.models import (
     )
 
 
+LENGTH_OF_EACH_POST_TO_INCLUDE_IN_ALL_POST_VIEW = 200
 
 @view_config(route_name = 'rss')
 def render_rss_feed(request):
@@ -83,6 +84,28 @@ def view_post(request):
                     prev_page = previous,
                     next_page = next)
     return HTTPNotFound('no such page exists')
+
+@view_config(route_name = 'view_all_posts',
+            renderer = 'templates/all_posts.mako')
+def view_all_posts(request):
+    # I use "l" here. The variable is only used once below anyways.
+    l = LENGTH_OF_EACH_POST_TO_INCLUDE_IN_ALL_POST_VIEW
+
+    posts = DBSession.query(Post).order_by(desc(Post.created)).all()
+    # TODO-log a critical error here maybe if all posts are deleted
+    res = []
+    code_styles = False  # Is true if we need to include pygments css
+    # in the page
+    for post in posts:
+        to_append = {}
+        to_append["name"] = post.name
+        to_append["html"] = to_markdown(post.markdown[:l] + '\n\n...')
+        res.append(to_append)
+        if not code_styles and 'class="codehilite"' in post.html:
+            code_styles = True
+
+    return dict(posts = res,
+                code_styles = code_styles)
 
 @view_config(route_name = 'add_post', renderer = 'templates/edit.mako',
             permission = 'add')

@@ -1,7 +1,15 @@
 body {
   padding: 60px 15px;
-  text-align: left;
 }
+
+.post {
+    text-align: left;
+}
+
+.all-posts-header {
+    text-align: center;
+}
+
 h1 {
   text-align: center;
 }

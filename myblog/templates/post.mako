@@ -18,13 +18,17 @@ ${extra_styles}
 </style>
 % endif
 
+<div class = "post">
 ${html|n}
+</div>
 <p style="text-align: center"><small>Created ${post_date}</small></p>
 <ul class="pager">
 
 % if prev_page:
   <li><a href="${prev_page}">Older</a></li>
 % endif
+
+<li><a href="${request.route_url('view_all_posts')}">All Posts</a></li>
 
 % if next_page:
   <li><a href="${next_page}">Newer</a></li>
