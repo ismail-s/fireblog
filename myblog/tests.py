@@ -100,12 +100,12 @@ class Test_add_post:
         response = views.add_post(pyramid_req)
         assert 'somenewpage' in response['title']
         assert response['post_text'] == ''
-        assert response['save_url'] == 'http://example.com/somenewpage/add'
+        assert response['save_url'] == 'http://example.com/posts/somenewpage/add'
 
     def test_GET_failure(self, pyramid_config, pyramid_req):
         pyramid_req.matchdict['postname'] = 'Homepage'
         response = views.add_post(pyramid_req)
-        assert response.location == 'http://example.com/Homepage/edit'
+        assert response.location == 'http://example.com/posts/Homepage/edit'
 
     def test_POST_success(self, pyramid_config, pyramid_req):
         postname = 'somenewpage'
@@ -116,7 +116,7 @@ class Test_add_post:
         pyramid_req.matchdict['postname'] = postname
         response = views.view_post(pyramid_req)
         assert response['title'] == 'somenewpage'
-        assert response['prev_page'] == 'http://example.com/Page2'
+        assert response['prev_page'] == 'http://example.com/posts/Page2'
         assert response['next_page'] == None
         assert response['html'] == '<p>Some test body.</p>'
 
@@ -127,7 +127,7 @@ class Test_view_post:
         response = views.view_post(pyramid_req)
         assert response['title'] == 'Homepage'
         assert response['prev_page'] == None
-        assert response['next_page'] == 'http://example.com/Page2'
+        assert response['next_page'] == 'http://example.com/posts/Page2'
         assert response['html'] == '<p>This is the front page</p>'
 
     def test_failure(self, pyramid_config, pyramid_req):
@@ -177,7 +177,7 @@ class Test_edit_post:
         response = views.edit_post(pyramid_req)
         assert 'Homepage' in response['title']
         assert response['post_text'] == 'This is the front page'
-        assert response['save_url'] == 'http://example.com/Homepage/edit'
+        assert response['save_url'] == 'http://example.com/posts/Homepage/edit'
 
     def test_GET_failure(self, pyramid_config, pyramid_req):
         pyramid_req.matchdict['postname'] = 'nonexisting page'
@@ -189,14 +189,14 @@ class Test_edit_post:
         pyramid_req.params['form.submitted'] = True
         pyramid_req.params['body'] = 'Some test body.'
         response = views.edit_post(pyramid_req)
-        assert response.location == 'http://example.com/Homepage'
+        assert response.location == 'http://example.com/posts/Homepage'
 
         del pyramid_req.params['body']
         del pyramid_req.params['form.submitted']
         response = views.view_post(pyramid_req)
         assert response['title'] == 'Homepage'
         assert response['prev_page'] == None
-        assert response['next_page'] == 'http://example.com/Page2'
+        assert response['next_page'] == 'http://example.com/posts/Page2'
         assert response['html'] == '<p>Some test body.</p>'
 
 
@@ -205,7 +205,7 @@ class Test_del_post:
         pyramid_req.matchdict['postname'] = 'Homepage'
         response = views.del_post(pyramid_req)
         assert 'Homepage' in response['title']
-        assert response['save_url'] == 'http://example.com/Homepage/del'
+        assert response['save_url'] == 'http://example.com/posts/Homepage/del'
 
     def test_GET_failure(self, pyramid_config, pyramid_req):
         pyramid_req.matchdict['postname'] = 'nonexisting page'
@@ -234,9 +234,9 @@ class Test_rss:
     '''onal blog about science, computers and life.</description><lastBuildDate>'''
     rss_success_text_2 = '''</lastBuildDate><generator>PyRSS2Gen-1.1.0</generator><doc''' +\
     '''s>http://blogs.law.harvard.edu/tech/rss</docs><item><title>Page2</title><link>ht''' +\
-    '''tp://example.com/Page2</link><description>&lt;p&gt;This is page 2&lt;/p&gt;</des''' +\
+    '''tp://example.com/posts/Page2</link><description>&lt;p&gt;This is page 2&lt;/p&gt;</des''' +\
     '''cription><pubDate>Wed, 01 Jan 2014 00:00:00 GMT</pubDate></item><item><title>Hom''' +\
-    '''epage</title><link>http://example.com/Homepage</link><description>&lt;p&gt;This''' +\
+    '''epage</title><link>http://example.com/posts/Homepage</link><description>&lt;p&gt;This''' +\
     ''' is the front page&lt;/p&gt;</description><pubDate>Tue, 01 Jan 2013 00:00:00 GMT<''' +\
     '''/pubDate></item></channel></rss>'''
     def test_success(self, pyramid_config, pyramid_req):
@@ -282,7 +282,7 @@ class Test_functional_tests:
         assert '<p>This is page 2</p>' in str(res.html)
 
     def test_get_page(self, testapp):
-        res = testapp.get('http://localhost/Page2')
+        res = testapp.get('http://localhost/posts/Page2')
         assert res.status == '200 OK'
         assert '<h1>Page2</h1>' in str(res.html)
         assert '<p>This is page 2</p>' in str(res.html)
@@ -302,38 +302,38 @@ class Test_functional_tests:
 
     def test_can_access_edit_pages_after_logging_in(self, testapp):
         self.login(testapp)
-        res = testapp.get('/Page2/edit')
+        res = testapp.get('/posts/Page2/edit')
         assert res.status == '200 OK'
         assert 'This is page 2' in str(res.html)
         self.logout(testapp)
 
     def test_can_access_del_pages_after_logging_in(self, testapp):
         self.login(testapp)
-        res = testapp.get('/Page2/del')
+        res = testapp.get('/posts/Page2/del')
         assert res.status == '200 OK'
         # TODO-add more checks over here maybe
         self.logout(testapp)
 
     def test_can_access_add_pages_after_logging_in(self, testapp):
         self.login(testapp)
-        res = testapp.get('/some new page/add')
+        res = testapp.get('/posts/some new page/add')
         assert res.status == '200 OK'
         assert 'some new page' in str(res.html)
         self.logout(testapp)
 
     def test_cant_access_edit_pages_without_logging_in(self, testapp):
         with pytest.raises(AppError) as excinfo:
-            res = testapp.get('/Page2/edit')
+            res = testapp.get('/posts/Page2/edit')
         assert '403 Forbidden' in str(excinfo.value)
 
     def test_cant_access_del_pages_without_logging_in(self, testapp):
         with pytest.raises(AppError) as excinfo:
-            res = testapp.get('/Page2/del')
+            res = testapp.get('/posts/Page2/del')
         assert '403 Forbidden' in str(excinfo.value)
 
     def test_cant_access_add_pages_without_logging_in(self, testapp):
         with pytest.raises(AppError) as excinfo:
-            res = testapp.get('/some random page/add')
+            res = testapp.get('/posts/some random page/add')
         assert '403 Forbidden' in str(excinfo.value)
 
     def test_crud(self, testapp):
@@ -341,13 +341,13 @@ class Test_functional_tests:
         self.login(testapp)
 
         # 1. Create a post
-        res = testapp.get('/some new page/add')
+        res = testapp.get('/posts/some new page/add')
         form = res.forms["edit-post"]
         form["body"] = 'This is a test body.'
         res = form.submit('form.submitted')
 
         # 2. Read the post
-        res = testapp.get('/some new page')
+        res = testapp.get('/posts/some new page')
         assert res.status == '200 OK'
         assert '<h1>some new page</h1>' in str(res.html)
         assert '<p>This is a test body.</p>' in str(res.html)
@@ -359,7 +359,7 @@ class Test_functional_tests:
         res = form.submit('form.submitted')
 
         # 4. Test the post has been updated
-        res = testapp.get('/some new page')
+        res = testapp.get('/posts/some new page')
         assert res.status == '200 OK'
         assert '<h1>some new page</h1>' in str(res.html)
         assert '<p>This is a brand new test body.</p>' in str(res.html)
@@ -371,5 +371,5 @@ class Test_functional_tests:
 
         # 6. Test we get a 404 on trying to read the post
         with pytest.raises(AppError) as excinfo:
-            res = testapp.get('/some new page')
+            res = testapp.get('/posts/some new page')
         assert '404 Not Found' in str(excinfo.value)
