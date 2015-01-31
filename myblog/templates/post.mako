@@ -21,7 +21,11 @@ ${extra_styles}
 <div class = "post">
 ${html|n}
 </div>
-<p style="text-align: center"><small>Created ${post_date}</small></p>
+<p style="text-align: center"><small>Created ${post_date}.
+% if tags:
+Tags: ${tags}
+% endif
+</small></p>
 <ul class="pager">
 
 % if prev_page:

@@ -30,6 +30,7 @@ def mydb(request, scope='module'):
     DBSession.configure(bind=engine)
     Base.metadata.create_all(engine)
     with transaction.manager:
+        # TODO-add tags to this test data. Some tests may also need updating.
         post = Post(name='Homepage',
                     markdown='This is the front page',
                     html = '<p>This is the front page</p>',
@@ -78,17 +79,18 @@ class Test_home:
     def test_success(self, pyramid_config, pyramid_req):
         response = views.home(pyramid_req)
         assert 'Page2' in response['title']
-        assert response['prev_page'] == 'http://example.com/Homepage'
+        assert response['prev_page'] == 'http://example.com/posts/Homepage'
         assert response['next_page'] == None
         assert response['html'] == '<p>This is page 2</p>'
 
 
 class Test_add_post:
     @staticmethod
-    def submit_add_post(request, postname, body):
+    def submit_add_post(request, postname, body, tags):
         request.matchdict['postname'] = postname
         request.params['form.submitted'] = True
         request.params['body'] = body
+        request.params['tags'] = tags
         res = views.add_post(request)
         del request.params['body']
         del request.params['form.submitted']
@@ -110,8 +112,9 @@ class Test_add_post:
     def test_POST_success(self, pyramid_config, pyramid_req):
         postname = 'somenewpage'
         response = self.submit_add_post(pyramid_req, postname = postname,
-                                        body = 'Some test body.')
-        assert response.location == 'http://example.com/somenewpage'
+                                        body = 'Some test body.',
+                                        tags = 'tag2, tag1, tag2, ')
+        assert response.location == 'http://example.com/posts/somenewpage'
 
         pyramid_req.matchdict['postname'] = postname
         response = views.view_post(pyramid_req)
@@ -119,6 +122,7 @@ class Test_add_post:
         assert response['prev_page'] == 'http://example.com/posts/Page2'
         assert response['next_page'] == None
         assert response['html'] == '<p>Some test body.</p>'
+        assert response['tags'] == 'tag1, tag2'
 
 
 class Test_view_post:
@@ -166,7 +170,7 @@ def test(dfgv):
 
 that is all.'''
         Test_add_post.submit_add_post(pyramid_req, postname = 'tdghdht',
-                                    body = post_body)
+                                    body = post_body,tags='')
         response = views.view_all_posts(pyramid_req)
         assert response["code_styles"] == True
 
@@ -188,6 +192,7 @@ class Test_edit_post:
         pyramid_req.matchdict['postname'] = 'Homepage'
         pyramid_req.params['form.submitted'] = True
         pyramid_req.params['body'] = 'Some test body.'
+        pyramid_req.params['tags'] = 'test2, test1, test1'
         response = views.edit_post(pyramid_req)
         assert response.location == 'http://example.com/posts/Homepage'
 
@@ -198,6 +203,7 @@ class Test_edit_post:
         assert response['prev_page'] == None
         assert response['next_page'] == 'http://example.com/posts/Page2'
         assert response['html'] == '<p>Some test body.</p>'
+        assert response['tags'] == 'test1, test2'
 
 
 class Test_del_post:
@@ -344,6 +350,7 @@ class Test_functional_tests:
         res = testapp.get('/posts/some new page/add')
         form = res.forms["edit-post"]
         form["body"] = 'This is a test body.'
+        form["tags"] = 'test2, test1, test1'
         res = form.submit('form.submitted')
 
         # 2. Read the post
@@ -351,11 +358,14 @@ class Test_functional_tests:
         assert res.status == '200 OK'
         assert '<h1>some new page</h1>' in str(res.html)
         assert '<p>This is a test body.</p>' in str(res.html)
+        assert 'test1, test2' in str(res.html)
 
         # 3. Edit the post
         res = res.click(href = r'.*/edit')
         form = res.forms["edit-post"]
         form["body"] = 'This is a brand new test body.'
+        assert form["tags"].value == 'test1, test2'
+        form["tags"] = 'test2, test3'
         res = form.submit('form.submitted')
 
         # 4. Test the post has been updated
@@ -363,6 +373,7 @@ class Test_functional_tests:
         assert res.status == '200 OK'
         assert '<h1>some new page</h1>' in str(res.html)
         assert '<p>This is a brand new test body.</p>' in str(res.html)
+        assert 'test2, test3' in str(res.html)
 
         # 5. Delete the post
         res = res.click(href = r'.*/del')

@@ -1,4 +1,4 @@
-from myblog.utils import to_markdown
+import myblog.utils as utils
 import ago
 import PyRSS2Gen
 import datetime
@@ -13,6 +13,7 @@ from sqlalchemy import desc
 from myblog.models import (
     DBSession,
     Post,
+    Tags,
     )
 
 
@@ -61,29 +62,33 @@ def home(request):
 def view_post(request):
     postname = request.matchdict['postname']
     page = DBSession.query(Post).filter_by(name = postname).first()
-    if page:
-        previous = DBSession.query(Post).\
-                filter(Post.created < page.created).\
-                order_by(desc(Post.created)).first()
-        next = DBSession.query(Post).\
-                filter(Post.created > page.created).\
-                order_by(Post.created).first()
+    if not page:
+        return HTTPNotFound('no such page exists')
+    previous = DBSession.query(Post).\
+            filter(Post.created < page.created).\
+            order_by(desc(Post.created)).first()
+    next = DBSession.query(Post).\
+            filter(Post.created > page.created).\
+            order_by(Post.created).first()
 
-        if previous:
-            previous = request.route_url('view_post',
-                                        postname = previous.name)
-        else:
-            previous = None
-        if next:
-            next = request.route_url('view_post', postname = next.name)
-        else:
-            next = None
-        return dict(title = page.name,
-                    html = page.html,
-                    post_date = ago.human(page.created, precision = 1),
-                    prev_page = previous,
-                    next_page = next)
-    return HTTPNotFound('no such page exists')
+    if previous:
+        previous = request.route_url('view_post',
+                                    postname = previous.name)
+    else:
+        previous = None
+    if next:
+        next = request.route_url('view_post', postname = next.name)
+    else:
+        next = None
+
+    # Get tags and make them into a string
+    tags = utils.turn_tag_object_into_string_for_forms(page.tags)
+    return dict(title = page.name,
+                html = page.html,
+                tags = tags,
+                post_date = ago.human(page.created, precision = 1),
+                prev_page = previous,
+                next_page = next)
 
 @view_config(route_name = 'view_all_posts',
             renderer = 'templates/all_posts.mako')
@@ -99,7 +104,7 @@ def view_all_posts(request):
     for post in posts:
         to_append = {}
         to_append["name"] = post.name
-        to_append["html"] = to_markdown(post.markdown[:l] + '\n\n...')
+        to_append["html"] = utils.to_markdown(post.markdown[:l] + '\n\n...')
         res.append(to_append)
         if not code_styles and 'class="codehilite"' in post.html:
             code_styles = True
@@ -116,11 +121,13 @@ def add_post(request):
                                                 postname = postname))
 
     if 'form.submitted' in request.params:
-        body = request.params['body']
-        html = to_markdown(body)
-        DBSession.add(Post(name = postname,
-                        markdown = body,
-                        html = html))
+        post = Post()
+        post.name = postname
+        post.markdown = request.params['body']
+        post.html = utils.to_markdown(post.markdown)
+        tags = request.params['tags']
+        utils.append_tags_from_string_to_tag_object(tags, post.tags)
+        DBSession.add(post)
         return HTTPFound(location = request.route_url('view_post',
                                                 postname = postname))
 
@@ -128,7 +135,8 @@ def add_post(request):
     # We can then feed the save url into the template for the form
     return dict(title = 'Adding page: ' + postname,
                 save_url = save_url,
-                post_text = '')
+                post_text = '',
+                tags = '')
 
 @view_config(route_name = 'edit_post', renderer = 'templates/edit.mako',
             permission = 'edit')
@@ -143,18 +151,21 @@ def edit_post(request):
                 one()
     if 'form.submitted' in request.params:
         post.markdown = request.params['body']
-        post.html = to_markdown(request.params['body'])
+        post.html = utils.to_markdown(request.params['body'])
+        tags = request.params['tags']
+        utils.append_tags_from_string_to_tag_object(tags, post.tags)
         DBSession.add(post)
         return HTTPFound(location = request.route_url('view_post',
                                                 postname = postname))
 
     save_url = request.route_url('edit_post', postname = postname)
-    post_text = DBSession.query(Post).\
-                filter_by(name = postname).\
-                one().markdown
+    post_text = post.markdown
+
+    tags = utils.turn_tag_object_into_string_for_forms(post.tags)
 
     return dict(title = 'Editing page: ' + postname,
                 post_text = post_text,
+                tags = tags,  # To be modified in a bit
                 save_url = save_url)
 
 @view_config(route_name = 'del_post', renderer = 'templates/del.mako',
