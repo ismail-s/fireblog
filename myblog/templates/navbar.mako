@@ -48,7 +48,7 @@ $(document).ready(function(){
     $("#add_button").click(function(event){
         var page_to_add = $("#page_to_add").val();
         if (page_to_add != ""){
-            window.location.href = "/"+page_to_add+"/add";
+            window.location.href = "/posts/"+page_to_add+"/add";
         }
         event.preventDefault();
     });

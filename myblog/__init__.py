@@ -29,15 +29,17 @@ class Root(object):
         self.request = request
 
 def add_routes(config):
+    POST_URL_PREFIX = 'posts'   # TODO-move this to config file and
+    # Make sure the navbar template also gets it from this config file.
     config.add_static_view('static', 'static', cache_max_age=3600)
     config.add_route('home', '/')
     config.add_route('rss', '/rss')
     config.add_route('view_all_posts', '/all_posts')
-    config.add_route('view_post', '/{postname}')
-    config.add_route('add_post', '/{postname}/add')
-    config.add_route('edit_post', '/{postname}/edit')
-    config.add_route('del_post', '/{postname}/del')
 
+    config.add_route('view_post', '/' + POST_URL_PREFIX + '/{postname}')
+    config.add_route('add_post', '/' + POST_URL_PREFIX + '/{postname}/add')
+    config.add_route('edit_post', '/' + POST_URL_PREFIX + '/{postname}/edit')
+    config.add_route('del_post', '/' + POST_URL_PREFIX + '/{postname}/del')
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
