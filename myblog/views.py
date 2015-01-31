@@ -29,10 +29,14 @@ def render_rss_feed(request):
         description = post.html
         #guid = PyRSS2Gen.Guid('')
         pub_date = post.created
+        categories = []
+        for tag in post.tags:
+            categories.append(tag.tag)
 
         item = PyRSS2Gen.RSSItem(title = title,
                     link= link, description= description,
                     #guid= guid,
+                    categories = categories,
                     pubDate = pub_date)
 
         items.append(item)
