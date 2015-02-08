@@ -122,7 +122,8 @@ class Test_add_post:
         assert response['prev_page'] == 'http://example.com/posts/Page2'
         assert response['next_page'] == None
         assert response['html'] == '<p>Some test body.</p>'
-        assert response['tags'] == 'tag1, tag2'
+        assert 'tag1' in response['tags']
+        assert 'tag2' in response['tags']
 
 
 class Test_view_post:
@@ -203,7 +204,8 @@ class Test_edit_post:
         assert response['prev_page'] == None
         assert response['next_page'] == 'http://example.com/posts/Page2'
         assert response['html'] == '<p>Some test body.</p>'
-        assert response['tags'] == 'test1, test2'
+        assert 'test1' in response['tags']
+        assert 'test2' in response['tags']
 
 
 class Test_del_post:
@@ -358,7 +360,10 @@ class Test_functional_tests:
         assert res.status == '200 OK'
         assert '<h1>some new page</h1>' in str(res.html)
         assert '<p>This is a test body.</p>' in str(res.html)
-        assert 'test1, test2' in str(res.html)
+        assert 'test1' in str(res.html)
+        assert 'test2' in str(res.html)
+        assert '/tags/test1' in str(res.html)
+        assert '/tags/test2' in str(res.html)
 
         # 3. Edit the post
         res = res.click(href = r'.*/edit')
@@ -373,7 +378,10 @@ class Test_functional_tests:
         assert res.status == '200 OK'
         assert '<h1>some new page</h1>' in str(res.html)
         assert '<p>This is a brand new test body.</p>' in str(res.html)
-        assert 'test2, test3' in str(res.html)
+        assert 'test2' in str(res.html)
+        assert 'test3' in str(res.html)
+        assert '/tags/test2' in str(res.html)
+        assert '/tags/test3' in str(res.html)
 
         # 5. Delete the post
         res = res.click(href = r'.*/del')
