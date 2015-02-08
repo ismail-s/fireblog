@@ -1,6 +1,6 @@
 <%inherit file="navbar.mako"/>
 
-<%block name="header">All posts</%block>
+<%block name="header">${title}</%block>
 
 <%block name="content">
 
@@ -23,7 +23,7 @@ ${extra_styles}
     <div class = "panel-heading all-posts-header">
     <a href = "${request.route_url('view_post', postname = post["name"])}">
         <h2>
-                ${post["name"]}
+                ${post["name"]} <small>Created ${post["date"]}</small>
         </h2>
     </a>
     </div>
@@ -33,7 +33,5 @@ ${extra_styles}
 </div>
 </a>
 % endfor
-
-</ul>
 
 </%block>

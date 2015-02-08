@@ -1,5 +1,8 @@
 from markdown import markdown
+import ago
 from myblog.models import DBSession, Tags
+
+LENGTH_OF_EACH_POST_TO_INCLUDE_IN_ALL_POST_VIEW = 1000
 
 def to_markdown(input_text):
     '''Basic wrapper around the markdown library.
@@ -49,3 +52,18 @@ def turn_tag_object_into_string_for_forms(tag_object):
     tags.sort()
     tags = ', '.join(tags)
     return tags
+
+def create_post_list_from_posts_obj(post_obj):
+    l = LENGTH_OF_EACH_POST_TO_INCLUDE_IN_ALL_POST_VIEW
+    res = []
+    code_styles = False  # Is true if we need to include pygments css
+    # in the page
+    for post in post_obj:
+        to_append = {}
+        to_append["name"] = post.name
+        to_append["html"] = to_markdown(post.markdown[:l] + '\n\n...')
+        to_append["date"] = ago.human(post.created, precision = 1)
+        res.append(to_append)
+        if not code_styles and 'class="codehilite"' in post.html:
+            code_styles = True
+    return res, code_styles

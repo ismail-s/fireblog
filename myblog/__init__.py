@@ -40,6 +40,8 @@ def add_routes(config):
     config.add_route('add_post', '/' + POST_URL_PREFIX + '/{postname}/add')
     config.add_route('edit_post', '/' + POST_URL_PREFIX + '/{postname}/edit')
     config.add_route('del_post', '/' + POST_URL_PREFIX + '/{postname}/del')
+
+    config.add_route('tag_view', '/tags/{tag_name}')
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """

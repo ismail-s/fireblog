@@ -1,3 +1,4 @@
+from operator import  itemgetter
 import myblog.utils as utils
 import ago
 import PyRSS2Gen
@@ -9,6 +10,7 @@ from pyramid.httpexceptions import (
     HTTPNotFound,
     )
 from sqlalchemy.exc import DBAPIError
+from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy import desc
 from myblog.models import (
     DBSession,
@@ -16,8 +18,6 @@ from myblog.models import (
     Tags,
     )
 
-
-LENGTH_OF_EACH_POST_TO_INCLUDE_IN_ALL_POST_VIEW = 1000
 
 @view_config(route_name = 'rss')
 def render_rss_feed(request):
@@ -95,25 +95,15 @@ def view_post(request):
                 next_page = next)
 
 @view_config(route_name = 'view_all_posts',
-            renderer = 'templates/all_posts.mako')
+            renderer = 'templates/multiple_posts.mako')
 def view_all_posts(request):
-    # I use "l" here. The variable is only used once below anyways.
-    l = LENGTH_OF_EACH_POST_TO_INCLUDE_IN_ALL_POST_VIEW
 
     posts = DBSession.query(Post).order_by(desc(Post.created)).all()
     # TODO-log a critical error here maybe if all posts are deleted
-    res = []
-    code_styles = False  # Is true if we need to include pygments css
-    # in the page
-    for post in posts:
-        to_append = {}
-        to_append["name"] = post.name
-        to_append["html"] = utils.to_markdown(post.markdown[:l] + '\n\n...')
-        res.append(to_append)
-        if not code_styles and 'class="codehilite"' in post.html:
-            code_styles = True
+    res, code_styles = utils.create_post_list_from_posts_obj(posts)
 
-    return dict(posts = res,
+    return dict(title = 'All posts',
+                posts = res,
                 code_styles = code_styles)
 
 @view_config(route_name = 'add_post', renderer = 'templates/edit.mako',
@@ -188,3 +178,18 @@ def del_post(request):
     save_url = request.route_url('del_post', postname = postname)
     return dict(title = "Deleting post: " + postname,
                 save_url = save_url)
+
+@view_config(route_name = 'tag_view', renderer = 'templates/multiple_posts.mako')
+def tag_view(request):
+    tag = request.matchdict['tag_name']
+    try:
+        tag_obj = DBSession.query(Tags).filter_by(tag = tag).one()
+    except NoResultFound:
+        return HTTPNotFound('no such tag exists.')
+
+    posts, code_styles = utils.create_post_list_from_posts_obj(tag_obj.posts)
+    posts = sorted(posts, key = itemgetter("date"), reverse = True)
+
+    return dict(title = 'Posts tagged with {}'.format(tag),
+                posts = posts,
+                code_styles = code_styles)
