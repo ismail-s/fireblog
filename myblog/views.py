@@ -86,7 +86,8 @@ def view_post(request):
         next = None
 
     # Get tags and make them into a string
-    tags = utils.turn_tag_object_into_string_for_forms(page.tags)
+    tags = utils.turn_tag_object_into_html_string_for_display(request,
+                                                            page.tags)
     return dict(title = page.name,
                 html = page.html,
                 tags = tags,

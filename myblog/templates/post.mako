@@ -23,7 +23,7 @@ ${html|n}
 </div>
 <p style="text-align: center"><small>Created ${post_date}.
 % if tags:
-Tags: ${tags}
+Tags: ${tags|n}
 % endif
 </small></p>
 <ul class="pager">

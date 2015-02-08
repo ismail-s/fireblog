@@ -47,11 +47,25 @@ def append_tags_from_string_to_tag_object(tag_string, tag_object):
         if tag not in new_tag_list:
             tag_object.remove(DBSession.query(Tags).filter_by(tag=tag).first())
 
-def turn_tag_object_into_string_for_forms(tag_object):
+def _turn_tag_object_into_sorted_list(tag_object):
     tags = [t.tag for t in tag_object]
     tags.sort()
+    return tags
+
+def turn_tag_object_into_string_for_forms(tag_object):
+    tags = _turn_tag_object_into_sorted_list(tag_object)
     tags = ', '.join(tags)
     return tags
+
+def turn_tag_object_into_html_string_for_display(request, tag_object):
+    tags = _turn_tag_object_into_sorted_list(tag_object)
+    if not tags:
+        return ''
+    for e, tag in enumerate(tags):
+        tags[e] = "<a href = {link}>{tag}</a>".format(tag = tag,
+                            link = request.route_url('tag_view',
+                                                    tag_name = tag))
+    return ', '.join(tags)
 
 def create_post_list_from_posts_obj(post_obj):
     l = LENGTH_OF_EACH_POST_TO_INCLUDE_IN_ALL_POST_VIEW
