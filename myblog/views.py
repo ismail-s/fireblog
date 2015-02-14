@@ -9,6 +9,7 @@ from pyramid.httpexceptions import (
     HTTPFound,
     HTTPNotFound,
     )
+import sqlalchemy.sql as sql
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy import desc
@@ -55,10 +56,11 @@ def render_rss_feed(request):
 
 @view_config(route_name = 'home', renderer = 'templates/post.mako')
 def home(request):
-    # Get the most recent post. This maybe should use invoke_subrequest,
-    # but for the moment it works fine.
-    postname = DBSession.query(Post).\
-                order_by(desc(Post.created)).first().name
+    # Get the most recent post.
+    # We use the Core of sqlalchemy here for performance, and because
+    # we don't need the power of the ORM here.
+    query = sql.select([Post.name]).order_by(Post.created.desc()).limit(1)
+    postname = DBSession.execute(query).fetchone().name
     request.matchdict['postname'] = postname
     return view_post(request)
 
@@ -68,12 +70,16 @@ def view_post(request):
     page = DBSession.query(Post).filter_by(name = postname).first()
     if not page:
         return HTTPNotFound('no such page exists')
-    previous = DBSession.query(Post).\
-            filter(Post.created < page.created).\
-            order_by(desc(Post.created)).first()
-    next = DBSession.query(Post).\
-            filter(Post.created > page.created).\
-            order_by(Post.created).first()
+
+    # Here we use sqlalchemy Core in order to get a slight speed boost.
+    previous_sql = sql.select([Post.name]).\
+                where(Post.created < page.created).\
+                order_by(Post.created.desc())
+    previous = DBSession.execute(previous_sql).first()
+    next_sql = sql.select([Post.name]).\
+                where(Post.created > page.created).\
+                order_by(Post.created)
+    next = DBSession.execute(next_sql).first()
 
     if previous:
         previous = request.route_url('view_post',
