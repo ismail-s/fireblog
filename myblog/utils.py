@@ -78,6 +78,6 @@ def create_post_list_from_posts_obj(post_obj):
         to_append["html"] = to_markdown(post.markdown[:l] + '\n\n...')
         to_append["date"] = ago.human(post.created, precision = 1)
         res.append(to_append)
-        if not code_styles and 'class="codehilite"' in post.html:
+        if not code_styles and 'class="codehilite"' in to_append["html"]:
             code_styles = True
     return res, code_styles

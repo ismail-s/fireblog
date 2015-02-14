@@ -104,8 +104,10 @@ def view_post(request):
 @view_config(route_name = 'view_all_posts',
             renderer = 'templates/multiple_posts.mako')
 def view_all_posts(request):
-
-    posts = DBSession.query(Post).order_by(desc(Post.created)).all()
+    # We use sqlalchemy Core here for performance.
+    query = sql.select([Post.name, Post.markdown, Post.created]).\
+            order_by(Post.created.desc())
+    posts = DBSession.execute(query).fetchall()
     # TODO-log a critical error here maybe if all posts are deleted
     res, code_styles = utils.create_post_list_from_posts_obj(posts)
 
