@@ -10,7 +10,7 @@ import datetime, copy, re
 from pyramid import testing
 from pyramid.httpexceptions import HTTPNotFound
 
-from myblog.models import DBSession, Base, Post, Users
+from myblog.models import DBSession, Base, Post, Users, Tags
 import myblog.views as views
 from myblog import add_routes, groupfinder
 import myblog
@@ -31,15 +31,21 @@ def mydb(request, scope='module'):
     Base.metadata.create_all(engine)
     with transaction.manager:
         # TODO-add tags to this test data. Some tests may also need updating.
+        tag1 = Tags(tag = 'tag1')
+        tag2 = Tags(tag = 'tag2')
+        DBSession.add(tag1)
+        DBSession.add(tag2)
         post = Post(name='Homepage',
                     markdown='This is the front page',
                     html = '<p>This is the front page</p>',
                     created = datetime.datetime(2013, 1, 1))
+        post.tags.append(tag1)
         DBSession.add(post)
         post2 = Post(name='Page2',
                     markdown='This is page 2',
                     html = '<p>This is page 2</p>',
                     created = datetime.datetime(2014, 1, 1))
+        post2.tags.extend([tag1, tag2])
         DBSession.add(post2)
     with transaction.manager:
         me = Users(userid = 'id5489746@mockmyid.com',
@@ -147,21 +153,19 @@ class Test_view_all_posts:
         assert response["code_styles"] == False
         posts = response["posts"]
 
-        actual_posts = [("Homepage", "<p>This is the front page</p>"),
-                        ("Page2", "<p>This is page 2</p>")]
-        post_names = [x[0] for x in actual_posts]
+        actual_posts = [("Page2", "<p>This is page 2</p>"),
+                        ("Homepage", "<p>This is the front page</p>")]
+        #post_names = [x[0] for x in actual_posts]
 
-        for post in posts:
-            assert post["name"] in post_names
-            i = post_names.index(post["name"])
-            actual_post = actual_posts[i]
+        for post, actual_post in zip(posts, actual_posts):
+            assert post["name"] == actual_post[0]
             assert actual_post[1] in post["html"]
             # TODO-check that long posts are truncated correctly
 
-    @pytest.mark.xfail(reason = 'TODO-fix this test...')
     def test_success_with_pygments_code_css_included(self,
                                                     pyramid_config,
                                                     pyramid_req):
+        post_name = 'tdghdht'
         post_body = '''some test body
 
 ```
@@ -171,8 +175,16 @@ def test(dfgv):
 ```
 
 that is all.'''
-        Test_add_post.submit_add_post(pyramid_req, postname = 'tdghdht',
-                                    body = post_body,tags='')
+        submit_res = Test_add_post.submit_add_post(pyramid_req,
+                                            postname = post_name,
+                                            body = post_body,tags='')
+
+        # For some reason, we have to actually view the post before it appears
+        # on view_all_posts page. Not sure why, but I'm not losing sleep over
+        # this atm...
+        pyramid_req.matchdict['postname'] = post_name
+        view_res = views.view_post(pyramid_req)
+        del pyramid_req.matchdict['postname']
         response = views.view_all_posts(pyramid_req)
         assert response["code_styles"] == True
 
@@ -237,21 +249,44 @@ class Test_rss:
     # function is called. So, I've separated the output into 2 strings,
     # omitting the lastBuildDate datetime. So everything else except
     # that is checked.
-    rss_success_text_1 = \
-    '''<?xml version="1.0" encoding="iso-8859-1"?>\n<rss version="2.0"><channel><title''' +\
-    '''>Not the Answer</title><link>https://blog.ismail-s.com</link><description>A pers''' +\
-    '''onal blog about science, computers and life.</description><lastBuildDate>'''
-    rss_success_text_2 = '''</lastBuildDate><generator>PyRSS2Gen-1.1.0</generator><doc''' +\
-    '''s>http://blogs.law.harvard.edu/tech/rss</docs><item><title>Page2</title><link>ht''' +\
-    '''tp://example.com/posts/Page2</link><description>&lt;p&gt;This is page 2&lt;/p&gt;</des''' +\
-    '''cription><pubDate>Wed, 01 Jan 2014 00:00:00 GMT</pubDate></item><item><title>Hom''' +\
-    '''epage</title><link>http://example.com/posts/Homepage</link><description>&lt;p&gt;This''' +\
-    ''' is the front page&lt;/p&gt;</description><pubDate>Tue, 01 Jan 2013 00:00:00 GMT<''' +\
-    '''/pubDate></item></channel></rss>'''
+    rss_success_text_1 = '<?xml version="1.0" encoding="iso-8859-1"?>\n<rss version="2.0"><channel><title'
+    '>Not the Answer</title><link>https://blog.ismail-s.com</link><description>A pers'
+    'onal blog about science, computers and life.</description><lastBuildDate>'
+    rss_success_text_2 = '</lastBuildDate><generator>PyRSS2Gen-1.1.0</generator><doc'
+    's>http://blogs.law.harvard.edu/tech/rss</docs><item><title>Page2</title><link>ht'
+    'tp://example.com/posts/Page2</link><description>&lt;p&gt;This is page 2&lt;/p&gt;</des'
+    'cription><category>tag2</category><category>tag1</category><pubDate>Wed, 01 Jan 2014 00:00:00 GMT</pubDate></item><item><title>Hom'
+    'epage</title><link>http://example.com/posts/Homepage</link><description>&lt;p&gt;This'
+    ' is the front page&lt;/p&gt;</description><category>tag1</category><pubDate>Tue, 01 Jan 2013 00:00:00 GMT<'
+    '/pubDate></item></channel></rss>'
     def test_success(self, pyramid_config, pyramid_req):
         response = views.render_rss_feed(pyramid_req)
         assert self.rss_success_text_1 in response.text
         assert self.rss_success_text_2 in response.text
+
+
+class Test_tag_view:
+    @pytest.mark.parametrize("tag, actual_posts", [
+        ('tag1', [("Homepage", "<p>This is the front page</p>"),
+                 ("Page2", "<p>This is page 2</p>")]),
+        ('tag2', [("Page2", "<p>This is page 2</p>")])])
+    def test_success(self, tag, actual_posts, pyramid_config, pyramid_req):
+        pyramid_req.matchdict['tag_name'] = tag
+        response = views.tag_view(pyramid_req)
+        posts = response['posts']
+
+        assert tag in response['title']
+        assert not response['code_styles']
+
+        for post, actual_post in zip(posts, actual_posts):
+            assert post["name"] == actual_post[0]
+            assert actual_post[1] in post["html"]
+            # TODO-check that long posts are truncated correctly
+
+    def test_failure(self, pyramid_config, pyramid_req):
+        pyramid_req.matchdict['tag_name'] = 'doesntexist'
+        response = views.tag_view(pyramid_req)
+        assert type(response) == HTTPNotFound
 
 
 class Test_groupfinder:
