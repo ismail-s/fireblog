@@ -202,3 +202,27 @@ def tag_view(request):
     return dict(title = 'Posts tagged with {}'.format(tag),
                 posts = posts,
                 code_styles = code_styles)
+
+@view_config(route_name = 'tag_manager',
+            renderer = 'templates/tag_manager.mako',
+            permission = 'manage-tags')
+def tag_manager(request):
+    tags = DBSession.query(Tags).order_by(Tags.tag).all()
+    if 'form.submitted' in request.params:
+        for tag in tags:
+            # 1. If it is unchecked, delete it
+            keep_tag = request.params.get('check-' + tag.tag)
+            if not keep_tag:
+                # Delete the tag
+                DBSession.delete(tag)
+            # 2. Else, if the name has been changed, update the name
+            else:
+                new_tag_name = request.params.get('text-' + tag.tag)
+                if tag.tag != new_tag_name:
+                    # Change the tag name in the db
+                    tag.tag = new_tag_name
+        return HTTPFound(location = request.route_url('tag_manager'))
+    tags = [(tag.tag, len(tag.posts)) for tag in tags]
+    return dict(tags = tags,
+                title = 'Tag manger',
+                save_url = request.route_url('tag_manager') )

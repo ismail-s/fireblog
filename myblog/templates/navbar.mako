@@ -31,6 +31,7 @@
         <li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Manage blog <span class="caret"></span></a>
           <ul class="dropdown-menu" role="menu">
+            <li><a href="${request.route_url('tag_manager')}">Manage tags</a></li>
             <li><a href="#">Manage users</a></li>
             <li><a href="#">Manage comments</a></li>
           </ul>
