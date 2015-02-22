@@ -20,7 +20,10 @@ requires = [
     'waitress',
     'markdown',
     'ago',
-    'shortuuid'
+    'shortuuid',
+    'webtest',
+    'pytest',
+    'PyRSS2Gen'
     ]
 
 setup(name='myblog',
