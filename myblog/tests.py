@@ -22,7 +22,9 @@ assertion = data['assertion']
 
 @pytest.fixture
 def pyramid_req():
-    return testing.DummyRequest()
+    res = testing.DummyRequest()
+    res.registry.settings.update({'myblog.allViewPostLen': 1000})
+    return res
 
 @pytest.fixture
 def mydb(request, scope='module'):
@@ -75,7 +77,8 @@ def pyramid_config(mydb, request):
 def testapp(mydb, scope = 'module'):
         settings =  {'sqlalchemy.url': 'sqlite://',
                     'persona.audiences': 'http://localhost',
-                    'persona.secret': 'some_secret'}
+                    'persona.secret': 'some_secret',
+                    'myblog.allViewPostLen': 1000}
         app = myblog.main({}, **settings)
         testapp = webtest.TestApp(app)
         return testapp
@@ -331,7 +334,7 @@ class Test_functional_tests:
         assert '<h1>Page2</h1>' in str(res.html)
         assert '<p>This is page 2</p>' in str(res.html)
 
-    def test_login(self, testapp, pyramid_req):
+    def test_login(self, testapp):
         res = self.login(testapp)
         assert res.status == '200 OK'
 

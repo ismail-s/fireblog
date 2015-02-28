@@ -109,7 +109,7 @@ def view_all_posts(request):
             order_by(Post.created.desc())
     posts = DBSession.execute(query).fetchall()
     # TODO-log a critical error here maybe if all posts are deleted
-    res, code_styles = utils.create_post_list_from_posts_obj(posts)
+    res, code_styles = utils.create_post_list_from_posts_obj(request, posts)
 
     return dict(title = 'All posts',
                 posts = res,
@@ -196,7 +196,7 @@ def tag_view(request):
     except NoResultFound:
         return HTTPNotFound('no such tag exists.')
 
-    posts, code_styles = utils.create_post_list_from_posts_obj(tag_obj.posts)
+    posts, code_styles = utils.create_post_list_from_posts_obj(request, tag_obj.posts)
     posts = sorted(posts, key = itemgetter("date"), reverse = True)
 
     return dict(title = 'Posts tagged with {}'.format(tag),

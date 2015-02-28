@@ -67,7 +67,9 @@ def turn_tag_object_into_html_string_for_display(request, tag_object):
                                                     tag_name = tag))
     return ', '.join(tags)
 
-def create_post_list_from_posts_obj(post_obj):
+def create_post_list_from_posts_obj(request, post_obj):
+    settings =  request.registry.settings
+    LENGTH_OF_EACH_POST_TO_INCLUDE_IN_ALL_POST_VIEW = settings['myblog.allViewPostLen']
     l = LENGTH_OF_EACH_POST_TO_INCLUDE_IN_ALL_POST_VIEW
     res = []
     code_styles = False  # Is true if we need to include pygments css

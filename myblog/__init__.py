@@ -47,6 +47,8 @@ def add_routes(config):
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
+    allViewPostLen = int(settings.get('myblog.allViewPostLen', 1000))
+    settings['myblog.allViewPostLen'] = allViewPostLen
     engine = engine_from_config(settings, 'sqlalchemy.')
     DBSession.configure(bind=engine)
     Base.metadata.bind = engine
