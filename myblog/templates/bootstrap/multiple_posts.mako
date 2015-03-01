@@ -34,4 +34,11 @@ ${extra_styles}
 </a>
 % endfor
 
+
+% if uuid:
+<p style="text-align: center"><small>
+<a href="${request.route_url('uuid', uuid = uuid)}">Permalink</a>
+</small></p>
+% endif
+
 </%block>

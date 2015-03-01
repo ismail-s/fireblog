@@ -96,6 +96,7 @@ def view_post(request):
                                                             page.tags)
     return dict(title = page.name,
                 html = page.html,
+                uuid = page.uuid,
                 tags = tags,
                 post_date = ago.human(page.created, precision = 1),
                 prev_page = previous,
@@ -113,6 +114,7 @@ def view_all_posts(request):
 
     return dict(title = 'All posts',
                 posts = res,
+                uuid = None,
                 code_styles = code_styles)
 
 @config_view(route_name = 'add_post', renderer = 'edit.mako',
@@ -201,6 +203,7 @@ def tag_view(request):
 
     return dict(title = 'Posts tagged with {}'.format(tag),
                 posts = posts,
+                uuid = tag_obj.uuid,
                 code_styles = code_styles)
 
 @config_view(route_name = 'tag_manager',
@@ -226,3 +229,30 @@ def tag_manager(request):
     return dict(tags = tags,
                 title = 'Tag manger',
                 save_url = request.route_url('tag_manager') )
+
+@config_view(route_name = 'uuid')
+def uuid(request):
+    uuid_to_find = request.matchdict['uuid']
+
+    # Check for a matching post.
+    posts = DBSession.query(Post.uuid, Post.name).\
+                filter(Post.uuid.startswith(uuid_to_find)).all()
+
+    if len(posts) > 1:
+        # TODO-give a more helpful response here.
+        return Response('More than one uuid matched.')
+    if posts:  # Here we check if there was just one post.
+        return HTTPFound(location = request.route_url('view_post',
+                                    postname = posts[0].name))
+
+    # Check for a matching tag
+    tags = DBSession.query(Tags.uuid, Tags.tag).\
+           filter(Tags.uuid.startswith(uuid_to_find)).all()
+
+    if len(tags) > 1:
+        # TODO-give a more helpful response here.
+        return Response('More than one uuid matched.')
+    if tags:  # Here we check if there was just one post.
+        return HTTPFound(location = request.route_url('tag_view',
+                                    tag_name = tags[0].tag))
+    return HTTPNotFound('No uuid matches.')

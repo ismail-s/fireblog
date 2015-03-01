@@ -25,6 +25,7 @@ ${html|n}
 % if tags:
 Tags: ${tags|n}
 % endif
+<a href="${request.route_url('uuid', uuid = uuid)}">Permalink</a>
 </small></p>
 <ul class="pager">
 

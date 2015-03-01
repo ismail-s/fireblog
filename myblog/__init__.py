@@ -33,6 +33,7 @@ def add_routes(config):
     # Make sure the navbar template also gets it from this config file.
     config.add_static_view('static', 'static', cache_max_age=3600)
     config.add_route('home', '/')
+    config.add_route('uuid', '/uuid/{uuid}')
     config.add_route('rss', '/rss')
     config.add_route('view_all_posts', '/all_posts')
 
