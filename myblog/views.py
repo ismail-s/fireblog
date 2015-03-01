@@ -1,10 +1,10 @@
 from operator import  itemgetter
 import myblog.utils as utils
+from myblog.utils import config_view
 import ago
 import PyRSS2Gen
 import datetime
 from pyramid.response import Response
-from pyramid.view import view_config
 from pyramid.httpexceptions import (
     HTTPFound,
     HTTPNotFound,
@@ -20,7 +20,7 @@ from myblog.models import (
     )
 
 
-@view_config(route_name = 'rss')
+@config_view(route_name = 'rss')
 def render_rss_feed(request):
     posts = DBSession.query(Post).order_by(desc(Post.created)).all()
     items= []
@@ -54,7 +54,7 @@ def render_rss_feed(request):
     # a post is modified...
     return Response(rss.to_xml(), content_type = 'application/xml')
 
-@view_config(route_name = 'home', renderer = 'templates/post.mako')
+@config_view(route_name = 'home', renderer = 'post.mako')
 def home(request):
     # Get the most recent post.
     # We use the Core of sqlalchemy here for performance, and because
@@ -64,7 +64,7 @@ def home(request):
     request.matchdict['postname'] = postname
     return view_post(request)
 
-@view_config(route_name = 'view_post', renderer = 'templates/post.mako')
+@config_view(route_name = 'view_post', renderer = 'post.mako')
 def view_post(request):
     postname = request.matchdict['postname']
     page = DBSession.query(Post).filter_by(name = postname).first()
@@ -101,8 +101,8 @@ def view_post(request):
                 prev_page = previous,
                 next_page = next)
 
-@view_config(route_name = 'view_all_posts',
-            renderer = 'templates/multiple_posts.mako')
+@config_view(route_name = 'view_all_posts',
+            renderer = 'multiple_posts.mako')
 def view_all_posts(request):
     # We use sqlalchemy Core here for performance.
     query = sql.select([Post.name, Post.markdown, Post.created]).\
@@ -115,7 +115,7 @@ def view_all_posts(request):
                 posts = res,
                 code_styles = code_styles)
 
-@view_config(route_name = 'add_post', renderer = 'templates/edit.mako',
+@config_view(route_name = 'add_post', renderer = 'edit.mako',
             permission = 'add')
 def add_post(request):
     postname = request.matchdict['postname']
@@ -141,8 +141,8 @@ def add_post(request):
                 post_text = '',
                 tags = '')
 
-@view_config(route_name = 'edit_post', renderer = 'templates/edit.mako',
-            permission = 'edit')
+@config_view(route_name = 'edit_post', renderer = 'edit.mako',
+                   permission = 'edit')
 def edit_post(request):
     postname = request.matchdict['postname']
     if not DBSession.query(Post).\
@@ -171,8 +171,8 @@ def edit_post(request):
                 tags = tags,  # To be modified in a bit
                 save_url = save_url)
 
-@view_config(route_name = 'del_post', renderer = 'templates/del.mako',
-            permission = 'del')
+@config_view(route_name = 'del_post', renderer = 'del.mako',
+                   permission = 'del')
 def del_post(request):
     # TODO-maybe don't allow deletion of a post if it is the only one.
     postname = request.matchdict['postname']
@@ -188,7 +188,7 @@ def del_post(request):
     return dict(title = "Deleting post: " + postname,
                 save_url = save_url)
 
-@view_config(route_name = 'tag_view', renderer = 'templates/multiple_posts.mako')
+@config_view(route_name = 'tag_view', renderer = 'multiple_posts.mako')
 def tag_view(request):
     tag = request.matchdict['tag_name']
     try:
@@ -203,9 +203,9 @@ def tag_view(request):
                 posts = posts,
                 code_styles = code_styles)
 
-@view_config(route_name = 'tag_manager',
-            renderer = 'templates/tag_manager.mako',
-            permission = 'manage-tags')
+@config_view(route_name = 'tag_manager',
+                   renderer = 'tag_manager.mako',
+                   permission = 'manage-tags')
 def tag_manager(request):
     tags = DBSession.query(Tags).order_by(Tags.tag).all()
     if 'form.submitted' in request.params:

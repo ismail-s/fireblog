@@ -1,9 +1,18 @@
 from markdown import markdown
 import ago
 from myblog.models import DBSession, Tags
+from pyramid.view import view_config
 
-LENGTH_OF_EACH_POST_TO_INCLUDE_IN_ALL_POST_VIEW = 1000
-
+def config_view(*args, **kwargs):
+    """This view_config wrapper is to support future work on adding new themes.
+    The idea is that we allow for hot-switching between themes."""
+    if kwargs.get('renderer', None):
+        template = kwargs['renderer']
+        theme = 'bootstrap'
+        kwargs['renderer'] = 'myblog:templates/{theme}/{template}'.format(
+                            theme = theme,
+                            template = template)
+    return view_config(*args, **kwargs)
 def to_markdown(input_text):
     '''Basic wrapper around the markdown library.
     
