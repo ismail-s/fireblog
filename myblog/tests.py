@@ -33,20 +33,22 @@ def mydb(request, scope='module'):
     Base.metadata.create_all(engine)
     with transaction.manager:
         # TODO-add tags to this test data. Some tests may also need updating.
-        tag1 = Tags(tag = 'tag1')
-        tag2 = Tags(tag = 'tag2')
+        tag1 = Tags(tag = 'tag1', uuid = 'uuid-tag111')
+        tag2 = Tags(tag = 'tag2', uuid = 'uuid-tag222')
         DBSession.add(tag1)
         DBSession.add(tag2)
         post = Post(name='Homepage',
                     markdown='This is the front page',
                     html = '<p>This is the front page</p>',
-                    created = datetime.datetime(2013, 1, 1))
+                    created = datetime.datetime(2013, 1, 1),
+                    uuid = 'uuid-post-homepage')
         post.tags.append(tag1)
         DBSession.add(post)
         post2 = Post(name='Page2',
                     markdown='This is page 2',
                     html = '<p>This is page 2</p>',
-                    created = datetime.datetime(2014, 1, 1))
+                    created = datetime.datetime(2014, 1, 1),
+                    uuid = 'uuid-post-page2')
         post2.tags.extend([tag1, tag2])
         DBSession.add(post2)
     with transaction.manager:
@@ -292,6 +294,40 @@ class Test_tag_view:
         assert type(response) == HTTPNotFound
 
 
+class Test_uuid:
+    @pytest.mark.parametrize('uuid, location', [
+    ('uuid-post-homepage', 'http://example.com/posts/Homepage'),
+    ('uuid-post-page2', 'http://example.com/posts/Page2'),
+    ('uuid-post-h', 'http://example.com/posts/Homepage'),
+    ('uuid-post-p', 'http://example.com/posts/Page2')])
+    def test_post_success(self, uuid, location, pyramid_config, pyramid_req):
+        pyramid_req.matchdict['uuid'] = uuid
+        response = views.uuid(pyramid_req)
+        assert response.location == location
+
+    @pytest.mark.parametrize('uuid, location', [
+    ('uuid-tag111', 'http://example.com/tags/tag1'),
+    ('uuid-tag222', 'http://example.com/tags/tag2'),
+    ('uuid-tag1', 'http://example.com/tags/tag1'),
+    ('uuid-tag2', 'http://example.com/tags/tag2')])
+    def test_tag_success(self, uuid, location, pyramid_config, pyramid_req):
+        pyramid_req.matchdict['uuid'] = uuid
+        response = views.uuid(pyramid_req)
+        assert response.location == location
+
+    @pytest.mark.parametrize('uuid', ['uuid-post-', 'uuid-tag'])
+    def test_multiple_results(self, uuid, pyramid_config, pyramid_req):
+        pyramid_req.matchdict['uuid'] = uuid
+        response = views.uuid(pyramid_req)
+        assert not response.location
+
+    @pytest.mark.parametrize('uuid', ['Uuid-post-', 'uuid-tagg'])
+    def test_no_results(self, uuid, pyramid_config, pyramid_req):
+        pyramid_req.matchdict['uuid'] = uuid
+        response = views.uuid(pyramid_req)
+        assert not response.location
+
+
 class Test_groupfinder:
     @pytest.mark.parametrize('email_address',[
         'id5489746@mockmyid.com',
@@ -332,6 +368,14 @@ class Test_functional_tests:
         res = testapp.get('http://localhost/posts/Page2')
         assert res.status == '200 OK'
         assert '<h1>Page2</h1>' in str(res.html)
+        assert '<p>This is page 2</p>' in str(res.html)
+
+    def test_get_all_page(self, testapp):
+        res = testapp.get('http://localhost/all_posts')
+        assert res.status == '200 OK'
+        assert 'Homepage' in str(res.html)
+        assert '<p>This is the front page</p>' in str(res.html)
+        assert 'Page2' in str(res.html)
         assert '<p>This is page 2</p>' in str(res.html)
 
     def test_login(self, testapp):
