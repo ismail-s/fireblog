@@ -35,7 +35,7 @@ class Post(Base):
     name = Column(Text, unique = True, index = True, nullable = False)
     created = Column(DateTime, default=datetime.datetime.utcnow, index = True, nullable = False)
     markdown = Column(Text)
-    html = Column(Integer)
+    html = Column(Text)
     tags = relationship('Tags', secondary=post_tags, backref='posts')
 
 class Users(Base):
