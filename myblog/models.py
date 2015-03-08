@@ -15,6 +15,7 @@ from sqlalchemy.orm import (
     scoped_session,
     sessionmaker,
     relationship,
+    backref,
     )
 
 from zope.sqlalchemy import ZopeTransactionExtension
@@ -49,3 +50,15 @@ class Tags(Base):
     id = Column(Integer, primary_key = True, nullable = False)
     uuid = Column(Text, unique = True, default = uuid, nullable = False)
     tag = Column(Text, unique = True, index = True, nullable = False)
+
+class Comments(Base):
+    __tablename__ = 'comments'
+    id = Column(Integer, primary_key = True, nullable = False)
+    uuid = Column(Text, unique = True, default = uuid, nullable = False)
+    post_id = Column(Integer, ForeignKey('posts.id'))
+    author_id = Column(Integer, ForeignKey('users.id'))
+    created = Column(DateTime, default=datetime.datetime.utcnow, nullable = False)
+    comment = Column(Text)
+
+    post = relationship("Post", backref=backref('comments', order_by=created))
+    author = relationship("Users", backref=backref('comments', order_by=created))

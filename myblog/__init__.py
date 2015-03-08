@@ -45,6 +45,8 @@ def add_routes(config):
     config.add_route('tag_view', '/tags/{tag_name}')
     config.add_route('tag_manager', '/tags')
 
+    config.add_route('comment_add', '/comment/add')
+
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """

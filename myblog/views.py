@@ -17,6 +17,8 @@ from myblog.models import (
     DBSession,
     Post,
     Tags,
+    Comments,
+    Users,
     )
 
 
@@ -94,13 +96,25 @@ def view_post(request):
     # Get tags and make them into a string
     tags = utils.turn_tag_object_into_html_string_for_display(request,
                                                             page.tags)
+
+    comments = page.comments
+    comments_list = []
+    for comment in comments:
+        to_append = {}
+        to_append['created'] = ago.human(comment.created, precision = 1)
+        to_append['author'] = comment.author.userid
+        to_append['comment'] = comment.comment
+        comments_list.append(to_append)
+
     return dict(title = page.name,
                 html = page.html,
                 uuid = page.uuid,
                 tags = tags,
                 post_date = ago.human(page.created, precision = 1),
                 prev_page = previous,
-                next_page = next)
+                next_page = next,
+                comment_add_url = request.route_url('comment_add'),
+                comments = comments_list)
 
 @config_view(route_name = 'view_all_posts',
             renderer = 'multiple_posts.mako')
@@ -256,3 +270,20 @@ def uuid(request):
         return HTTPFound(location = request.route_url('tag_view',
                                     tag_name = tags[0].tag))
     return HTTPNotFound('No uuid matches.')
+
+@config_view(route_name = 'comment_add', permission = 'add-comment')
+def comment_add(request):
+    if 'form.submitted' not in request.params:
+        return HTTPNotFound()
+    postname = request.params.get('postname', None)
+    comment_text = request.params.get('comment', None)
+    author = request.authenticated_userid
+    if not all((postname, comment_text, author)):
+        return HTTPNotFound()
+    post = DBSession.query(Post).filter_by(name = postname).one()
+    author = DBSession.query(Users).filter_by(userid = author).one()
+    comment = Comments(comment = comment_text)
+    comment.author = author
+    post.comments.append(comment)
+    return HTTPFound(location = request.route_url('view_post',
+                                                postname = postname))
