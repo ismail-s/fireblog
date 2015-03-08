@@ -102,7 +102,7 @@ def view_post(request):
     for comment in comments:
         to_append = {}
         to_append['created'] = ago.human(comment.created, precision = 1)
-        to_append['author'] = comment.author.userid
+        to_append['author'] = comment.author.username
         to_append['comment'] = comment.comment
         comments_list.append(to_append)
 

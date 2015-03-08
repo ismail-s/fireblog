@@ -6,7 +6,8 @@ from sqlalchemy import (
     Index,
     Integer,
     Text,
-    DateTime
+    DateTime,
+    desc
     )
 
 from sqlalchemy.ext.declarative import declarative_base
@@ -43,6 +44,7 @@ class Users(Base):
     id = Column(Integer, primary_key = True, nullable = False)
     uuid = Column(Text, unique = True, default = uuid)
     userid = Column(Text, unique = True, index = True, nullable = False)
+    username = Column(Text, unique = True)
     group = Column(Text)
 
 class Tags(Base):
@@ -60,5 +62,5 @@ class Comments(Base):
     created = Column(DateTime, default=datetime.datetime.utcnow, nullable = False)
     comment = Column(Text)
 
-    post = relationship("Post", backref=backref('comments', order_by=created))
-    author = relationship("Users", backref=backref('comments', order_by=created))
+    post = relationship("Post", backref=backref('comments', order_by=desc(created)))
+    author = relationship("Users", backref=backref('comments', order_by=desc(created)))

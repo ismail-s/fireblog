@@ -3,11 +3,24 @@ from sqlalchemy import engine_from_config
 from sqlalchemy.orm.exc import NoResultFound
 from pyramid.security import Allow, ALL_PERMISSIONS
 from pyramid.authentication import AuthTktAuthenticationPolicy
+from pyramid.events import BeforeRender
+from pyramid.events import subscriber
 from myblog.models import (
     DBSession,
     Base,
     Users
     )
+
+
+def get_username(email_address):
+    user = DBSession.query(Users.userid, Users.username).filter_by(userid = email_address).first()
+    if not user:
+        return ''
+    return user.username
+
+@subscriber(BeforeRender)
+def add_username_function(event):
+    event['get_username'] = get_username
 
 def groupfinder(userid, request):
     query = DBSession.query(Users).\

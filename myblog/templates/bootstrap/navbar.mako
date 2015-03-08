@@ -12,7 +12,7 @@
         <span class="icon-bar"></span>
       </button>
       <a class="navbar-brand" href="/">Home</a>
-      <p class="navbar-text">Signed in as ${request.authenticated_userid}</p>
+      <p class="navbar-text">Signed in as ${get_username(request.authenticated_userid)} (${request.authenticated_userid})</p>
     </div>
 
     <!-- Collect the nav links, forms, and other content for toggling -->
