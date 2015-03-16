@@ -23,7 +23,8 @@ requires = [
     'shortuuid',
     'webtest',
     'pytest',
-    'PyRSS2Gen'
+    'PyRSS2Gen',
+    'alembic'
     ]
 
 setup(name='myblog',
