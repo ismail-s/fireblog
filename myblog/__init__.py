@@ -18,7 +18,6 @@ def get_username(email_address):
         return ''
     return user.username
 
-@subscriber(BeforeRender)
 def add_username_function(event):
     event['get_username'] = get_username
 
@@ -29,13 +28,21 @@ def groupfinder(userid, request):
         user = query.one()
         return [user.group]
     except NoResultFound:
-        return None
+        group = create_commenter_and_return_group(userid)
+        return [group]
+
+def create_commenter_and_return_group(userid):
+    group = 'g:commenter'
+    new_user = Users(userid = userid, group = group)
+    DBSession.add(new_user)
+    return group
 
 class Root(object):
     """Simplest possible resource tree to map groups to permissions.
     """
     __acl__ = [
         (Allow, 'g:admin', ALL_PERMISSIONS),
+        (Allow, 'g:commenter', 'add-comment'),
     ]
 
     def __init__(self, request):
@@ -59,6 +66,7 @@ def add_routes(config):
     config.add_route('tag_manager', '/tags')
 
     config.add_route('comment_add', '/comment/add')
+    config.add_subscriber(add_username_function, BeforeRender)
 
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
