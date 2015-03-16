@@ -58,15 +58,38 @@ Tags: ${tags|n}
 </div>
 % endif
 
-% if request.authenticated_userid:
+% if request.authenticated_userid:  # All authenticated users can comment.
 <form id = "add-comment" action = "${comment_add_url}" method = "post">
     <div class="form-group">
-        <label for="add-comment">Post content</label>
+        <label for="add-comment">Add a comment</label>
         <textarea name = "comment"
                 cols = "70" rows = "5"
                 placeholder = "enter your comment here"
                 id="add-comment"
                 class = "form-control"></textarea>
+    </div>
+    <input type="hidden" name="postname" value="${title}">
+    <div class="form-group">
+        <input type = "submit" name = "form.submitted"
+            value = "Submit" class = "form-control"/>
+    </div>
+</form>
+% else:
+
+## Sort out comment add anonymous url
+<form id = "add-comment" action = "${comment_add_url}" method = "post">
+    <div class="form-group">
+        <label for="add-comment">Add a comment anonymously.</label>
+        <textarea name = "comment"
+                cols = "70" rows = "5"
+                placeholder = "enter your comment here"
+                id="add-comment"
+                class = "form-control"></textarea>
+        <label>\
+If you want to keep track of your comments, and have\
+ your own name, then click the "Sign in" button at the top of the page to\
+ sign in (we magically create an account for you behind the scenes).\
+        </label>
     </div>
     <input type="hidden" name="postname" value="${title}">
     <div class="form-group">

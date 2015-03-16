@@ -1,7 +1,7 @@
 from markdown import markdown
 import ago
-from myblog.models import DBSession, Tags
-from pyramid.view import view_config
+from myblog.models import DBSession, Tags, Users
+
 from pyramid.renderers import render_to_response
 
 def use_template(template = None):
@@ -15,6 +15,15 @@ def use_template(template = None):
             return render_to_response(template, res, request)
         return inner
     return wrapper
+
+def get_anonymous_userid():
+    anon_email = 'anonymous@example.com'
+    user = DBSession.query(Users.userid).filter_by(userid = anon_email).first()
+    if not user:
+        # Create user
+        user = Users(userid = anon_email)
+        DBSession.add(user)
+    return user.userid
 
 def to_markdown(input_text):
     '''Basic wrapper around the markdown library.

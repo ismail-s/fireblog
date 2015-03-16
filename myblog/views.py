@@ -277,11 +277,19 @@ def uuid(request):
 
 @view_config(route_name = 'comment_add')
 def comment_add(request):
+    '''We allow anyone to have access to this view. But we check whether a
+    person is authenticated or not within this view. This is because we are
+    allowing people to add comments anonymously ie not under an individual
+    userid/username.'''
     if 'form.submitted' not in request.params:
         return HTTPNotFound()
     postname = request.params.get('postname', None)
+    if request.referrer not in (
+                    request.route_url('view_post', postname = postname),
+                    request.route_url('home')):
+        return HTTPNotFound()
     comment_text = request.params.get('comment', None)
-    author = request.authenticated_userid
+    author = request.authenticated_userid or utils.get_anonymous_userid()
     if not all((postname, comment_text, author)):
         return HTTPNotFound()
     post = DBSession.query(Post).filter_by(name = postname).one()
