@@ -3,11 +3,23 @@ from sqlalchemy import engine_from_config
 from sqlalchemy.orm.exc import NoResultFound
 from pyramid.security import Allow, ALL_PERMISSIONS
 from pyramid.authentication import AuthTktAuthenticationPolicy
+from pyramid.events import BeforeRender
+from pyramid.events import subscriber
 from myblog.models import (
     DBSession,
     Base,
     Users
     )
+import myblog.views as views
+
+def get_username(email_address):
+    user = DBSession.query(Users.userid, Users.username).filter_by(userid = email_address).first()
+    if not user:
+        return ''
+    return user.username
+
+def add_username_function(event):
+    event['get_username'] = get_username
 
 def groupfinder(userid, request):
     query = DBSession.query(Users).\
@@ -16,13 +28,21 @@ def groupfinder(userid, request):
         user = query.one()
         return [user.group]
     except NoResultFound:
-        return None
+        group = create_commenter_and_return_group(userid)
+        return [group]
+
+def create_commenter_and_return_group(userid):
+    group = 'g:commenter'
+    new_user = Users(userid = userid, group = group)
+    DBSession.add(new_user)
+    return group
 
 class Root(object):
     """Simplest possible resource tree to map groups to permissions.
     """
     __acl__ = [
         (Allow, 'g:admin', ALL_PERMISSIONS),
+        (Allow, 'g:commenter', 'add-comment'),
     ]
 
     def __init__(self, request):
@@ -45,6 +65,9 @@ def add_routes(config):
     config.add_route('tag_view', '/tags/{tag_name}')
     config.add_route('tag_manager', '/tags')
 
+    config.add_route('comment_add', '/comment/add')
+    config.add_subscriber(add_username_function, BeforeRender)
+
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
@@ -63,5 +86,5 @@ def main(global_config, **settings):
     # Pyramid_persona has already set an authorization policy, so
     # this has not been done here.
     add_routes(config)
-    config.scan()
+    config.scan(views)
     return config.make_wsgi_app()

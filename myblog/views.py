@@ -1,9 +1,10 @@
 from operator import  itemgetter
 import myblog.utils as utils
-from myblog.utils import config_view
+from myblog.utils import use_template
 import ago
 import PyRSS2Gen
 import datetime
+from pyramid.view import view_config
 from pyramid.response import Response
 from pyramid.httpexceptions import (
     HTTPFound,
@@ -17,10 +18,12 @@ from myblog.models import (
     DBSession,
     Post,
     Tags,
+    Comments,
+    Users,
     )
 
 
-@config_view(route_name = 'rss')
+@view_config(route_name = 'rss')
 def render_rss_feed(request):
     posts = DBSession.query(Post).order_by(desc(Post.created)).all()
     items= []
@@ -54,7 +57,8 @@ def render_rss_feed(request):
     # a post is modified...
     return Response(rss.to_xml(), content_type = 'application/xml')
 
-@config_view(route_name = 'home', renderer = 'post.mako')
+@view_config(route_name = 'home')
+@use_template('post.mako')
 def home(request):
     # Get the most recent post.
     # We use the Core of sqlalchemy here for performance, and because
@@ -62,9 +66,11 @@ def home(request):
     query = sql.select([Post.name]).order_by(Post.created.desc()).limit(1)
     postname = DBSession.execute(query).fetchone().name
     request.matchdict['postname'] = postname
-    return view_post(request)
+    return view_post(request, testing = 1)  # We do testing = 1 to get just the
+    # dict back, Not a rendered response.
 
-@config_view(route_name = 'view_post', renderer = 'post.mako')
+@view_config(route_name = 'view_post')
+@use_template('post.mako')
 def view_post(request):
     postname = request.matchdict['postname']
     page = DBSession.query(Post).filter_by(name = postname).first()
@@ -94,16 +100,28 @@ def view_post(request):
     # Get tags and make them into a string
     tags = utils.turn_tag_object_into_html_string_for_display(request,
                                                             page.tags)
+
+    comments = page.comments
+    comments_list = []
+    for comment in comments:
+        to_append = {}
+        to_append['created'] = ago.human(comment.created, precision = 1)
+        to_append['author'] = comment.author.username
+        to_append['comment'] = comment.comment
+        comments_list.append(to_append)
+
     return dict(title = page.name,
                 html = page.html,
                 uuid = page.uuid,
                 tags = tags,
                 post_date = ago.human(page.created, precision = 1),
                 prev_page = previous,
-                next_page = next)
+                next_page = next,
+                comment_add_url = request.route_url('comment_add'),
+                comments = comments_list)
 
-@config_view(route_name = 'view_all_posts',
-            renderer = 'multiple_posts.mako')
+@view_config(route_name = 'view_all_posts')
+@use_template('multiple_posts.mako')
 def view_all_posts(request):
     # We use sqlalchemy Core here for performance.
     query = sql.select([Post.name, Post.markdown, Post.created]).\
@@ -117,8 +135,8 @@ def view_all_posts(request):
                 uuid = None,
                 code_styles = code_styles)
 
-@config_view(route_name = 'add_post', renderer = 'edit.mako',
-            permission = 'add')
+@view_config(route_name = 'add_post', permission = 'add')
+@use_template('edit.mako')
 def add_post(request):
     postname = request.matchdict['postname']
     if DBSession.query(Post).filter_by(name = postname).count():
@@ -143,8 +161,8 @@ def add_post(request):
                 post_text = '',
                 tags = '')
 
-@config_view(route_name = 'edit_post', renderer = 'edit.mako',
-                   permission = 'edit')
+@view_config(route_name = 'edit_post', permission = 'edit')
+@use_template('edit.mako')
 def edit_post(request):
     postname = request.matchdict['postname']
     if not DBSession.query(Post).\
@@ -173,8 +191,8 @@ def edit_post(request):
                 tags = tags,  # To be modified in a bit
                 save_url = save_url)
 
-@config_view(route_name = 'del_post', renderer = 'del.mako',
-                   permission = 'del')
+@view_config(route_name = 'del_post', permission = 'del')
+@use_template('del.mako')
 def del_post(request):
     # TODO-maybe don't allow deletion of a post if it is the only one.
     postname = request.matchdict['postname']
@@ -190,7 +208,8 @@ def del_post(request):
     return dict(title = "Deleting post: " + postname,
                 save_url = save_url)
 
-@config_view(route_name = 'tag_view', renderer = 'multiple_posts.mako')
+@view_config(route_name = 'tag_view')
+@use_template('multiple_posts.mako')
 def tag_view(request):
     tag = request.matchdict['tag_name']
     try:
@@ -206,9 +225,8 @@ def tag_view(request):
                 uuid = tag_obj.uuid,
                 code_styles = code_styles)
 
-@config_view(route_name = 'tag_manager',
-                   renderer = 'tag_manager.mako',
-                   permission = 'manage-tags')
+@view_config(route_name = 'tag_manager', permission = 'manage-tags')
+@use_template('tag_manager.mako')
 def tag_manager(request):
     tags = DBSession.query(Tags).order_by(Tags.tag).all()
     if 'form.submitted' in request.params:
@@ -230,7 +248,7 @@ def tag_manager(request):
                 title = 'Tag manger',
                 save_url = request.route_url('tag_manager') )
 
-@config_view(route_name = 'uuid')
+@view_config(route_name = 'uuid')
 def uuid(request):
     uuid_to_find = request.matchdict['uuid']
 
@@ -256,3 +274,28 @@ def uuid(request):
         return HTTPFound(location = request.route_url('tag_view',
                                     tag_name = tags[0].tag))
     return HTTPNotFound('No uuid matches.')
+
+@view_config(route_name = 'comment_add')
+def comment_add(request):
+    '''We allow anyone to have access to this view. But we check whether a
+    person is authenticated or not within this view. This is because we are
+    allowing people to add comments anonymously ie not under an individual
+    userid/username.'''
+    if 'form.submitted' not in request.params:
+        return HTTPNotFound()
+    postname = request.params.get('postname', None)
+    if request.referrer not in (
+                    request.route_url('view_post', postname = postname),
+                    request.route_url('home')):
+        return HTTPNotFound()
+    comment_text = request.params.get('comment', None)
+    author = request.authenticated_userid or utils.get_anonymous_userid()
+    if not all((postname, comment_text, author)):
+        return HTTPNotFound()
+    post = DBSession.query(Post).filter_by(name = postname).one()
+    author = DBSession.query(Users).filter_by(userid = author).one()
+    comment = Comments(comment = comment_text)
+    comment.author = author
+    post.comments.append(comment)
+    return HTTPFound(location = request.route_url('view_post',
+                                                postname = postname))

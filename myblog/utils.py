@@ -1,18 +1,30 @@
 from markdown import markdown
 import ago
-from myblog.models import DBSession, Tags
-from pyramid.view import view_config
+from myblog.models import DBSession, Tags, Users
 
-def config_view(*args, **kwargs):
-    """This view_config wrapper is to support future work on adding new themes.
-    The idea is that we allow for hot-switching between themes."""
-    if kwargs.get('renderer', None):
-        template = kwargs['renderer']
-        theme = 'bootstrap'
-        kwargs['renderer'] = 'myblog:templates/{theme}/{template}'.format(
-                            theme = theme,
-                            template = template)
-    return view_config(*args, **kwargs)
+from pyramid.renderers import render_to_response
+
+def use_template(template = None):
+    def wrapper(f, template = template):
+        def inner(request, testing = 0, template = template):
+            res = f(request)
+            if testing or not template or type(res) != dict:
+                return res
+            theme = 'bootstrap'
+            template = 'myblog:templates/' + theme + '/' + template
+            return render_to_response(template, res, request)
+        return inner
+    return wrapper
+
+def get_anonymous_userid():
+    anon_email = 'anonymous@example.com'
+    user = DBSession.query(Users.userid).filter_by(userid = anon_email).first()
+    if not user:
+        # Create user
+        user = Users(userid = anon_email)
+        DBSession.add(user)
+    return user.userid
+
 def to_markdown(input_text):
     '''Basic wrapper around the markdown library.
     

@@ -21,6 +21,7 @@ ${extra_styles}
 <div class = "post">
 ${html|n}
 </div>
+
 <p style="text-align: center"><small>Created ${post_date}.
 % if tags:
 Tags: ${tags|n}
@@ -41,4 +42,63 @@ Tags: ${tags|n}
 
 </ul>
 
+% if comments or request.authenticated_userid:
+<div class="panel">
+<div class="panel-body">
+<div class="panel-heading"><h2 style = "text-align: center">Comments</h2></div>
+% if comments:
+<div class = "comments">
+% for comment in comments[:-1]:
+<small>Posted ${comment['created']} by ${comment['author']}.</small>
+<p>${comment['comment']}</p>
+<hr>
+% endfor
+<small>Posted ${comments[-1]['created']} by ${comments[-1]['author']}.</small>
+<p>${comments[-1]['comment']}</p>
+</div>
+% endif
+
+% if request.authenticated_userid:  # All authenticated users can comment.
+<form id = "add-comment" action = "${comment_add_url}" method = "post">
+    <div class="form-group">
+        <label for="add-comment">Add a comment</label>
+        <textarea name = "comment"
+                cols = "70" rows = "5"
+                placeholder = "enter your comment here"
+                id="add-comment"
+                class = "form-control"></textarea>
+    </div>
+    <input type="hidden" name="postname" value="${title}">
+    <div class="form-group">
+        <input type = "submit" name = "form.submitted"
+            value = "Submit" class = "form-control"/>
+    </div>
+</form>
+% else:
+
+## Sort out comment add anonymous url
+<form id = "add-comment" action = "${comment_add_url}" method = "post">
+    <div class="form-group">
+        <label for="add-comment">Add a comment anonymously.</label>
+        <textarea name = "comment"
+                cols = "70" rows = "5"
+                placeholder = "enter your comment here"
+                id="add-comment"
+                class = "form-control"></textarea>
+        <label>\
+If you want to keep track of your comments, and have\
+ your own name, then click the "Sign in" button at the top of the page to\
+ sign in (we magically create an account for you behind the scenes).\
+        </label>
+    </div>
+    <input type="hidden" name="postname" value="${title}">
+    <div class="form-group">
+        <input type = "submit" name = "form.submitted"
+            value = "Submit" class = "form-control"/>
+    </div>
+</form>
+% endif
+</div>
+</div>
+% endif
 </%block>

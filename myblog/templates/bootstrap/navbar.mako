@@ -12,22 +12,29 @@
         <span class="icon-bar"></span>
       </button>
       <a class="navbar-brand" href="/">Home</a>
-      <p class="navbar-text">Signed in as ${request.authenticated_userid}</p>
+      <p class="navbar-text">Signed in as ${get_username(request.authenticated_userid)} (${request.authenticated_userid})</p>
     </div>
 
     <!-- Collect the nav links, forms, and other content for toggling -->
     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
       <ul class="nav navbar-nav">
+% if request.has_permission('add'):
       <form class="navbar-form navbar-left" role="search">
         <div class="form-group">
           <input type="text" id="page_to_add" class="form-control" placeholder="Title of post">
         </div>
         <button type="Submit" id="add_button" class="btn btn-default">Add</button>
       </form>
+% endif
 % if request.matched_route.name in ('view_post', 'home'):
+% if request.has_permission('edit'):
         <li><a href="${request.route_url('edit_post', postname = title)}">Edit this page</a></li>
+% endif
+% if request.has_permission('del'):
         <li><a href="${request.route_url('del_post', postname = title)}">Delete this page</a></li>
 % endif
+% endif
+% if 'g:admin' in request.effective_principals:
         <li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Manage blog <span class="caret"></span></a>
           <ul class="dropdown-menu" role="menu">
@@ -36,6 +43,7 @@
             <li><a href="#">Manage comments</a></li>
           </ul>
         </li>
+% endif
       </ul>
     </div><!-- /.navbar-collapse -->
   </div><!-- /.container-fluid -->
