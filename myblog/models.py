@@ -21,6 +21,16 @@ from sqlalchemy.orm import (
 
 from zope.sqlalchemy import ZopeTransactionExtension
 
+def create_username(context):
+    userid = context.current_parameters['userid']
+    if not userid:
+        userid = uuid() # Set it to some random thing...
+    username = userid[:userid.find('@')]
+    while DBSession.query(Users.username).filter_by(username = username).first():
+        username += str(random.randrange(0, 9))
+    return username
+
+
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
 
@@ -44,7 +54,7 @@ class Users(Base):
     id = Column(Integer, primary_key = True, nullable = False)
     uuid = Column(Text, unique = True, default = uuid)
     userid = Column(Text, unique = True, index = True, nullable = False)
-    username = Column(Text, unique = True)
+    username = Column(Text, unique = True, default = create_username)
     group = Column(Text)
 
 class Tags(Base):
