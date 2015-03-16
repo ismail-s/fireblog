@@ -10,7 +10,7 @@ from myblog.models import (
     Base,
     Users
     )
-
+import myblog.views as views
 
 def get_username(email_address):
     user = DBSession.query(Users.userid, Users.username).filter_by(userid = email_address).first()
@@ -78,5 +78,5 @@ def main(global_config, **settings):
     # Pyramid_persona has already set an authorization policy, so
     # this has not been done here.
     add_routes(config)
-    config.scan()
+    config.scan(views)
     return config.make_wsgi_app()
