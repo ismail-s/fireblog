@@ -64,7 +64,8 @@ def mydb(request, scope='module'):
         DBSession.add(commenter)
     with transaction.manager:
         comment1 = Comments(created = datetime.datetime(2014, 1, 1),
-                            comment = 'test comment')
+                            comment = 'test comment',
+                            uuid = 'comment1-uuid')
         comment1.post = post
         comment1.author = me
         DBSession.add(comment1)
@@ -165,7 +166,8 @@ class Test_view_post:
                 'created': ago.human(datetime.datetime(2014, 1, 1),
                         precision = 1),
                 'author': 'id5489746',
-                'comment': 'test comment'}]
+                'comment': 'test comment',
+                'uuid': 'comment1-uuid'}]
 
     def test_failure(self, pyramid_config, pyramid_req):
         pyramid_req.matchdict['postname'] = 'nonexisting page'
@@ -314,6 +316,34 @@ class Test_tag_view:
         response = views.tag_view(pyramid_req, testing = 1)
         assert type(response) == HTTPNotFound
 
+class Test_tag_manager:
+    def test_success(self, pyramid_config, pyramid_req):
+        res = views.tag_manager(pyramid_req, testing = 1)
+        assert res == dict(tags = [('tag1', 2), ('tag2', 1)],
+                           title = 'Tag manager',
+                           save_url = 'http://example.com/tags')
+
+    def test_POST_success(self, pyramid_config, pyramid_req):
+        """Test deleting tag1 and renaming tag2."""
+        pyramid_req.params['form.submitted'] = True
+        pyramid_req.params['check-tag1'] = False
+        pyramid_req.params['check-tag2'] = True
+        pyramid_req.params['text-tag1'] = 'tag1'
+        pyramid_req.params['text-tag2'] = 'tag22'
+
+        # I'm not fully sure why we do this. But it works and stops issues with autoflush and whatnot.
+        # But in production it seems to be ok...
+        DBSession.begin(subtransactions = True)
+        res = views.tag_manager(pyramid_req, testing = 1)
+        DBSession.commit()
+        assert res.location == 'http://example.com/tags'
+
+        pyramid_req.params = {}
+        res = views.tag_manager(pyramid_req, testing = 1)
+        assert res == dict(tags = [('tag22', 1)],
+                           title = 'Tag manager',
+                           save_url = 'http://example.com/tags')
+
 
 class Test_uuid:
     @pytest.mark.parametrize('uuid, location', [
@@ -433,20 +463,14 @@ class Test_functional_tests:
         assert 'some new page' in str(res.html)
         self.logout(testapp)
 
-    def test_cant_access_edit_pages_without_logging_in(self, testapp):
-        with pytest.raises(AppError) as excinfo:
-            res = testapp.get('/posts/Page2/edit')
-        assert '403 Forbidden' in str(excinfo.value)
-
-    def test_cant_access_del_pages_without_logging_in(self, testapp):
-        with pytest.raises(AppError) as excinfo:
-            res = testapp.get('/posts/Page2/del')
-        assert '403 Forbidden' in str(excinfo.value)
-
-    def test_cant_access_add_pages_without_logging_in(self, testapp):
-        with pytest.raises(AppError) as excinfo:
-            res = testapp.get('/posts/some random page/add')
-        assert '403 Forbidden' in str(excinfo.value)
+    @pytest.mark.parametrize('url', ['/posts/Page2/edit',
+                                     '/posts/Page2/del',
+                                     '/posts/some new page/add',
+                                     '/tags'])
+    def test_cant_access_admin_pages_with_no_login(self, testapp, url):
+        with pytest.raises(AppError) as exc_info:
+            res = testapp.get(url)
+        assert '403 Forbidden' in str(exc_info.value)
 
     def test_crud(self, testapp):
         """Testing all CRUD operations in one big test."""
