@@ -1,4 +1,4 @@
-from operator import  itemgetter
+from operator import itemgetter
 import myblog.utils as utils
 from myblog.utils import use_template
 import ago
@@ -108,6 +108,7 @@ def view_post(request):
         to_append['created'] = ago.human(comment.created, precision = 1)
         to_append['author'] = comment.author.username
         to_append['comment'] = comment.comment
+        to_append['uuid'] = comment.uuid
         comments_list.append(to_append)
 
     return dict(title = page.name,
@@ -245,7 +246,7 @@ def tag_manager(request):
         return HTTPFound(location = request.route_url('tag_manager'))
     tags = [(tag.tag, len(tag.posts)) for tag in tags]
     return dict(tags = tags,
-                title = 'Tag manger',
+                title = 'Tag manager',
                 save_url = request.route_url('tag_manager') )
 
 @view_config(route_name = 'uuid')
@@ -284,10 +285,6 @@ def comment_add(request):
     if 'form.submitted' not in request.params:
         return HTTPNotFound()
     postname = request.params.get('postname', None)
-    if request.referrer not in (
-                    request.route_url('view_post', postname = postname),
-                    request.route_url('home')):
-        return HTTPNotFound()
     comment_text = request.params.get('comment', None)
     author = request.authenticated_userid or utils.get_anonymous_userid()
     if not all((postname, comment_text, author)):
@@ -297,5 +294,18 @@ def comment_add(request):
     comment = Comments(comment = comment_text)
     comment.author = author
     post.comments.append(comment)
+    return HTTPFound(location = request.route_url('view_post',
+                                                postname = postname))
+
+@view_config(route_name = 'comment_del', permission = 'comment-del')
+def comment_delete(request):
+    comment_uuid = request.params.get('comment-uuid', None)
+    postname = request.params.get('postname', None)
+    if not all((comment_uuid, postname)):
+        return HTTPNotFound()
+    comment = DBSession.query(Comments).filter_by(uuid = comment_uuid).first()
+    if not comment:
+        return HTTPNotFound()
+    DBSession.delete(comment)
     return HTTPFound(location = request.route_url('view_post',
                                                 postname = postname))

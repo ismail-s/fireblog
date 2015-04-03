@@ -4,26 +4,29 @@ from sqlalchemy.orm.exc import NoResultFound
 from pyramid.security import Allow, ALL_PERMISSIONS
 from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.events import BeforeRender
-from pyramid.events import subscriber
+
 from myblog.models import (
     DBSession,
     Base,
     Users
-    )
+)
 import myblog.views as views
 
+
 def get_username(email_address):
-    user = DBSession.query(Users.userid, Users.username).filter_by(userid = email_address).first()
+    user = DBSession.query(Users.userid, Users.username).filter_by(userid=email_address).first()
     if not user:
         return ''
     return user.username
 
+
 def add_username_function(event):
     event['get_username'] = get_username
 
+
 def groupfinder(userid, request):
-    query = DBSession.query(Users).\
-                filter(Users.userid == userid)
+    query = DBSession.query(Users). \
+        filter(Users.userid == userid)
     try:
         user = query.one()
         return [user.group]
@@ -31,11 +34,13 @@ def groupfinder(userid, request):
         group = create_commenter_and_return_group(userid)
         return [group]
 
+
 def create_commenter_and_return_group(userid):
     group = 'g:commenter'
-    new_user = Users(userid = userid, group = group)
+    new_user = Users(userid=userid, group=group)
     DBSession.add(new_user)
     return group
+
 
 class Root(object):
     """Simplest possible resource tree to map groups to permissions.
@@ -48,8 +53,9 @@ class Root(object):
     def __init__(self, request):
         self.request = request
 
+
 def add_routes(config):
-    POST_URL_PREFIX = 'posts'   # TODO-move this to config file and
+    POST_URL_PREFIX = 'posts'  # TODO-move this to config file and
     # Make sure the navbar template also gets it from this config file.
     config.add_static_view('static', 'static', cache_max_age=3600)
     config.add_route('home', '/')
@@ -66,7 +72,9 @@ def add_routes(config):
     config.add_route('tag_manager', '/tags')
 
     config.add_route('comment_add', '/comment/add')
+    config.add_route('comment_del', '/comment/del')
     config.add_subscriber(add_username_function, BeforeRender)
+
 
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
@@ -80,8 +88,8 @@ def main(global_config, **settings):
     config.include('pyramid_mako')
     config.include("pyramid_persona")
     authn_policy = AuthTktAuthenticationPolicy(
-    settings['persona.secret'],
-    callback=groupfinder)
+        settings['persona.secret'],
+        callback=groupfinder)
     config.set_authentication_policy(authn_policy)
     # Pyramid_persona has already set an authorization policy, so
     # this has not been done here.
