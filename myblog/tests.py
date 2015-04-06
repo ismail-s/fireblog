@@ -344,6 +344,55 @@ class Test_tag_manager:
                            title = 'Tag manager',
                            save_url = 'http://example.com/tags')
 
+class Test_comment_add:
+    def test_anon_success(self, pyramid_config, pyramid_req):
+        comment = 'A test comment...'
+        pyramid_req.params['postname'] = 'Page2'
+        pyramid_req.params['comment'] = comment
+        pyramid_req.params['form.submitted'] = True
+        res = views.comment_add(pyramid_req)
+        assert res.location == 'http://example.com/posts/Page2'
+
+        pyramid_req.params = {}
+        pyramid_req.matchdict['postname'] = 'Page2'
+        res = views.view_post(pyramid_req, testing = 1)
+        assert len(res['comments']) == 1
+        assert res['comments'][0]['author'] == 'anonymous'
+        assert res['comments'][0]['comment'] == comment
+        assert res['comments'][0]['uuid']
+        # TODO-assert about when comment was created...
+
+    def test_logged_in_success(self, pyramid_config, pyramid_req):
+        comment = 'A test comment...'
+        pyramid_req.params['postname'] = 'Page2'
+        pyramid_req.params['comment'] = comment
+        pyramid_req.params['form.submitted'] = True
+        pyramid_config.testing_securitypolicy(userid = 'id5489746@mockmyid.com', permissive = True)
+        res = views.comment_add(pyramid_req)
+        assert res.location == 'http://example.com/posts/Page2'
+
+        pyramid_req.params = {}
+        pyramid_req.matchdict['postname'] = 'Page2'
+        res = views.view_post(pyramid_req, testing = 1)
+        assert len(res['comments']) == 1
+        assert res['comments'][0]['author'] == 'id5489746'
+        assert res['comments'][0]['comment'] == comment
+        assert res['comments'][0]['uuid']
+        # TODO-assert about when comment was created...
+
+
+class Test_comment_delete:
+    def test_success(self, pyramid_config, pyramid_req):
+        pyramid_req.params['comment-uuid'] = 'comment1-uuid'
+        pyramid_req.params['postname'] = 'Homepage'
+        res = views.comment_delete(pyramid_req)
+        assert res.location == 'http://example.com/posts/Homepage'
+
+        pyramid_req.params = {}
+        pyramid_req.matchdict['postname'] = 'Homepage'
+        res = views.view_post(pyramid_req, testing = 1)
+        assert res['comments'] == []
+
 
 class Test_uuid:
     @pytest.mark.parametrize('uuid, location', [
@@ -391,6 +440,17 @@ class Test_groupfinder:
         res = groupfinder('some_fake_address@example.com', pyramid_req)
         assert res == ['g:commenter']
 
+class Test_getusername:
+    @pytest.mark.parametrize('email, username',[
+    ('id5489746@mockmyid.com', 'id5489746'),
+    ('commenter@example.com', 'commenter')
+    ])
+    def test_success(self, pyramid_config, email, username):
+        assert myblog.get_username(email) == username
+
+    def test_failure(self, pyramid_config):
+        assert myblog.get_username('nonexistentemail@example.com') == ''
+
 
 class Test_functional_tests:
     def get_csrf_token(self, testapp):
@@ -420,6 +480,16 @@ class Test_functional_tests:
         assert res.status == '200 OK'
         assert '<h1>Page2</h1>' in str(res.html)
         assert '<p>This is page 2</p>' in str(res.html)
+        found_comment_h2_elem = False
+        for elem in res.html.find_all('h2'):
+            if elem.string == 'Comments':
+                found_comment_h2_elem = True
+        assert found_comment_h2_elem
+        found_comment_form_elem = False
+        for elem in res.html.find_all('form'):
+            if elem['id'] == 'add-comment':
+                found_comment_form_elem = True
+        assert found_comment_form_elem
 
     def test_get_all_page(self, testapp):
         res = testapp.get('http://localhost/all_posts')
