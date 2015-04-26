@@ -59,6 +59,9 @@ Tags: ${tags|n}
 % endfor
             <small>Posted ${comments[-1]['created']} by ${comments[-1]['author']}.</small>
             <p>${comments[-1]['comment']}</p>
+% if 'g:admin' in request.effective_principals:
+            <p><a href="${request.route_url('comment_del', _query = {'comment-uuid': comments[-1]['uuid'],'postname': title})}">Delete this comment</a></p>
+% endif
         </div>
 % endif
 
