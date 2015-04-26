@@ -100,6 +100,9 @@ If you want to keep track of your comments, and have\
         </div>
         <input type="hidden" name="postname" value="${title}">
         <div class="form-group">
+            <div class="g-recaptcha" data-sitekey="6LdPugUTAAAAAFJMGiJpfvFjXwPTqVk0mIV9EnrD"></div>
+        </div>
+        <div class="form-group">
             <input type = "submit" name = "form.submitted"
             value = "Submit" class = "form-control"/>
         </div>

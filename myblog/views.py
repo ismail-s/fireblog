@@ -4,6 +4,7 @@ from myblog.utils import use_template
 import ago
 import PyRSS2Gen
 import datetime
+import requests
 from pyramid.view import view_config
 from pyramid.response import Response
 from pyramid.httpexceptions import (
@@ -286,6 +287,17 @@ def comment_add(request):
         return HTTPNotFound()
     postname = request.params.get('postname', None)
     comment_text = request.params.get('comment', None)
+    if not request.authenticated_userid:
+        recaptcha = request.params.get('g-recaptcha-response', '')
+        payload = dict(secret = '6LdPugUTAAAAACBpJ6IvHD2EF-PI-TaIhXvmbPf6',
+                        response = recaptcha)
+        result = requests.post('https://www.google.com/recaptcha/api/siteverify',
+                    data = payload)
+        try:
+            if result.json()['success'] != True:
+                return HTTPNotFound()
+        except Exception:
+            return HTTPNotFound()
     author = request.authenticated_userid or utils.get_anonymous_userid()
     if not all((postname, comment_text, author)):
         return HTTPNotFound()

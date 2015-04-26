@@ -24,7 +24,8 @@ requires = [
     'webtest',
     'pytest',
     'PyRSS2Gen',
-    'alembic'
+    'alembic',
+    'requests'
     ]
 
 setup(name='myblog',
