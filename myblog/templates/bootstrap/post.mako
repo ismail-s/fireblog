@@ -84,7 +84,7 @@ Tags: ${tags|n}
 % else:
 
 ## Sort out comment add anonymous url
-        <form id = "add-comment" action = "${comment_add_url}" method = "post">
+        <form id = "add-comments" action = "${comment_add_url}" method = "post">
         <div class="form-group">
             <label for="add-comment">Add a comment anonymously.</label>
             <textarea name = "comment"
