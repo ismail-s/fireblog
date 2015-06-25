@@ -1,0 +1,20 @@
+{
+  "name": "myblog",
+  "version": "0.0.0",
+  "authors": [
+    "Ismail <ismail-s.no-reply@github.com>"
+  ],
+  "description": "My personal blog",
+  "keywords": [
+    "blog"
+  ],
+  "license": "GPL",
+  "homepage": "blog.ismail-s.com",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
