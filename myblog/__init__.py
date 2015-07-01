@@ -12,6 +12,9 @@ from myblog.models import (
 )
 import myblog.views as views
 
+def get_bower_url(request, path_to_resource):
+    return request.static_url('myblog:../bower_components/' + path_to_resource)
+
 def get_username(email_address):
     user = DBSession.query(Users.userid, Users.username).filter_by(userid=email_address).first()
     if not user:
@@ -87,6 +90,7 @@ def main(global_config, **settings):
     config.include('pyramid_mako')
     config.include("pyramid_persona")
     config.add_static_view(name='bower', path='myblog:../bower_components')
+    config.add_request_method(get_bower_url)
     authn_policy = AuthTktAuthenticationPolicy(
         settings['persona.secret'],
         callback=groupfinder)

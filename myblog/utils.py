@@ -10,7 +10,7 @@ def use_template(template = None):
             res = f(request)
             if testing or not template or type(res) != dict:
                 return res
-            theme = 'bootstrap'
+            theme = 'polymer'
             template = 'myblog:templates/' + theme + '/' + template
             return render_to_response(template, res, request)
         return inner
