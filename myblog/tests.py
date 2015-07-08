@@ -471,15 +471,19 @@ class Test_functional_tests:
 
     def test_homepage(self, testapp):
         res = testapp.get('http://localhost/')
+        page = str(res.html)
         assert res.status == '200 OK'
-        assert '<h1>Page2</h1>' in str(res.html)
-        assert '<p>This is page 2</p>' in str(res.html)
+        assert '<h1>Page2</h1>' in page or\
+            '<h1 class="center">Page2</h1>' in page
+        assert '<p>This is page 2</p>' in page
 
     def test_get_page(self, testapp):
         res = testapp.get('http://localhost/posts/Page2')
+        page = str(res.html)
         assert res.status == '200 OK'
-        assert '<h1>Page2</h1>' in str(res.html)
-        assert '<p>This is page 2</p>' in str(res.html)
+        assert '<h1>Page2</h1>' in page or\
+            '<h1 class="center">Page2</h1>' in page
+        assert '<p>This is page 2</p>' in page
         found_comment_h2_elem = False
         for elem in res.html.find_all('h2'):
             if elem.string == 'Comments':
@@ -487,7 +491,7 @@ class Test_functional_tests:
         assert found_comment_h2_elem
         found_comment_form_elem = False
         for elem in res.html.find_all('form'):
-            if elem['id'] == 'add-comment':
+            if elem['id'] == 'add-comments':
                 found_comment_form_elem = True
         assert found_comment_form_elem
 
