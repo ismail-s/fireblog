@@ -2,28 +2,27 @@
 
 <%block name="header">${title}</%block>
 
+<%block name="head">
+${parent.head()}
+<link rel="import" href="${request.static_url('myblog:static/form-submit.html')}">
+<link rel="import" href="${request.get_bower_url('paper-input/paper-input.html')}">
+<link rel="import" href="${request.get_bower_url('paper-input/paper-textarea.html')}">
+</%block>
+
 <%block name="content">
 <form id = "edit-post" action = "${save_url}" method = "post">
-    <div class="form-group">
-        <label for="main-post">Post content</label>
-        <textarea name = "body" autofocus = "true"
-                cols = "80" rows = "10"
-                placeholder = "enter text here"
-                id="main-post"
-                class = "form-control">${post_text}</textarea>
-    </div>
-    <div class="form-group">
+    <label for="body">Post content</label>
+        <paper-textarea name = "body" autofocus = "true"
+        label="Enter the post content here"
+        value="${post_text}"
+                id="main-post"></paper-textarea>
         <label for="tags">Tags (optional)</label>
-        <input type="text" name = "tags"
+        <paper-input name = "tags"
         id="tags"
-        placeholder = "enter any tags here, separated by commas"
-        value = "${tags}"
-        class="form-control">
-    </div>
-    <div class="form-group">
-        <input type = "submit" name = "form.submitted"
-            value = "Submit" class = "form-control"/>
-    </div>
+        label = "enter any tags here, separated by commas"
+        value = "${tags}"></paper-input>
+        <input type="hidden" name="form.submitted">
+        <form-submit-button>Submit</form-submit-button>
 </form>
 
 </%block>

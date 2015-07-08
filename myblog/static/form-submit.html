@@ -16,16 +16,15 @@ var MyElement =  Polymer({
         'tap': 'submitForm'
     },
     submitForm: function(e) {
-        debugger;
         var form = $(this).closest('form');
-        var paper_textarea = form.find('paper-textarea');
-        var comment = paper_textarea[0].value;
-        $('<input>').attr({
-            type: 'hidden',
-            name: paper_textarea.attr("name"),
-            value: comment
-            }).appendTo(form);
+        var paper_textarea = form.find('paper-textarea').each(function(){
+            $('<input>').attr({
+                type: 'hidden',
+                name: this.name,
+                value: this.value,
+                }).appendTo(form);
+            });
         form.submit();
-    }
+        }
   });
 </script>

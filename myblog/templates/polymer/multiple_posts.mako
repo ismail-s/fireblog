@@ -19,18 +19,16 @@ ${extra_styles}
 % endif
 
 % for post in posts:
-<div class = "panel panel-default">
-    <div class = "panel-heading all-posts-header">
+<paper-material class="card">
     <a href = "${request.route_url('view_post', postname = post["name"])}">
-        <h2>
+        <h1 class="center">
                 ${post["name"]} <small>Created ${post["date"]}</small>
-        </h2>
+        </h1>
     </a>
-    </div>
     <div class="panel-body">
         ${post["html"]|n}
     </div>
-</div>
+</paper-material>
 </a>
 % endfor
 

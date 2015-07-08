@@ -1,5 +1,14 @@
 <%inherit file="navbar.mako"/>
 
+<%block name="head">
+${parent.head()}
+<link rel="import" href="${request.static_url('myblog:static/form-submit.html')}">
+<link rel="import" href="${request.get_bower_url('paper-item/paper-item.html')}">
+<link rel="import" href="${request.get_bower_url('paper-item/paper-item-body.html')}">
+<link rel="import" href="${request.get_bower_url('paper-input/paper-textarea.html')}">
+<link rel="import" href="${request.get_bower_url('paper-button/paper-button.html')}">
+</%block>
+
 <%block name="content">
 
 <%
@@ -29,13 +38,13 @@ Tags: ${tags|n}
 <div class="flex-horizontal-center">
 
 % if prev_page:
-  <a href="${prev_page}"><paper-button raised class="button-blue">Older</paper-button></a>
+  <a href="${prev_page}"><paper-button raised class="blue">Older</paper-button></a>
 % endif
 
 <a href="${request.route_url('view_all_posts')}"><paper-button raised>All Posts</paper-button></a>
 
 % if next_page:
-  <a href="${next_page}"><paper-button raised class="button-blue">Newer</paper-button></a>
+  <a href="${next_page}"><paper-button raised class="blue">Newer</paper-button></a>
 % endif
 
 </div>
@@ -44,26 +53,16 @@ Tags: ${tags|n}
 
 <paper-material class="card">
     <h2 style = "text-align: center">Comments</h2>
-% if comments:
-% for comment in comments[:-1]:
+% for comment in comments:
     <paper-item><paper-item-body two-line>
         <div>${comment['comment']}</div>
         <div secondary>Posted ${comment['created']} by ${comment['author']}.
-% if 'g:admin' in request.effective_principals:
+    % if 'g:admin' in request.effective_principals:
             <a href="${request.route_url('comment_del', _query = {'comment-uuid': comment['uuid'],'postname': title})}">Delete this comment</a>
-% endif
+    % endif
         </div>
     </paper-item-body></paper-item>
 % endfor
-    <paper-item><paper-item-body two-line>
-        <div>${comments[-1]['comment']}</div>
-        <div secondary>Posted ${comments[-1]['created']} by ${comments[-1]['author']}.
-% if 'g:admin' in request.effective_principals:
-            <a href="${request.route_url('comment_del', _query = {'comment-uuid': comments[-1]['uuid'],'postname': title})}">Delete this comment</a>
-% endif
-        </div>
-    </paper-item-body></paper-item>
-% endif
 
 % if request.authenticated_userid:  # All authenticated users can comment.
         <form id = "add-comment" action = "${comment_add_url}" method = "post">

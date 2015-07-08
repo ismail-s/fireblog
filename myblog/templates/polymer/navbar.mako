@@ -1,65 +1,71 @@
 <%inherit file="base.mako"/>
-<%block name="navbar">
-% if request.authenticated_userid:
-<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
-  <div class="container-fluid">
-    <!-- Brand and toggle get grouped for better mobile display -->
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <a class="navbar-brand" href="/">Home</a>
-      <p class="navbar-text">Signed in as ${get_username(request.authenticated_userid)} (${request.authenticated_userid})</p>
-    </div>
+<%block name="head">
+${parent.head()}
+<link rel="import" href="${request.get_bower_url('paper-icon-button/paper-icon-button.html')}">
+<link rel="import" href="${request.get_bower_url('iron-icons/iron-icons.html')}">
+<link rel="import" href="${request.get_bower_url('paper-fab/paper-fab.html')}">
+<link rel="import" href="${request.get_bower_url('paper-input/paper-input.html')}">
+<link rel="import" href="${request.get_bower_url('paper-dialog/paper-dialog.html')}">
+</%block>
 
-    <!-- Collect the nav links, forms, and other content for toggling -->
-    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-      <ul class="nav navbar-nav">
-% if request.has_permission('add'):
-      <form class="navbar-form navbar-left" role="search">
-        <div class="form-group">
-          <input type="text" id="page_to_add" class="form-control" placeholder="Title of post">
-        </div>
-        <button type="Submit" id="add_button" class="btn btn-default">Add</button>
-      </form>
-% endif
-% if request.matched_route.name in ('view_post', 'home'):
-% if request.has_permission('edit'):
-        <li><a href="${request.route_url('edit_post', postname = title)}">Edit this page</a></li>
-% endif
-% if request.has_permission('del'):
-        <li><a href="${request.route_url('del_post', postname = title)}">Delete this page</a></li>
-% endif
-% endif
-% if 'g:admin' in request.effective_principals:
-        <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Manage blog <span class="caret"></span></a>
-          <ul class="dropdown-menu" role="menu">
-            <li><a href="${request.route_url('tag_manager')}">Manage tags</a></li>
-            <li><a href="#">Manage users</a></li>
-            <li><a href="#">Manage comments</a></li>
-          </ul>
-        </li>
-% endif
-      </ul>
-    </div><!-- /.navbar-collapse -->
-  </div><!-- /.container-fluid -->
-</nav>
+<%block name="header_toolbar">
+% if request.authenticated_userid:
+
+      <div><a class="navbar-brand" href="/"><paper-icon-button icon="home"></paper-icon-button></a></div>
+${parent.header_toolbar()}
+      <div class="flex-vertical flex-1">
+        <div>Signed in as ${get_username(request.authenticated_userid)}</div>
+        <div>(${request.authenticated_userid})</div>
+      </div>
+    % if request.matched_route.name in ('view_post', 'home'):
+        % if request.has_permission('edit'):
+        <div><a href="${request.route_url('edit_post', postname = title)}"><paper-icon-button icon="create"></paper-icon-button></a></div>
+        % endif
+        % if request.has_permission('del'):
+        <div><a href="${request.route_url('del_post', postname = title)}"><paper-icon-button icon="delete"></paper-icon-button></a></div>
+        % endif
+    % endif
+    % if 'g:admin' in request.effective_principals:
+            <div><a href="${request.route_url('tag_manager')}"><paper-icon-button icon="label"></paper-icon-button></a></div>
+    % endif
+% else:
+${parent.header_toolbar()}
 % endif
 </%block>
 
-<%block name="navbar_js">
+<%block name="main_body">
+${parent.main_body()}
+% if request.authenticated_userid and request.matched_route.name in ('view_post', 'home'):
+<paper-fab icon="add" id="add"></paper-fab>
+<paper-dialog modal id="add-dialog">
+  <h2>Add a new post</h2>
+  <paper-dialog-scrollable>
+  <form>
+    <paper-input id="page-to-add"
+                label="Enter the post title">
+    </paper-input></form>
+  </paper-dialog-scrollable>
+  <div class="buttons">
+    <paper-button dialog-dismiss>Cancel</paper-button>
+    <paper-button dialog-confirm id="add-post-button">Accept</paper-button>
+  </div>
+</paper-dialog>
+% endif
+</%block>
+<%block name="footer_js">
+${parent.footer_js()}
 <script type="text/javascript">
 $(document).ready(function(){
-    $("#add_button").click(function(event){
-        var page_to_add = $("#page_to_add").val();
+    $("#add-post-button").click(function(event){
+        var page_to_add = $("#page-to-add").val();
         if (page_to_add != ""){
             window.location.href = "/posts/"+page_to_add+"/add";
         }
         event.preventDefault();
+    });
+    $("#add").click(function(){
+        var x = $("#add-dialog")[0];
+        x.open();
     });
 });
 </script>
