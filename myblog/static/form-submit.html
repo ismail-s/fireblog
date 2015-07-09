@@ -1,0 +1,30 @@
+
+<link rel="import" href="../bower/polymer/polymer.html">
+<link rel="import" href="../bower/paper-button/paper-button.html">
+
+<dom-module id="form-submit-button">
+    <template>
+        <paper-button><content></content></paper-button>
+    </template>
+</dom-module>
+
+<script>
+var MyElement =  Polymer({
+
+    is: "form-submit-button",
+    listeners: {
+        'tap': 'submitForm'
+    },
+    submitForm: function(e) {
+        var form = $(this).closest('form');
+        var paper_textarea = form.find('paper-textarea').each(function(){
+            $('<input>').attr({
+                type: 'hidden',
+                name: this.name,
+                value: this.value,
+                }).appendTo(form);
+            });
+        form.submit();
+        }
+  });
+</script>
