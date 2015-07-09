@@ -65,7 +65,6 @@ paper-dialog {
 .header {
   --paper-toolbar-background: #db4437;/*--google-red-500*/
   color: white;
-  padding: 0px 5px;
 }
 
 % if request.authenticated_userid:
@@ -76,7 +75,7 @@ paper-dialog {
 
 % else:
 .title-text > h1 {
-  font-size: 2em;
+  font-size: 1.6em;
 }
 % endif
 
