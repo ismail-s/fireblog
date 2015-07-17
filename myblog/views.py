@@ -7,6 +7,7 @@ import datetime
 import requests
 from pyramid.view import view_config
 from pyramid.response import Response
+from pyramid.testing import DummyRequest
 from pyramid.httpexceptions import (
     HTTPFound,
     HTTPNotFound,
@@ -71,6 +72,7 @@ def home(request):
     # dict back, Not a rendered response.
 
 @view_config(route_name = 'view_post')
+@utils.region.cache_on_arguments(function_key_generator = utils.cache_key_generator)
 @use_template('post.mako')
 def view_post(request):
     postname = request.matchdict['postname']
@@ -121,6 +123,12 @@ def view_post(request):
                 next_page = next,
                 comment_add_url = request.route_url('comment_add'),
                 comments = comments_list)
+
+def invalidate_post(postname):
+    dummy_request = DummyRequest()
+    dummy_request.matchdict['postname'] = postname
+    view_post.invalidate(dummy_request)
+    view_post.invalidate(dummy_request, testing = 1)
 
 @view_config(route_name = 'view_all_posts')
 @use_template('multiple_posts.mako')
@@ -180,8 +188,10 @@ def edit_post(request):
         tags = request.params['tags']
         utils.append_tags_from_string_to_tag_object(tags, post.tags)
         DBSession.add(post)
-        return HTTPFound(location = request.route_url('view_post',
-                                                postname = postname))
+        location = request.route_url('view_post',
+                                    postname = postname)
+        invalidate_post(postname)
+        return HTTPFound(location = location)
 
     save_url = request.route_url('edit_post', postname = postname)
     post_text = post.markdown
@@ -205,6 +215,7 @@ def del_post(request):
     if 'form.submitted' in request.params:
         post = DBSession.query(Post).filter_by(name = postname).one()
         DBSession.delete(post)
+        invalidate_post(postname)
         return HTTPFound(location = request.route_url('home'))
     save_url = request.route_url('del_post', postname = postname)
     return dict(title = "Deleting post: " + postname,
@@ -306,6 +317,7 @@ def comment_add(request):
     comment = Comments(comment = comment_text)
     comment.author = author
     post.comments.append(comment)
+    invalidate_post(postname)
     return HTTPFound(location = request.route_url('view_post',
                                                 postname = postname))
 
@@ -319,5 +331,6 @@ def comment_delete(request):
     if not comment:
         return HTTPNotFound()
     DBSession.delete(comment)
+    invalidate_post(postname)
     return HTTPFound(location = request.route_url('view_post',
                                                 postname = postname))

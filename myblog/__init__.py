@@ -10,7 +10,6 @@ from myblog.models import (
     Base,
     Users
 )
-import myblog.views as views
 
 def get_bower_url(request, path_to_resource):
     return request.static_url('myblog:../bower_components/' + path_to_resource)
@@ -98,5 +97,5 @@ def main(global_config, **settings):
     # Pyramid_persona has already set an authorization policy, so
     # this has not been done here.
     add_routes(config)
-    config.scan(views)
+    config.scan()
     return config.make_wsgi_app()

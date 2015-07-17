@@ -24,7 +24,8 @@ assertion = data['assertion']
 @pytest.fixture
 def pyramid_req():
     res = testing.DummyRequest()
-    res.registry.settings.update({'myblog.allViewPostLen': 1000})
+    res.registry.settings.update({'myblog.allViewPostLen': 1000,
+                                'dogpile_cache.backend': 'memory'})
     return res
 
 @pytest.fixture
@@ -91,6 +92,7 @@ def testapp(mydb, scope = 'module'):
         settings =  {'sqlalchemy.url': 'sqlite://',
                     'persona.audiences': 'http://localhost',
                     'persona.secret': 'some_secret',
+                    'dogpile_cache.backend': 'memory',
                     'myblog.allViewPostLen': 1000}
         app = myblog.main({}, **settings)
         testapp = webtest.TestApp(app)
