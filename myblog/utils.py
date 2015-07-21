@@ -62,6 +62,12 @@ def use_template(template = None):
             theme = 'polymer'
             template = 'myblog:templates/' + theme + '/' + template
             return render_to_response(template, res, request)
+        # dogpile_cache has a cache_on_arguments decorator that adds extra
+        # attributes to the decorated function. This bit of code adds those
+        # attributes to the inner function.
+        for attr in dir(f):
+            if not attr.startswith('__'):
+                setattr(inner, attr, getattr(f, attr))
         return inner
     return wrapper
 
