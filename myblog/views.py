@@ -72,8 +72,8 @@ def home(request):
     # dict back, Not a rendered response.
 
 @view_config(route_name = 'view_post')
-@utils.region.cache_on_arguments(function_key_generator = utils.cache_key_generator)
 @use_template('post.mako')
+@utils.region.cache_on_arguments(function_key_generator = utils.cache_key_generator)
 def view_post(request):
     postname = request.matchdict['postname']
     page = DBSession.query(Post).filter_by(name = postname).first()

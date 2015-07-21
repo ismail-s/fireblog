@@ -596,3 +596,21 @@ class Test_functional_tests:
         with pytest.raises(AppError) as excinfo:
             res = testapp.get('/posts/some new page')
         assert '404 Not Found' in str(excinfo.value)
+
+    def test_logout_changes_page_back_to_page_before_logging_in(self, testapp):
+        '''
+        This test covers a bug I introduced at one point when the view_post
+        page was fully cached, after template rendering. This meant that the
+        page would always be retrieved from cache, not taking into account
+        things like logging in which means that person needs to see a different
+        page.
+        '''
+        get_page2_html = lambda : testapp.get('http://localhost/posts/Page2').html
+        unauthenticated_homepage = get_page2_html()
+        self.login(testapp)
+        authenticated_homepage = get_page2_html()
+        self.logout(testapp)
+        unauthenticated_homepage_2 = get_page2_html()
+
+        assert unauthenticated_homepage == unauthenticated_homepage_2
+        assert authenticated_homepage != unauthenticated_homepage
