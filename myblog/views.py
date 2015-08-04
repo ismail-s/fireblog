@@ -4,7 +4,6 @@ from myblog.utils import use_template
 import ago
 import PyRSS2Gen
 import datetime
-import requests
 from pyramid.view import view_config
 from pyramid.response import Response
 from pyramid.testing import DummyRequest
@@ -104,15 +103,10 @@ def view_post(request):
     tags = utils.turn_tag_object_into_html_string_for_display(request,
                                                             page.tags)
 
-    comments = page.comments
-    comments_list = []
-    for comment in comments:
-        to_append = {}
-        to_append['created'] = ago.human(comment.created, precision = 1)
-        to_append['author'] = comment.author.username
-        to_append['comment'] = comment.comment
-        to_append['uuid'] = comment.uuid
-        comments_list.append(to_append)
+    # Fire off an event that lets any plugins or whatever add content below the
+    # post. Currently this is used just to add comments below the post.
+    event = utils.RenderingPost(post = page, request = request)
+    request.registry.notify(event)
 
     return dict(title = page.name,
                 html = page.html,
@@ -121,8 +115,7 @@ def view_post(request):
                 post_date = ago.human(page.created, precision = 1),
                 prev_page = previous,
                 next_page = next,
-                comment_add_url = request.route_url('comment_add'),
-                comments = comments_list)
+                bottom_of_page_sections = event.sections)
 
 def invalidate_post(postname):
     dummy_request = DummyRequest()
@@ -287,50 +280,3 @@ def uuid(request):
         return HTTPFound(location = request.route_url('tag_view',
                                     tag_name = tags[0].tag))
     return HTTPNotFound('No uuid matches.')
-
-@view_config(route_name = 'comment_add')
-def comment_add(request):
-    '''We allow anyone to have access to this view. But we check whether a
-    person is authenticated or not within this view. This is because we are
-    allowing people to add comments anonymously ie not under an individual
-    userid/username.'''
-    if 'form.submitted' not in request.params:
-        return HTTPNotFound()
-    postname = request.params.get('postname', None)
-    comment_text = request.params.get('comment', None)
-    if not request.authenticated_userid:
-        recaptcha = request.params.get('g-recaptcha-response', '')
-        payload = dict(secret = '6LdPugUTAAAAACBpJ6IvHD2EF-PI-TaIhXvmbPf6',
-                        response = recaptcha)
-        result = requests.post('https://www.google.com/recaptcha/api/siteverify',
-                    data = payload)
-        try:
-            if result.json()['success'] != True:
-                return HTTPNotFound()
-        except Exception:
-            return HTTPNotFound()
-    author = request.authenticated_userid or utils.get_anonymous_userid()
-    if not all((postname, comment_text, author)):
-        return HTTPNotFound()
-    post = DBSession.query(Post).filter_by(name = postname).one()
-    author = DBSession.query(Users).filter_by(userid = author).one()
-    comment = Comments(comment = comment_text)
-    comment.author = author
-    post.comments.append(comment)
-    invalidate_post(postname)
-    return HTTPFound(location = request.route_url('view_post',
-                                                postname = postname))
-
-@view_config(route_name = 'comment_del', permission = 'comment-del')
-def comment_delete(request):
-    comment_uuid = request.params.get('comment-uuid', None)
-    postname = request.params.get('postname', None)
-    if not all((comment_uuid, postname)):
-        return HTTPNotFound()
-    comment = DBSession.query(Comments).filter_by(uuid = comment_uuid).first()
-    if not comment:
-        return HTTPNotFound()
-    DBSession.delete(comment)
-    invalidate_post(postname)
-    return HTTPFound(location = request.route_url('view_post',
-                                                postname = postname))

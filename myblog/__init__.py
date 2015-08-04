@@ -72,10 +72,11 @@ def add_routes(config):
     config.add_route('tag_view', '/tags/{tag_name}')
     config.add_route('tag_manager', '/tags')
 
-    config.add_route('comment_add', '/comment/add')
-    config.add_route('comment_del', '/comment/del')
     config.add_subscriber(add_username_function, BeforeRender)
 
+def include_all_components(config):
+    add_routes(config)
+    config.include('.comments', route_prefix = '/comment')
 
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
@@ -96,6 +97,6 @@ def main(global_config, **settings):
     config.set_authentication_policy(authn_policy)
     # Pyramid_persona has already set an authorization policy, so
     # this has not been done here.
-    add_routes(config)
+    include_all_components(config)
     config.scan()
     return config.make_wsgi_app()
