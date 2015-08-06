@@ -35,7 +35,7 @@ ${parent.header_toolbar()}
 
 <%block name="main_body">
 ${parent.main_body()}
-% if request.authenticated_userid and request.matched_route.name in ('view_post', 'home'):
+% if request.has_permission('add') and request.matched_route.name in ('view_post', 'home'):
 <paper-fab icon="add" id="add"></paper-fab>
 <paper-dialog modal id="add-dialog">
   <h2>Add a new post</h2>
