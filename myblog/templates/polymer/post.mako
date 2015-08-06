@@ -55,7 +55,7 @@ Tags: ${tags|n}
     <h2 style = "text-align: center">Comments</h2>
 % for comment in comments:
     <paper-item><paper-item-body two-line>
-        <div>${comment['comment']}</div>
+        <div style="white-space: normal;">${comment['comment']}</div>
         <div secondary>Posted ${comment['created']} by ${comment['author']}.
     % if 'g:admin' in request.effective_principals:
             <a href="${request.route_url('comment_del', _query = {'comment-uuid': comment['uuid'],'postname': title})}">Delete this comment</a>
