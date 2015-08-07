@@ -24,6 +24,7 @@ requires = [
     'shortuuid',
     'webtest',
     'pytest',
+    'pytest-cov',
     'PyRSS2Gen',
     'alembic',
     'requests'
