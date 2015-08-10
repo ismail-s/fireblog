@@ -3,6 +3,7 @@ import myblog.utils as utils
 from myblog.utils import use_template
 import ago
 import PyRSS2Gen
+import dogpile.cache.util
 import datetime
 from pyramid.view import view_config
 from pyramid.response import Response
@@ -72,13 +73,33 @@ def home(request):
 
 @view_config(route_name = 'view_post')
 @use_template('post.mako')
-@utils.region.cache_on_arguments(function_key_generator = utils.cache_key_generator)
 def view_post(request):
     postname = request.matchdict['postname']
     page = DBSession.query(Post).filter_by(name = postname).first()
     if not page:
         return HTTPNotFound('no such page exists')
+    post_dict = get_post_section_as_dict(request, page, postname = postname)
 
+    # Fire off an event that lets any plugins or whatever add content below the
+    # post. Currently this is used just to add comments below the post.
+    event = utils.RenderingPost(post = page, request = request)
+    request.registry.notify(event)
+
+    post_dict['bottom_of_page_sections'] = event.sections
+    return post_dict
+
+def post_key_generator(*args, **kwargs):
+    old_key_generator = dogpile.cache.util.function_key_generator(*args,
+                                                                **kwargs)
+    def new_key_generator(*args, **kwargs):
+        postname = kwargs['postname']
+        return '|'.join((old_key_generator(), postname))
+    return new_key_generator
+
+@utils.region.cache_on_arguments(function_key_generator = post_key_generator)
+def get_post_section_as_dict(request, page, postname):
+    if not all((request, page, postname)):
+        raise Exception('Function called incorrectly-check calling code.')
     # Here we use sqlalchemy Core in order to get a slight speed boost.
     previous_sql = sql.select([Post.name]).\
                 where(Post.created < page.created).\
@@ -102,26 +123,16 @@ def view_post(request):
     # Get tags and make them into a string
     tags = utils.turn_tag_object_into_html_string_for_display(request,
                                                             page.tags)
-
-    # Fire off an event that lets any plugins or whatever add content below the
-    # post. Currently this is used just to add comments below the post.
-    event = utils.RenderingPost(post = page, request = request)
-    request.registry.notify(event)
-
     return dict(title = page.name,
                 html = page.html,
                 uuid = page.uuid,
                 tags = tags,
                 post_date = ago.human(page.created, precision = 1),
                 prev_page = previous,
-                next_page = next,
-                bottom_of_page_sections = event.sections)
+                next_page = next)
 
 def invalidate_post(postname):
-    dummy_request = DummyRequest()
-    dummy_request.matchdict['postname'] = postname
-    view_post.invalidate(dummy_request)
-    view_post.invalidate(dummy_request, testing = 1)
+    get_post_section_as_dict.invalidate(None, None, postname = postname)
 
 @view_config(route_name = 'view_all_posts')
 @use_template('multiple_posts.mako')
@@ -154,6 +165,10 @@ def add_post(request):
         tags = request.params['tags']
         utils.append_tags_from_string_to_tag_object(tags, post.tags)
         DBSession.add(post)
+        # Make sure the non-existence of this post is not cached. ie someone
+        # could have previously tried to get this post, but the 404 response
+        # could have been cached.
+        invalidate_post(postname)
         return HTTPFound(location = request.route_url('view_post',
                                                 postname = postname))
 
