@@ -3,6 +3,7 @@ import ago
 from myblog.models import DBSession, Tags, Users
 from pyramid_dogpile_cache import get_region
 import dogpile.cache.util
+import functools
 from pyramid import renderers
 from pyramid.request import Request
 from pyramid.testing import DummyRequest
@@ -49,6 +50,7 @@ def cache_key_generator(*args, **kwargs):
 
 def use_template(template = None):
     def wrapper(f, template = template):
+        @functools.wraps(f)
         def inner(request1, request2 = None, testing = 0,
                 template = template, *request3):
             # This function basically gets called in a whole host of ways.
@@ -60,12 +62,6 @@ def use_template(template = None):
             if testing or not template or type(res) != dict:
                 return res
             return render_to_response(template, res, request)
-        # dogpile_cache has a cache_on_arguments decorator that adds extra
-        # attributes to the decorated function. This bit of code adds those
-        # attributes to the inner function.
-        for attr in dir(f):
-            if not attr.startswith('__'):
-                setattr(inner, attr, getattr(f, attr))
         return inner
     return wrapper
 
