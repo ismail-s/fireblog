@@ -14,6 +14,7 @@ from pyramid.httpexceptions import HTTPNotFound
 from myblog.models import DBSession, Base, Post, Users, Tags, Comments
 import myblog.views as views
 import myblog.comments
+import myblog.tags
 from myblog import include_all_components, groupfinder
 import myblog
 
@@ -305,7 +306,7 @@ class Test_tag_view:
         ('tag2', [("Page2", "<p>This is page 2</p>")])])
     def test_success(self, tag, actual_posts, pyramid_config, pyramid_req):
         pyramid_req.matchdict['tag_name'] = tag
-        response = views.tag_view(pyramid_req, testing = 1)
+        response = myblog.tags.tag_view(pyramid_req, testing = 1)
         posts = response['posts']
 
         assert tag in response['title']
@@ -318,12 +319,12 @@ class Test_tag_view:
 
     def test_failure(self, pyramid_config, pyramid_req):
         pyramid_req.matchdict['tag_name'] = 'doesntexist'
-        response = views.tag_view(pyramid_req, testing = 1)
+        response = myblog.tags.tag_view(pyramid_req, testing = 1)
         assert type(response) == HTTPNotFound
 
 class Test_tag_manager:
     def test_success(self, pyramid_config, pyramid_req):
-        res = views.tag_manager(pyramid_req, testing = 1)
+        res = myblog.tags.tag_manager(pyramid_req, testing = 1)
         assert res == dict(tags = [('tag1', 2), ('tag2', 1)],
                            title = 'Tag manager',
                            save_url = 'http://example.com/tags')
@@ -339,12 +340,12 @@ class Test_tag_manager:
         # I'm not fully sure why we do this. But it works and stops issues with autoflush and whatnot.
         # But in production it seems to be ok...
         DBSession.begin(subtransactions = True)
-        res = views.tag_manager(pyramid_req, testing = 1)
+        res = myblog.tags.tag_manager(pyramid_req, testing = 1)
         DBSession.commit()
         assert res.location == 'http://example.com/tags'
 
         pyramid_req.params = {}
-        res = views.tag_manager(pyramid_req, testing = 1)
+        res = myblog.tags.tag_manager(pyramid_req, testing = 1)
         assert res == dict(tags = [('tag22', 1)],
                            title = 'Tag manager',
                            save_url = 'http://example.com/tags')
