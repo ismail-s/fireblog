@@ -7,7 +7,7 @@
             <small>Posted ${comment['created']} by ${comment['author']}.</small>
             <p>${comment['comment']}</p>
 % if 'g:admin' in request.effective_principals:
-            <p><a href="${request.route_url('comment_del', _query = {'comment-uuid': comment['uuid'],'postname': title})}">Delete this comment</a></p>
+            <p><a href="${request.route_url('comment_del', _query = {'comment-uuid': comment['uuid'],'postname': post_title})}">Delete this comment</a></p>
 % endif
             <hr>
 % endfor
