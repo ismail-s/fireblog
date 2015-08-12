@@ -1,11 +1,11 @@
 from operator import itemgetter
 import myblog.utils as utils
-from myblog.utils import use_template
+from myblog.utils import use_template, TemplateResponseDict
 import ago
 import PyRSS2Gen
 import dogpile.cache.util
 import datetime
-from pyramid.view import view_config
+from pyramid.view import view_config, view_defaults
 from pyramid.response import Response
 from pyramid.testing import DummyRequest
 from pyramid.httpexceptions import (
@@ -59,8 +59,7 @@ def render_rss_feed(request):
     # a post is modified...
     return Response(rss.to_xml(), content_type = 'application/xml')
 
-@view_config(route_name = 'home')
-@use_template('post.mako')
+@view_config(route_name = 'home', decorator = use_template('post.mako'))
 def home(request):
     # Get the most recent post.
     # We use the Core of sqlalchemy here for performance, and because
@@ -68,11 +67,9 @@ def home(request):
     query = sql.select([Post.name]).order_by(Post.created.desc()).limit(1)
     postname = DBSession.execute(query).fetchone().name
     request.matchdict['postname'] = postname
-    return view_post(request, testing = 1)  # We do testing = 1 to get just the
-    # dict back, Not a rendered response.
+    return view_post(request)
 
-@view_config(route_name = 'view_post')
-@use_template('post.mako')
+@view_config(route_name = 'view_post', decorator = use_template('post.mako'))
 def view_post(request):
     postname = request.matchdict['postname']
     page = DBSession.query(Post).filter_by(name = postname).first()
@@ -86,7 +83,7 @@ def view_post(request):
     request.registry.notify(event)
 
     post_dict['bottom_of_page_sections'] = event.sections
-    return post_dict
+    return TemplateResponseDict(post_dict)
 
 def post_key_generator(*args, **kwargs):
     old_key_generator = dogpile.cache.util.function_key_generator(*args,
@@ -134,8 +131,8 @@ def get_post_section_as_dict(request, page, postname):
 def invalidate_post(postname):
     get_post_section_as_dict.invalidate(None, None, postname = postname)
 
-@view_config(route_name = 'view_all_posts')
-@use_template('multiple_posts.mako')
+@view_config(route_name = 'view_all_posts',
+            decorator = use_template('multiple_posts.mako'))
 def view_all_posts(request):
     # We use sqlalchemy Core here for performance.
     query = sql.select([Post.name, Post.markdown, Post.created]).\
@@ -144,90 +141,113 @@ def view_all_posts(request):
     # TODO-log a critical error here maybe if all posts are deleted
     res, code_styles = utils.create_post_list_from_posts_obj(request, posts)
 
-    return dict(title = 'All posts',
+    return TemplateResponseDict(title = 'All posts',
                 posts = res,
                 uuid = None,
                 code_styles = code_styles)
 
-@view_config(route_name = 'add_post', permission = 'add')
-@use_template('edit.mako')
-def add_post(request):
-    postname = request.matchdict['postname']
-    if DBSession.query(Post).filter_by(name = postname).count():
-        return HTTPFound(location = request.route_url('edit_post',
-                                                postname = postname))
 
-    if 'form.submitted' in request.params:
+@view_defaults(route_name = 'change_post')
+class Post_modifying_views(object):
+    def __init__(self, request):
+        self.request = request
+        self.postname = self.request.matchdict['postname']
+        self.no_of_posts_with_postname = DBSession.query(Post).\
+                                        filter_by(name = self.postname).count()
+        self.matching_posts = DBSession.query(Post).\
+                            filter_by(name = self.postname).all()
+
+    @view_config(match_param="action=add", request_method = "GET",
+                decorator = use_template('edit.mako'), permission = 'add')
+    def add_post(self):
+        if len(self.matching_posts):
+            return HTTPFound(location = self.request.route_url('change_post',
+                                                    postname = self.postname,
+                                                    action = 'edit'))
+        save_url = self.request.route_url('change_post', postname = self.postname,
+                                                        action = 'add')
+        # We can then feed the save url into the template for the form
+        return TemplateResponseDict(title = 'Adding page: ' + self.postname,
+                    save_url = save_url,
+                    post_text = '',
+                    tags = '')
+
+    @view_config(match_param="action=add", request_method = "POST",
+                request_param = 'form.submitted', permission = 'add')
+    def add_post_POST(self):
+        if len(self.matching_posts):
+            return HTTPFound(location = self.request.route_url('change_post',
+                                                    postname = self.postname,
+                                                    action = 'edit'))
         post = Post()
-        post.name = postname
-        post.markdown = request.params['body']
+        post.name = self.postname
+        post.markdown = self.request.params['body']
         post.html = utils.to_markdown(post.markdown)
-        tags = request.params['tags']
+        tags = self.request.params['tags']
         utils.append_tags_from_string_to_tag_object(tags, post.tags)
         DBSession.add(post)
         # Make sure the non-existence of this post is not cached. ie someone
         # could have previously tried to get this post, but the 404 response
         # could have been cached.
-        invalidate_post(postname)
-        return HTTPFound(location = request.route_url('view_post',
-                                                postname = postname))
+        invalidate_post(self.postname)
+        return HTTPFound(location = self.request.route_url('view_post',
+                                                postname = self.postname))
 
-    save_url = request.route_url('add_post', postname = postname)
-    # We can then feed the save url into the template for the form
-    return dict(title = 'Adding page: ' + postname,
-                save_url = save_url,
-                post_text = '',
-                tags = '')
+    @view_config(match_param="action=edit", request_method = "GET",
+                decorator = use_template('edit.mako'), permission = 'edit')
+    def edit_post(self):
+        if len(self.matching_posts) != 1:
+            return HTTPFound(location = self.request.route_url('home'))
 
-@view_config(route_name = 'edit_post', permission = 'edit')
-@use_template('edit.mako')
-def edit_post(request):
-    postname = request.matchdict['postname']
-    if not DBSession.query(Post).\
-            filter_by(name = postname).count() == 1:
-        return HTTPFound(location = request.route_url('home'))
+        post = self.matching_posts[0]
+        save_url = self.request.route_url('change_post',
+                                    postname = self.postname, action = 'edit')
+        post_text = post.markdown
 
-    post = DBSession.query(Post).\
-                filter_by(name = postname).\
-                one()
-    if 'form.submitted' in request.params:
-        post.markdown = request.params['body']
-        post.html = utils.to_markdown(request.params['body'])
-        tags = request.params['tags']
+        tags = utils.turn_tag_object_into_string_for_forms(post.tags)
+
+        return TemplateResponseDict(title = 'Editing page: ' + self.postname,
+                    post_text = post_text,
+                    tags = tags,  # To be modified in a bit
+                    save_url = save_url)
+
+    @view_config(match_param="action=edit", request_method = "POST",
+                request_param = 'form.submitted', permission = 'edit')
+    def edit_post_POST(self):
+        if len(self.matching_posts) != 1:
+            return HTTPFound(location = self.request.route_url('home'))
+    
+        post = self.matching_posts[0]
+        post.markdown = self.request.params['body']
+        post.html = utils.to_markdown(self.request.params['body'])
+        tags = self.request.params['tags']
         utils.append_tags_from_string_to_tag_object(tags, post.tags)
         DBSession.add(post)
-        location = request.route_url('view_post',
-                                    postname = postname)
-        invalidate_post(postname)
+        location = self.request.route_url('view_post',
+                                    postname = self.postname)
+        invalidate_post(self.postname)
         return HTTPFound(location = location)
 
-    save_url = request.route_url('edit_post', postname = postname)
-    post_text = post.markdown
+    @view_config(match_param="action=del", request_method = "GET",
+                decorator = use_template('del.mako'), permission = 'del')
+    def del_post(self):
+        # TODO-maybe don't allow deletion of a post if it is the only one.
+        if len(self.matching_posts) != 1:
+            return HTTPFound(location = request.route_url('home'))
+        save_url = self.request.route_url('change_post', postname = self.postname, action = 'del')
+        return TemplateResponseDict(title = "Deleting post: " + self.postname,
+                    save_url = save_url)
 
-    tags = utils.turn_tag_object_into_string_for_forms(post.tags)
-
-    return dict(title = 'Editing page: ' + postname,
-                post_text = post_text,
-                tags = tags,  # To be modified in a bit
-                save_url = save_url)
-
-@view_config(route_name = 'del_post', permission = 'del')
-@use_template('del.mako')
-def del_post(request):
-    # TODO-maybe don't allow deletion of a post if it is the only one.
-    postname = request.matchdict['postname']
-    if not DBSession.query(Post).\
-                    filter_by(name = postname).count() == 1:
-        return HTTPFound(location = request.route_url('home'))
-
-    if 'form.submitted' in request.params:
-        post = DBSession.query(Post).filter_by(name = postname).one()
+    @view_config(match_param="action=del", request_method = "POST",
+                request_param = 'form.submitted', permission = 'del')
+    def del_post_POST(self):
+        # TODO-maybe don't allow deletion of a post if it is the only one.
+        if len(self.matching_posts)!= 1:
+            return HTTPFound(location = request.route_url('home'))
+        post = self.matching_posts[0]
         DBSession.delete(post)
-        invalidate_post(postname)
-        return HTTPFound(location = request.route_url('home'))
-    save_url = request.route_url('del_post', postname = postname)
-    return dict(title = "Deleting post: " + postname,
-                save_url = save_url)
+        invalidate_post(self.postname)
+        return HTTPFound(location = self.request.route_url('home'))
 
 
 @view_config(route_name = 'uuid')
