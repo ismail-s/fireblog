@@ -233,7 +233,7 @@ class Post_modifying_views(object):
     def del_post(self):
         # TODO-maybe don't allow deletion of a post if it is the only one.
         if len(self.matching_posts) != 1:
-            return HTTPFound(location = request.route_url('home'))
+            return HTTPFound(location = self.request.route_url('home'))
         save_url = self.request.route_url('change_post', postname = self.postname, action = 'del')
         return TemplateResponseDict(title = "Deleting post: " + self.postname,
                     save_url = save_url)

@@ -13,6 +13,7 @@ from pyramid.httpexceptions import HTTPNotFound
 
 from myblog.models import DBSession, Base, Post, Users, Tags, Comments
 import myblog.views as views
+from myblog.views import Post_modifying_views
 import myblog.comments
 import myblog.tags
 from myblog import include_all_components, groupfinder
@@ -104,7 +105,7 @@ def testapp(mydb, scope = 'module'):
 
 class Test_home:
     def test_success(self, pyramid_config, pyramid_req):
-        response = views.home(pyramid_req, testing = 1)
+        response = views.home(pyramid_req)
         assert 'Page2' in response['title']
         assert response['prev_page'] == 'http://example.com/posts/Homepage'
         assert response['next_page'] == None
@@ -118,7 +119,7 @@ class Test_add_post:
         request.params['form.submitted'] = True
         request.params['body'] = body
         request.params['tags'] = tags
-        res = views.add_post(request, testing = 1)
+        res = Post_modifying_views(request).add_post_POST()
         del request.params['body']
         del request.params['form.submitted']
         del request.matchdict['postname']
@@ -126,14 +127,14 @@ class Test_add_post:
 
     def test_GET_success(self, pyramid_config, pyramid_req):
         pyramid_req.matchdict['postname'] = 'somenewpage'
-        response = views.add_post(pyramid_req, testing = 1)
+        response = Post_modifying_views(pyramid_req).add_post()
         assert 'somenewpage' in response['title']
         assert response['post_text'] == ''
         assert response['save_url'] == 'http://example.com/posts/somenewpage/add'
 
     def test_GET_failure(self, pyramid_config, pyramid_req):
         pyramid_req.matchdict['postname'] = 'Homepage'
-        response = views.add_post(pyramid_req, testing = 1)
+        response = Post_modifying_views(pyramid_req).add_post()
         assert response.location == 'http://example.com/posts/Homepage/edit'
 
     def test_POST_success(self, pyramid_config, pyramid_req):
@@ -144,7 +145,7 @@ class Test_add_post:
         assert response.location == 'http://example.com/posts/somenewpage'
 
         pyramid_req.matchdict['postname'] = postname
-        response = views.view_post(pyramid_req, testing = 1)
+        response = views.view_post(pyramid_req)
         assert response['title'] == 'somenewpage'
         assert response['prev_page'] == 'http://example.com/posts/Page2'
         assert response['next_page'] == None
@@ -156,7 +157,7 @@ class Test_add_post:
 class Test_view_post:
     def test_success(self, pyramid_config, pyramid_req):
         pyramid_req.matchdict['postname'] = 'Homepage'
-        response = views.view_post(pyramid_req, testing = 1)
+        response = views.view_post(pyramid_req)
         assert response['title'] == 'Homepage'
         assert response['prev_page'] == None
         assert response['next_page'] == 'http://example.com/posts/Page2'
@@ -177,13 +178,13 @@ class Test_view_post:
 
     def test_failure(self, pyramid_config, pyramid_req):
         pyramid_req.matchdict['postname'] = 'nonexisting page'
-        response = views.view_post(pyramid_req, testing = 1)
+        response = views.view_post(pyramid_req)
         assert type(response) == HTTPNotFound
 
 
 class Test_view_all_posts:
     def test_success(self, pyramid_config, pyramid_req):
-        response = views.view_all_posts(pyramid_req, testing = 1)
+        response = views.view_all_posts(pyramid_req)
         assert response["code_styles"] == False
         posts = response["posts"]
 
@@ -217,23 +218,23 @@ that is all.'''
         # on view_all_posts page. Not sure why, but I'm not losing sleep over
         # this atm...
         pyramid_req.matchdict['postname'] = post_name
-        view_res = views.view_post(pyramid_req, testing = 1)
+        view_res = views.view_post(pyramid_req)
         del pyramid_req.matchdict['postname']
-        response = views.view_all_posts(pyramid_req, testing = 1)
+        response = views.view_all_posts(pyramid_req)
         assert response["code_styles"] == True
 
 
 class Test_edit_post:
     def test_GET_success(self, pyramid_config, pyramid_req):
         pyramid_req.matchdict['postname'] = 'Homepage'
-        response = views.edit_post(pyramid_req, testing = 1)
+        response = Post_modifying_views(pyramid_req).edit_post()
         assert 'Homepage' in response['title']
         assert response['post_text'] == 'This is the front page'
         assert response['save_url'] == 'http://example.com/posts/Homepage/edit'
 
     def test_GET_failure(self, pyramid_config, pyramid_req):
         pyramid_req.matchdict['postname'] = 'nonexisting page'
-        response = views.edit_post(pyramid_req, testing = 1)
+        response = Post_modifying_views(pyramid_req).edit_post()
         assert response.location == 'http://example.com/'
 
     def test_POST_success(self, pyramid_config, pyramid_req):
@@ -241,12 +242,12 @@ class Test_edit_post:
         pyramid_req.params['form.submitted'] = True
         pyramid_req.params['body'] = 'Some test body.'
         pyramid_req.params['tags'] = 'test2, test1, test1'
-        response = views.edit_post(pyramid_req, testing = 1)
+        response = Post_modifying_views(pyramid_req).edit_post_POST()
         assert response.location == 'http://example.com/posts/Homepage'
 
         del pyramid_req.params['body']
         del pyramid_req.params['form.submitted']
-        response = views.view_post(pyramid_req, testing = 1)
+        response = views.view_post(pyramid_req)
         assert response['title'] == 'Homepage'
         assert response['prev_page'] == None
         assert response['next_page'] == 'http://example.com/posts/Page2'
@@ -258,23 +259,23 @@ class Test_edit_post:
 class Test_del_post:
     def test_GET_success(self, pyramid_config, pyramid_req):
         pyramid_req.matchdict['postname'] = 'Homepage'
-        response = views.del_post(pyramid_req, testing = 1)
+        response = Post_modifying_views(pyramid_req).del_post()
         assert 'Homepage' in response['title']
         assert response['save_url'] == 'http://example.com/posts/Homepage/del'
 
     def test_GET_failure(self, pyramid_config, pyramid_req):
         pyramid_req.matchdict['postname'] = 'nonexisting page'
-        response = views.del_post(pyramid_req, testing = 1)
+        response = Post_modifying_views(pyramid_req).del_post()
         assert response.location == 'http://example.com/'
 
     def test_POST_success(self, pyramid_config, pyramid_req):
         pyramid_req.matchdict['postname'] = 'Homepage'
         pyramid_req.params['form.submitted'] = True
-        response = views.del_post(pyramid_req, testing = 1)
+        response = Post_modifying_views(pyramid_req).del_post_POST()
         assert response.location == 'http://example.com/'
 
         del pyramid_req.params['form.submitted']
-        response = views.view_post(pyramid_req, testing = 1)
+        response = views.view_post(pyramid_req)
         assert type(response) == HTTPNotFound
 
 
@@ -306,7 +307,7 @@ class Test_tag_view:
         ('tag2', [("Page2", "<p>This is page 2</p>")])])
     def test_success(self, tag, actual_posts, pyramid_config, pyramid_req):
         pyramid_req.matchdict['tag_name'] = tag
-        response = myblog.tags.tag_view(pyramid_req, testing = 1)
+        response = myblog.tags.tag_view(pyramid_req)
         posts = response['posts']
 
         assert tag in response['title']
@@ -319,12 +320,12 @@ class Test_tag_view:
 
     def test_failure(self, pyramid_config, pyramid_req):
         pyramid_req.matchdict['tag_name'] = 'doesntexist'
-        response = myblog.tags.tag_view(pyramid_req, testing = 1)
+        response = myblog.tags.tag_view(pyramid_req)
         assert type(response) == HTTPNotFound
 
 class Test_tag_manager:
     def test_success(self, pyramid_config, pyramid_req):
-        res = myblog.tags.tag_manager(pyramid_req, testing = 1)
+        res = myblog.tags.tag_manager(pyramid_req)
         assert res == dict(tags = [('tag1', 2), ('tag2', 1)],
                            title = 'Tag manager',
                            save_url = 'http://example.com/tags')
@@ -340,12 +341,12 @@ class Test_tag_manager:
         # I'm not fully sure why we do this. But it works and stops issues with autoflush and whatnot.
         # But in production it seems to be ok...
         DBSession.begin(subtransactions = True)
-        res = myblog.tags.tag_manager(pyramid_req, testing = 1)
+        res = myblog.tags.tag_manager(pyramid_req)
         DBSession.commit()
         assert res.location == 'http://example.com/tags'
 
         pyramid_req.params = {}
-        res = myblog.tags.tag_manager(pyramid_req, testing = 1)
+        res = myblog.tags.tag_manager(pyramid_req)
         assert res == dict(tags = [('tag22', 1)],
                            title = 'Tag manager',
                            save_url = 'http://example.com/tags')
@@ -361,7 +362,7 @@ class Test_comment_add:
 
         pyramid_req.params = {}
         pyramid_req.matchdict['postname'] = 'Page2'
-        res = views.view_post(pyramid_req, testing = 1)
+        res = views.view_post(pyramid_req)
         assert len(res['comments']) == 1
         assert res['comments'][0]['author'] == 'anonymous'
         assert res['comments'][0]['comment'] == comment
@@ -379,7 +380,7 @@ class Test_comment_add:
 
         pyramid_req.params = {}
         pyramid_req.matchdict['postname'] = 'Page2'
-        res = views.view_post(pyramid_req, testing = 1)
+        res = views.view_post(pyramid_req)
         assert len(res['comments']) == 1
         assert res['comments'][0]['author'] == 'id5489746'
         assert res['comments'][0]['comment'] == comment
@@ -396,7 +397,7 @@ class Test_comment_delete:
 
         pyramid_req.params = {}
         pyramid_req.matchdict['postname'] = 'Homepage'
-        res = views.view_post(pyramid_req, testing = 1)
+        res = views.view_post(pyramid_req)
         assert res['comments'] == []
 
 
