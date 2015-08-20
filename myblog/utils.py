@@ -76,7 +76,7 @@ def use_template(template = None):
     return wrapper
 
 def render_to_response(template, res, request):
-    theme = 'polymer'
+    theme = request.registry.settings['myblog.theme']
     template = 'myblog:templates/' + theme + '/' + template
     return renderers.render_to_response(template, res, request)
 

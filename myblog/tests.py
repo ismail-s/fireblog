@@ -6,7 +6,7 @@ from webtest.app import AppError
 import requests
 import PyRSS2Gen
 import ago
-import datetime, copy, re
+import datetime, copy, re, os
 
 from pyramid import testing
 from pyramid.httpexceptions import HTTPNotFound
@@ -24,15 +24,24 @@ data = requests.get('http://personatestuser.org/email_with_assertion/http%3A%2F%
 email = data['email']
 assertion = data['assertion']
 
-@pytest.fixture
-def pyramid_req():
-    res = testing.DummyRequest()
-    res.registry.settings.update({'myblog.allViewPostLen': 1000,
-                                'dogpile_cache.backend': 'memory'})
-    return res
+# Get all available themes
+theme_folder = os.path.join(os.path.dirname(__file__), 'templates')
+available_themes = next(os.walk(theme_folder))[1]
+
+@pytest.fixture(params=available_themes, scope = 'session')
+def theme(request):
+    return request.param
 
 @pytest.fixture
-def mydb(request, scope='module'):
+def pyramid_req(theme):
+    res = testing.DummyRequest()
+    res.registry.settings.update({'myblog.allViewPostLen': 1000,
+                                'dogpile_cache.backend': 'memory',
+                                'myblog.theme': theme})
+    return res
+
+@pytest.fixture(scope = 'session')
+def mydb(request):
     engine = create_engine('sqlite://')
     DBSession.configure(bind=engine)
     Base.metadata.create_all(engine)
@@ -84,6 +93,7 @@ def pyramid_config(mydb, request):
     config = testing.setUp()
     config.include('pyramid_mako')
     include_all_components(config)
+    mydb.rollback()
     mydb.begin(subtransactions = True)
     def fin():
         testing.tearDown()
@@ -91,16 +101,26 @@ def pyramid_config(mydb, request):
     request.addfinalizer(fin)
     return config
 
+@pytest.fixture(scope='session')
+def setup_testapp(mydb, theme, request):
+    settings =  {'sqlalchemy.url': 'sqlite://',
+                'persona.audiences': 'http://localhost',
+                'persona.secret': 'some_secret',
+                'dogpile_cache.backend': 'memory',
+                'myblog.allViewPostLen': 1000,
+                'myblog.theme': theme}
+    app = myblog.main({}, **settings)
+    return webtest.TestApp(app)
+
 @pytest.fixture
-def testapp(mydb, scope = 'module'):
-        settings =  {'sqlalchemy.url': 'sqlite://',
-                    'persona.audiences': 'http://localhost',
-                    'persona.secret': 'some_secret',
-                    'dogpile_cache.backend': 'memory',
-                    'myblog.allViewPostLen': 1000}
-        app = myblog.main({}, **settings)
-        testapp = webtest.TestApp(app)
-        return testapp
+def testapp(request, mydb, setup_testapp):
+    testapp = setup_testapp
+    mydb.rollback()
+    mydb.begin(subtransactions = True)
+    def fin():
+        mydb.rollback()
+    request.addfinalizer(fin)
+    return testapp
 
 
 class Test_home:
