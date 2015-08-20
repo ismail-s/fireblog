@@ -7,6 +7,11 @@ import requests
 import PyRSS2Gen
 import ago
 import datetime, copy, re, os
+try:
+    import unittest.mock as mock
+    # unittest.mock was added in python3
+except ImportError:
+    import mock
 
 from pyramid import testing
 from pyramid.httpexceptions import HTTPNotFound
@@ -16,9 +21,9 @@ import myblog.views as views
 from myblog.views import Post_modifying_views
 import myblog.comments
 import myblog.tags
+import myblog.utils
 from myblog import include_all_components, groupfinder
 import myblog
-
 
 data = requests.get('http://personatestuser.org/email_with_assertion/http%3A%2F%2Flocalhost').json()
 email = data['email']
@@ -127,7 +132,8 @@ class Test_home:
     def test_success(self, pyramid_config, pyramid_req):
         response = views.home(pyramid_req)
         assert 'Page2' in response['title']
-        assert response['prev_page'] == 'http://example.com/posts/Homepage'
+        prev_page_regex = 'http://(?:localhost|example\.com)/posts/Homepage'
+        assert re.fullmatch(prev_page_regex, response['prev_page'])
         assert response['next_page'] == None
         assert response['html'] == '<p>This is page 2</p>'
 
@@ -372,22 +378,32 @@ class Test_tag_manager:
                            save_url = 'http://example.com/tags')
 
 class Test_comment_add:
+    @staticmethod
+    def get_comment_list(postname, pyramid_req):
+        post = DBSession.query(Post).filter_by(name = 'Page2').first()
+        event = myblog.utils.RenderingPost(post, pyramid_req)
+        return myblog.comments.render_comments_list_from_event(event)
+
     def test_anon_success(self, pyramid_config, pyramid_req):
         comment = 'A test comment...'
         pyramid_req.params['postname'] = 'Page2'
         pyramid_req.params['comment'] = comment
         pyramid_req.params['form.submitted'] = True
-        res = myblog.comments.comment_add(pyramid_req)
+        with mock.patch('requests.post', autospec = True) as mock_requests_post:
+            mock_response = mock.Mock()
+            mock_response.json.return_value = {'success': True}
+            mock_requests_post.return_value = mock_response
+            res = myblog.comments.comment_add(pyramid_req)
         assert res.location == 'http://example.com/posts/Page2'
 
         pyramid_req.params = {}
-        pyramid_req.matchdict['postname'] = 'Page2'
-        res = views.view_post(pyramid_req)
-        assert len(res['comments']) == 1
-        assert res['comments'][0]['author'] == 'anonymous'
-        assert res['comments'][0]['comment'] == comment
-        assert res['comments'][0]['uuid']
-        # TODO-assert about when comment was created...
+        comments_list = self.get_comment_list('Page2', pyramid_req)
+        assert len(comments_list) == 1
+        comment_res = comments_list[0]
+        assert comment_res['author'] == 'anonymous'
+        assert comment_res['comment'] == comment
+        assert comment_res['uuid']
+        # TODO-assert about when comment was created-use freezegun
 
     def test_logged_in_success(self, pyramid_config, pyramid_req):
         comment = 'A test comment...'
@@ -399,12 +415,12 @@ class Test_comment_add:
         assert res.location == 'http://example.com/posts/Page2'
 
         pyramid_req.params = {}
-        pyramid_req.matchdict['postname'] = 'Page2'
-        res = views.view_post(pyramid_req)
-        assert len(res['comments']) == 1
-        assert res['comments'][0]['author'] == 'id5489746'
-        assert res['comments'][0]['comment'] == comment
-        assert res['comments'][0]['uuid']
+        comments_list = self.get_comment_list('Page2', pyramid_req)
+        assert len(comments_list) == 1
+        comment_res = comments_list[0]
+        assert comment_res['author'] == 'id5489746'
+        assert comment_res['comment'] == comment
+        assert comment_res['uuid']
         # TODO-assert about when comment was created...
 
 
@@ -415,10 +431,8 @@ class Test_comment_delete:
         res =myblog.comments.comment_delete(pyramid_req)
         assert res.location == 'http://example.com/posts/Homepage'
 
-        pyramid_req.params = {}
-        pyramid_req.matchdict['postname'] = 'Homepage'
-        res = views.view_post(pyramid_req)
-        assert res['comments'] == []
+        comments_list = Test_comment_add.get_comment_list('Homepage', pyramid_req)
+        assert comments_list == []
 
 
 class Test_uuid:

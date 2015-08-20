@@ -17,6 +17,15 @@ Users,
 
 
 def add_comment_section_below_posts(event):
+    comments_list = render_comments_list_from_event(event)
+    html = utils.render_to_response('comments.mako',
+                                        {'comments': comments_list,
+                                        'comment_add_url': event.request.route_url('comment_add'),
+                                        'post_title': event.post.name},
+                                    event.request).text
+    event.sections.append(html)
+
+def render_comments_list_from_event(event):
     comments = event.post.comments
     comments_list = []
     for comment in comments:
@@ -26,12 +35,7 @@ def add_comment_section_below_posts(event):
         to_append['comment'] = comment.comment
         to_append['uuid'] = comment.uuid
         comments_list.append(to_append)
-    html = utils.render_to_response('comments.mako',
-                                        {'comments': comments_list,
-                                        'comment_add_url': event.request.route_url('comment_add'),
-                                        'post_title': event.post.name},
-                                    event.request).text
-    event.sections.append(html)
+    return comments_list
 
 @view_config(route_name = 'comment_add')
 def comment_add(request):
