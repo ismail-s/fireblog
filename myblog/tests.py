@@ -6,30 +6,47 @@ from webtest.app import AppError
 import requests
 import PyRSS2Gen
 import ago
-import datetime, copy, re
+import datetime, copy, re, os, contextlib
+try:
+    import unittest.mock as mock
+    # unittest.mock was added in python3
+except ImportError:
+    import mock
 
 from pyramid import testing
 from pyramid.httpexceptions import HTTPNotFound
 
 from myblog.models import DBSession, Base, Post, Users, Tags, Comments
 import myblog.views as views
-from myblog import add_routes, groupfinder
+from myblog.views import Post_modifying_views
+import myblog.comments
+import myblog.tags
+import myblog.utils
+from myblog import include_all_components, groupfinder
 import myblog
-
 
 data = requests.get('http://personatestuser.org/email_with_assertion/http%3A%2F%2Flocalhost').json()
 email = data['email']
 assertion = data['assertion']
 
-@pytest.fixture
-def pyramid_req():
-    res = testing.DummyRequest()
-    res.registry.settings.update({'myblog.allViewPostLen': 1000,
-                                'dogpile_cache.backend': 'memory'})
-    return res
+# Get all available themes
+theme_folder = os.path.join(os.path.dirname(__file__), 'templates')
+available_themes = next(os.walk(theme_folder))[1]
+
+@pytest.fixture(params=available_themes, scope = 'session')
+def theme(request):
+    return request.param
 
 @pytest.fixture
-def mydb(request, scope='module'):
+def pyramid_req(theme):
+    res = testing.DummyRequest()
+    res.registry.settings.update({'myblog.allViewPostLen': 1000,
+                                'dogpile_cache.backend': 'memory',
+                                'myblog.theme': theme})
+    return res
+
+@pytest.fixture(scope = 'session')
+def mydb(request):
     engine = create_engine('sqlite://')
     DBSession.configure(bind=engine)
     Base.metadata.create_all(engine)
@@ -79,7 +96,9 @@ def mydb(request, scope='module'):
 @pytest.fixture
 def pyramid_config(mydb, request):
     config = testing.setUp()
-    add_routes(config)
+    config.include('pyramid_mako')
+    include_all_components(config)
+    mydb.rollback()
     mydb.begin(subtransactions = True)
     def fin():
         testing.tearDown()
@@ -87,23 +106,34 @@ def pyramid_config(mydb, request):
     request.addfinalizer(fin)
     return config
 
+@pytest.fixture(scope='session')
+def setup_testapp(mydb, theme, request):
+    settings =  {'sqlalchemy.url': 'sqlite://',
+                'persona.audiences': 'http://localhost',
+                'persona.secret': 'some_secret',
+                'dogpile_cache.backend': 'memory',
+                'myblog.allViewPostLen': 1000,
+                'myblog.theme': theme}
+    app = myblog.main({}, **settings)
+    return webtest.TestApp(app)
+
 @pytest.fixture
-def testapp(mydb, scope = 'module'):
-        settings =  {'sqlalchemy.url': 'sqlite://',
-                    'persona.audiences': 'http://localhost',
-                    'persona.secret': 'some_secret',
-                    'dogpile_cache.backend': 'memory',
-                    'myblog.allViewPostLen': 1000}
-        app = myblog.main({}, **settings)
-        testapp = webtest.TestApp(app)
-        return testapp
+def testapp(request, mydb, setup_testapp):
+    testapp = setup_testapp
+    mydb.rollback()
+    mydb.begin(subtransactions = True)
+    def fin():
+        mydb.rollback()
+    request.addfinalizer(fin)
+    return testapp
 
 
 class Test_home:
     def test_success(self, pyramid_config, pyramid_req):
-        response = views.home(pyramid_req, testing = 1)
+        response = views.home(pyramid_req)
         assert 'Page2' in response['title']
-        assert response['prev_page'] == 'http://example.com/posts/Homepage'
+        prev_page_regex = 'http://(?:localhost|example\.com)/posts/Homepage'
+        assert re.fullmatch(prev_page_regex, response['prev_page'])
         assert response['next_page'] == None
         assert response['html'] == '<p>This is page 2</p>'
 
@@ -115,7 +145,7 @@ class Test_add_post:
         request.params['form.submitted'] = True
         request.params['body'] = body
         request.params['tags'] = tags
-        res = views.add_post(request, testing = 1)
+        res = Post_modifying_views(request).add_post_POST()
         del request.params['body']
         del request.params['form.submitted']
         del request.matchdict['postname']
@@ -123,14 +153,14 @@ class Test_add_post:
 
     def test_GET_success(self, pyramid_config, pyramid_req):
         pyramid_req.matchdict['postname'] = 'somenewpage'
-        response = views.add_post(pyramid_req, testing = 1)
+        response = Post_modifying_views(pyramid_req).add_post()
         assert 'somenewpage' in response['title']
         assert response['post_text'] == ''
         assert response['save_url'] == 'http://example.com/posts/somenewpage/add'
 
     def test_GET_failure(self, pyramid_config, pyramid_req):
         pyramid_req.matchdict['postname'] = 'Homepage'
-        response = views.add_post(pyramid_req, testing = 1)
+        response = Post_modifying_views(pyramid_req).add_post()
         assert response.location == 'http://example.com/posts/Homepage/edit'
 
     def test_POST_success(self, pyramid_config, pyramid_req):
@@ -141,7 +171,7 @@ class Test_add_post:
         assert response.location == 'http://example.com/posts/somenewpage'
 
         pyramid_req.matchdict['postname'] = postname
-        response = views.view_post(pyramid_req, testing = 1)
+        response = views.view_post(pyramid_req)
         assert response['title'] == 'somenewpage'
         assert response['prev_page'] == 'http://example.com/posts/Page2'
         assert response['next_page'] == None
@@ -153,7 +183,7 @@ class Test_add_post:
 class Test_view_post:
     def test_success(self, pyramid_config, pyramid_req):
         pyramid_req.matchdict['postname'] = 'Homepage'
-        response = views.view_post(pyramid_req, testing = 1)
+        response = views.view_post(pyramid_req)
         assert response['title'] == 'Homepage'
         assert response['prev_page'] == None
         assert response['next_page'] == 'http://example.com/posts/Page2'
@@ -163,23 +193,24 @@ class Test_view_post:
         assert 'tag2' not in response['tags']
         assert response['post_date'] == ago.human(datetime.datetime(2013, 1, 1),
                                                 precision = 1)
-        assert response['comment_add_url'] == 'http://example.com/comment/add'
-        assert response['comments'] == [{
-                'created': ago.human(datetime.datetime(2014, 1, 1),
-                        precision = 1),
-                'author': 'id5489746',
-                'comment': 'test comment',
-                'uuid': 'comment1-uuid'}]
+        # TODO-move this code into a separate test
+        # assert response['comment_add_url'] == 'http://example.com/comment/add'
+        # assert response['comments'] == [{
+        #         'created': ago.human(datetime.datetime(2014, 1, 1),
+        #                 precision = 1),
+        #         'author': 'id5489746',
+        #         'comment': 'test comment',
+        #         'uuid': 'comment1-uuid'}]
 
     def test_failure(self, pyramid_config, pyramid_req):
         pyramid_req.matchdict['postname'] = 'nonexisting page'
-        response = views.view_post(pyramid_req, testing = 1)
+        response = views.view_post(pyramid_req)
         assert type(response) == HTTPNotFound
 
 
 class Test_view_all_posts:
     def test_success(self, pyramid_config, pyramid_req):
-        response = views.view_all_posts(pyramid_req, testing = 1)
+        response = views.view_all_posts(pyramid_req)
         assert response["code_styles"] == False
         posts = response["posts"]
 
@@ -213,23 +244,23 @@ that is all.'''
         # on view_all_posts page. Not sure why, but I'm not losing sleep over
         # this atm...
         pyramid_req.matchdict['postname'] = post_name
-        view_res = views.view_post(pyramid_req, testing = 1)
+        view_res = views.view_post(pyramid_req)
         del pyramid_req.matchdict['postname']
-        response = views.view_all_posts(pyramid_req, testing = 1)
+        response = views.view_all_posts(pyramid_req)
         assert response["code_styles"] == True
 
 
 class Test_edit_post:
     def test_GET_success(self, pyramid_config, pyramid_req):
         pyramid_req.matchdict['postname'] = 'Homepage'
-        response = views.edit_post(pyramid_req, testing = 1)
+        response = Post_modifying_views(pyramid_req).edit_post()
         assert 'Homepage' in response['title']
         assert response['post_text'] == 'This is the front page'
         assert response['save_url'] == 'http://example.com/posts/Homepage/edit'
 
     def test_GET_failure(self, pyramid_config, pyramid_req):
         pyramid_req.matchdict['postname'] = 'nonexisting page'
-        response = views.edit_post(pyramid_req, testing = 1)
+        response = Post_modifying_views(pyramid_req).edit_post()
         assert response.location == 'http://example.com/'
 
     def test_POST_success(self, pyramid_config, pyramid_req):
@@ -237,12 +268,12 @@ class Test_edit_post:
         pyramid_req.params['form.submitted'] = True
         pyramid_req.params['body'] = 'Some test body.'
         pyramid_req.params['tags'] = 'test2, test1, test1'
-        response = views.edit_post(pyramid_req, testing = 1)
+        response = Post_modifying_views(pyramid_req).edit_post_POST()
         assert response.location == 'http://example.com/posts/Homepage'
 
         del pyramid_req.params['body']
         del pyramid_req.params['form.submitted']
-        response = views.view_post(pyramid_req, testing = 1)
+        response = views.view_post(pyramid_req)
         assert response['title'] == 'Homepage'
         assert response['prev_page'] == None
         assert response['next_page'] == 'http://example.com/posts/Page2'
@@ -254,23 +285,23 @@ class Test_edit_post:
 class Test_del_post:
     def test_GET_success(self, pyramid_config, pyramid_req):
         pyramid_req.matchdict['postname'] = 'Homepage'
-        response = views.del_post(pyramid_req, testing = 1)
+        response = Post_modifying_views(pyramid_req).del_post()
         assert 'Homepage' in response['title']
         assert response['save_url'] == 'http://example.com/posts/Homepage/del'
 
     def test_GET_failure(self, pyramid_config, pyramid_req):
         pyramid_req.matchdict['postname'] = 'nonexisting page'
-        response = views.del_post(pyramid_req, testing = 1)
+        response = Post_modifying_views(pyramid_req).del_post()
         assert response.location == 'http://example.com/'
 
     def test_POST_success(self, pyramid_config, pyramid_req):
         pyramid_req.matchdict['postname'] = 'Homepage'
         pyramid_req.params['form.submitted'] = True
-        response = views.del_post(pyramid_req, testing = 1)
+        response = Post_modifying_views(pyramid_req).del_post_POST()
         assert response.location == 'http://example.com/'
 
         del pyramid_req.params['form.submitted']
-        response = views.view_post(pyramid_req, testing = 1)
+        response = views.view_post(pyramid_req)
         assert type(response) == HTTPNotFound
 
 
@@ -302,7 +333,7 @@ class Test_tag_view:
         ('tag2', [("Page2", "<p>This is page 2</p>")])])
     def test_success(self, tag, actual_posts, pyramid_config, pyramid_req):
         pyramid_req.matchdict['tag_name'] = tag
-        response = views.tag_view(pyramid_req, testing = 1)
+        response = myblog.tags.tag_view(pyramid_req)
         posts = response['posts']
 
         assert tag in response['title']
@@ -315,12 +346,12 @@ class Test_tag_view:
 
     def test_failure(self, pyramid_config, pyramid_req):
         pyramid_req.matchdict['tag_name'] = 'doesntexist'
-        response = views.tag_view(pyramid_req, testing = 1)
+        response = myblog.tags.tag_view(pyramid_req)
         assert type(response) == HTTPNotFound
 
 class Test_tag_manager:
     def test_success(self, pyramid_config, pyramid_req):
-        res = views.tag_manager(pyramid_req, testing = 1)
+        res = myblog.tags.tag_manager(pyramid_req)
         assert res == dict(tags = [('tag1', 2), ('tag2', 1)],
                            title = 'Tag manager',
                            save_url = 'http://example.com/tags')
@@ -336,33 +367,43 @@ class Test_tag_manager:
         # I'm not fully sure why we do this. But it works and stops issues with autoflush and whatnot.
         # But in production it seems to be ok...
         DBSession.begin(subtransactions = True)
-        res = views.tag_manager(pyramid_req, testing = 1)
+        res = myblog.tags.tag_manager(pyramid_req)
         DBSession.commit()
         assert res.location == 'http://example.com/tags'
 
         pyramid_req.params = {}
-        res = views.tag_manager(pyramid_req, testing = 1)
+        res = myblog.tags.tag_manager(pyramid_req)
         assert res == dict(tags = [('tag22', 1)],
                            title = 'Tag manager',
                            save_url = 'http://example.com/tags')
 
 class Test_comment_add:
+    @staticmethod
+    def get_comment_list(postname, pyramid_req):
+        post = DBSession.query(Post).filter_by(name = 'Page2').first()
+        event = myblog.utils.RenderingPost(post, pyramid_req)
+        return myblog.comments.render_comments_list_from_event(event)
+
     def test_anon_success(self, pyramid_config, pyramid_req):
         comment = 'A test comment...'
         pyramid_req.params['postname'] = 'Page2'
         pyramid_req.params['comment'] = comment
         pyramid_req.params['form.submitted'] = True
-        res = views.comment_add(pyramid_req)
+        with mock.patch('requests.post', autospec = True) as mock_requests_post:
+            mock_response = mock.Mock()
+            mock_response.json.return_value = {'success': True}
+            mock_requests_post.return_value = mock_response
+            res = myblog.comments.comment_add(pyramid_req)
         assert res.location == 'http://example.com/posts/Page2'
 
         pyramid_req.params = {}
-        pyramid_req.matchdict['postname'] = 'Page2'
-        res = views.view_post(pyramid_req, testing = 1)
-        assert len(res['comments']) == 1
-        assert res['comments'][0]['author'] == 'anonymous'
-        assert res['comments'][0]['comment'] == comment
-        assert res['comments'][0]['uuid']
-        # TODO-assert about when comment was created...
+        comments_list = self.get_comment_list('Page2', pyramid_req)
+        assert len(comments_list) == 1
+        comment_res = comments_list[0]
+        assert comment_res['author'] == 'anonymous'
+        assert comment_res['comment'] == comment
+        assert comment_res['uuid']
+        # TODO-assert about when comment was created-use freezegun
 
     def test_logged_in_success(self, pyramid_config, pyramid_req):
         comment = 'A test comment...'
@@ -370,16 +411,16 @@ class Test_comment_add:
         pyramid_req.params['comment'] = comment
         pyramid_req.params['form.submitted'] = True
         pyramid_config.testing_securitypolicy(userid = 'id5489746@mockmyid.com', permissive = True)
-        res = views.comment_add(pyramid_req)
+        res = myblog.comments.comment_add(pyramid_req)
         assert res.location == 'http://example.com/posts/Page2'
 
         pyramid_req.params = {}
-        pyramid_req.matchdict['postname'] = 'Page2'
-        res = views.view_post(pyramid_req, testing = 1)
-        assert len(res['comments']) == 1
-        assert res['comments'][0]['author'] == 'id5489746'
-        assert res['comments'][0]['comment'] == comment
-        assert res['comments'][0]['uuid']
+        comments_list = self.get_comment_list('Page2', pyramid_req)
+        assert len(comments_list) == 1
+        comment_res = comments_list[0]
+        assert comment_res['author'] == 'id5489746'
+        assert comment_res['comment'] == comment
+        assert comment_res['uuid']
         # TODO-assert about when comment was created...
 
 
@@ -387,13 +428,11 @@ class Test_comment_delete:
     def test_success(self, pyramid_config, pyramid_req):
         pyramid_req.params['comment-uuid'] = 'comment1-uuid'
         pyramid_req.params['postname'] = 'Homepage'
-        res = views.comment_delete(pyramid_req)
+        res =myblog.comments.comment_delete(pyramid_req)
         assert res.location == 'http://example.com/posts/Homepage'
 
-        pyramid_req.params = {}
-        pyramid_req.matchdict['postname'] = 'Homepage'
-        res = views.view_post(pyramid_req, testing = 1)
-        assert res['comments'] == []
+        comments_list = Test_comment_add.get_comment_list('Homepage', pyramid_req)
+        assert comments_list == []
 
 
 class Test_uuid:
@@ -471,6 +510,22 @@ class Test_functional_tests:
         return testapp.post('/logout?csrf_token={}'.format(csrf_token),
                             dict(came_from = '/'))
 
+    @contextlib.contextmanager
+    def logged_in(self, testapp):
+        '''
+        This is a context manager that provides a logged in session as admin.
+        Use as follows:
+
+            with logged_in(testapp):
+                # Do stuff whilst logged in.
+                pass
+        '''
+        self.login(testapp)
+        try:
+            yield
+        finally:
+            self.logout(testapp)
+
     def test_homepage(self, testapp):
         res = testapp.get('http://localhost/')
         page = str(res.html)
@@ -519,25 +574,22 @@ class Test_functional_tests:
         assert res.json == {'redirect': '/'}
 
     def test_can_access_edit_pages_after_logging_in(self, testapp):
-        self.login(testapp)
-        res = testapp.get('/posts/Page2/edit')
-        assert res.status == '200 OK'
-        assert 'This is page 2' in str(res.html)
-        self.logout(testapp)
+        with self.logged_in(testapp):
+            res = testapp.get('/posts/Page2/edit')
+            assert res.status == '200 OK'
+            assert 'This is page 2' in str(res.html)
 
     def test_can_access_del_pages_after_logging_in(self, testapp):
-        self.login(testapp)
-        res = testapp.get('/posts/Page2/del')
-        assert res.status == '200 OK'
-        # TODO-add more checks over here maybe
-        self.logout(testapp)
+        with self.logged_in(testapp):
+            res = testapp.get('/posts/Page2/del')
+            assert res.status == '200 OK'
+            # TODO-add more checks over here maybe
 
     def test_can_access_add_pages_after_logging_in(self, testapp):
-        self.login(testapp)
-        res = testapp.get('/posts/some new page/add')
-        assert res.status == '200 OK'
-        assert 'some new page' in str(res.html)
-        self.logout(testapp)
+        with self.logged_in(testapp):
+            res = testapp.get('/posts/some new page/add')
+            assert res.status == '200 OK'
+            assert 'some new page' in str(res.html)
 
     @pytest.mark.parametrize('url', ['/posts/Page2/edit',
                                      '/posts/Page2/del',
@@ -550,52 +602,52 @@ class Test_functional_tests:
 
     def test_crud(self, testapp):
         """Testing all CRUD operations in one big test."""
-        self.login(testapp)
+        with self.logged_in(testapp):
 
-        # 1. Create a post
-        res = testapp.get('/posts/some new page/add')
-        form = res.forms["edit-post"]
-        form["body"] = 'This is a test body.'
-        form["tags"] = 'test2, test1, test1'
-        res = form.submit('form.submitted')
+            # 1. Create a post
+            res = testapp.get('/posts/some new page/add')
+            form = res.forms["edit-post"]
+            form["body"] = 'This is a test body.'
+            form["tags"] = 'test2, test1, test1'
+            res = form.submit('form.submitted')
 
-        # 2. Read the post
-        res = testapp.get('/posts/some new page')
-        assert res.status == '200 OK'
-        assert '<h1>some new page</h1>' in str(res.html)
-        assert '<p>This is a test body.</p>' in str(res.html)
-        assert 'test1' in str(res.html)
-        assert 'test2' in str(res.html)
-        assert '/tags/test1' in str(res.html)
-        assert '/tags/test2' in str(res.html)
-
-        # 3. Edit the post
-        res = res.click(href = r'.*/edit')
-        form = res.forms["edit-post"]
-        form["body"] = 'This is a brand new test body.'
-        assert form["tags"].value == 'test1, test2'
-        form["tags"] = 'test2, test3'
-        res = form.submit('form.submitted')
-
-        # 4. Test the post has been updated
-        res = testapp.get('/posts/some new page')
-        assert res.status == '200 OK'
-        assert '<h1>some new page</h1>' in str(res.html)
-        assert '<p>This is a brand new test body.</p>' in str(res.html)
-        assert 'test2' in str(res.html)
-        assert 'test3' in str(res.html)
-        assert '/tags/test2' in str(res.html)
-        assert '/tags/test3' in str(res.html)
-
-        # 5. Delete the post
-        res = res.click(href = r'.*/del')
-        form = res.forms["del-post"]
-        res = form.submit('form.submitted')
-
-        # 6. Test we get a 404 on trying to read the post
-        with pytest.raises(AppError) as excinfo:
+            # 2. Read the post
             res = testapp.get('/posts/some new page')
-        assert '404 Not Found' in str(excinfo.value)
+            assert res.status == '200 OK'
+            assert '<h1>some new page</h1>' in str(res.html)
+            assert '<p>This is a test body.</p>' in str(res.html)
+            assert 'test1' in str(res.html)
+            assert 'test2' in str(res.html)
+            assert '/tags/test1' in str(res.html)
+            assert '/tags/test2' in str(res.html)
+
+            # 3. Edit the post
+            res = res.click(href = r'.*/edit')
+            form = res.forms["edit-post"]
+            form["body"] = 'This is a brand new test body.'
+            assert form["tags"].value == 'test1, test2'
+            form["tags"] = 'test2, test3'
+            res = form.submit('form.submitted')
+
+            # 4. Test the post has been updated
+            res = testapp.get('/posts/some new page')
+            assert res.status == '200 OK'
+            assert '<h1>some new page</h1>' in str(res.html)
+            assert '<p>This is a brand new test body.</p>' in str(res.html)
+            assert 'test2' in str(res.html)
+            assert 'test3' in str(res.html)
+            assert '/tags/test2' in str(res.html)
+            assert '/tags/test3' in str(res.html)
+
+            # 5. Delete the post
+            res = res.click(href = r'.*/del')
+            form = res.forms["del-post"]
+            res = form.submit('form.submitted')
+
+            # 6. Test we get a 404 on trying to read the post
+            with pytest.raises(AppError) as excinfo:
+                res = testapp.get('/posts/some new page')
+            assert '404 Not Found' in str(excinfo.value)
 
     def test_logout_changes_page_back_to_page_before_logging_in(self, testapp):
         '''

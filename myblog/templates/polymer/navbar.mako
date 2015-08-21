@@ -19,10 +19,10 @@ ${parent.header_toolbar()}
       </div>
     % if request.matched_route.name in ('view_post', 'home'):
         % if request.has_permission('edit'):
-        <div><a href="${request.route_url('edit_post', postname = title)}"><paper-icon-button icon="create"></paper-icon-button></a></div>
+        <div><a href="${request.route_url('change_post', postname = title, action = 'edit')}"><paper-icon-button icon="create"></paper-icon-button></a></div>
         % endif
         % if request.has_permission('del'):
-        <div><a href="${request.route_url('del_post', postname = title)}"><paper-icon-button icon="delete"></paper-icon-button></a></div>
+        <div><a href="${request.route_url('change_post', postname = title, action = 'del')}"><paper-icon-button icon="delete"></paper-icon-button></a></div>
         % endif
     % endif
     % if 'g:admin' in request.effective_principals:

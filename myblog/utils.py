@@ -3,9 +3,12 @@ import ago
 from myblog.models import DBSession, Tags, Users
 from pyramid_dogpile_cache import get_region
 import dogpile.cache.util
-from pyramid.renderers import render_to_response
+import functools
+from pyramid import renderers
 from pyramid.request import Request
+from pyramid.response import Response
 from pyramid.testing import DummyRequest
+from pyramid.httpexceptions import HTTPException
 
 # This is the dogpile_cache cache region.
 try:
@@ -47,29 +50,35 @@ def cache_key_generator(*args, **kwargs):
         return '|'.join((old_key_generator(), request.matchdict['postname'], testing_str))
     return new_key_generator
 
+
+class TemplateResponseDict(dict):
+    '''Instances of this dict can be used as the return type of a view callable
+    that is using the use_template decorator. The use_template decorator will
+    notice that an instance of this type is being returned and render it to a
+    response.'''
+    pass
+
+
 def use_template(template = None):
     def wrapper(f, template = template):
-        def inner(request1, request2 = None, testing = 0,
-                template = template, *request3):
-            # This function basically gets called in a whole host of ways.
-            # The important bit is that it gets passed a request argument in
-            # either the first or second place.
-            #import pdb; pdb.set_trace()
-            request = _find_request_obj_in_args(request3, request1, request2)
-            res = f(request)
-            if testing or not template or type(res) != dict:
+        @functools.wraps(f)
+        def inner(context, request):
+            res = f(context, request)
+            # Deal with eg HTTPFound or HTTPNotFound by just returning them.
+            if isinstance(res, HTTPException):
                 return res
-            theme = 'polymer'
-            template = 'myblog:templates/' + theme + '/' + template
-            return render_to_response(template, res, request)
-        # dogpile_cache has a cache_on_arguments decorator that adds extra
-        # attributes to the decorated function. This bit of code adds those
-        # attributes to the inner function.
-        for attr in dir(f):
-            if not attr.startswith('__'):
-                setattr(inner, attr, getattr(f, attr))
+            to_render = eval(res.text)
+            if type(to_render) != dict:
+                raise Exception("The use_template decorator is being used "
+                "incorrectly: the decorated view callable must return a dict.")
+            return render_to_response(template, to_render, request)
         return inner
     return wrapper
+
+def render_to_response(template, res, request):
+    theme = request.registry.settings['myblog.theme']
+    template = 'myblog:templates/' + theme + '/' + template
+    return renderers.render_to_response(template, res, request)
 
 def get_anonymous_userid():
     anon_email = 'anonymous@example.com'
@@ -160,3 +169,14 @@ def create_post_list_from_posts_obj(request, post_obj):
         if not code_styles and 'class="codehilite"' in to_append["html"]:
             code_styles = True
     return res, code_styles
+
+
+class RenderingPost(object):
+    """This is an event that gets fired when a post is being viewed.
+    Subscribers can add html sections to self.sections and these will be
+    put below the post on the webpage.
+    """
+    def __init__(self, post, request):
+        self.post = post
+        self.request = request
+        self.sections = []
