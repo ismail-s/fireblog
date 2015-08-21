@@ -13,7 +13,8 @@ from myblog.models import (
 )
 
 
-@view_config(route_name='tag_view', decorator=use_template('multiple_posts.mako'))
+@view_config(route_name='tag_view',
+             decorator=use_template('multiple_posts.mako'))
 def tag_view(request):
     tag = request.matchdict['tag_name']
     try:
@@ -31,7 +32,8 @@ def tag_view(request):
                                 code_styles=code_styles)
 
 
-@view_config(route_name='tag_manager', decorator=use_template('tag_manager.mako'), permission='manage-tags')
+@view_config(route_name='tag_manager', decorator=use_template(
+    'tag_manager.mako'), permission='manage-tags')
 def tag_manager(request):
     tags = DBSession.query(Tags).order_by(Tags.tag).all()
     if 'form.submitted' in request.params:

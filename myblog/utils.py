@@ -50,7 +50,8 @@ def cache_key_generator(*args, **kwargs):
             testing = kwargs.get('testing', NO_ARG)
             if testing != NO_ARG and testing:
                 testing_str = 'testing'
-        return '|'.join((old_key_generator(), request.matchdict['postname'], testing_str))
+        return '|'.join(
+            (old_key_generator(), request.matchdict['postname'], testing_str))
     return new_key_generator
 
 
@@ -71,7 +72,7 @@ def use_template(template=None):
             if isinstance(res, HTTPException):
                 return res
             to_render = eval(res.text)
-            if type(to_render) != dict:
+            if not isinstance(to_render, dict):
                 raise Exception("The use_template decorator is being used "
                                 "incorrectly: the decorated view callable must return a dict.")
             return render_to_response(template, to_render, request)
@@ -142,8 +143,7 @@ def append_tags_from_string_to_tag_object(tag_string, tag_object):
 
 
 def _turn_tag_object_into_sorted_list(tag_object):
-    tags = [t.tag for t in tag_object]
-    tags.sort()
+    tags = sorted([t.tag for t in tag_object])
     return tags
 
 

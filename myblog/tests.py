@@ -148,7 +148,7 @@ class Test_home:
         assert 'Page2' in response['title']
         prev_page_regex = 'http://(?:localhost|example\.com)/posts/Homepage'
         assert re.fullmatch(prev_page_regex, response['prev_page'])
-        assert response['next_page'] == None
+        assert response['next_page'] is None
         assert response['html'] == '<p>This is page 2</p>'
 
 
@@ -190,7 +190,7 @@ class Test_add_post:
         response = views.view_post(pyramid_req)
         assert response['title'] == 'somenewpage'
         assert response['prev_page'] == 'http://example.com/posts/Page2'
-        assert response['next_page'] == None
+        assert response['next_page'] is None
         assert response['html'] == '<p>Some test body.</p>'
         assert 'tag1' in response['tags']
         assert 'tag2' in response['tags']
@@ -202,7 +202,7 @@ class Test_view_post:
         pyramid_req.matchdict['postname'] = 'Homepage'
         response = views.view_post(pyramid_req)
         assert response['title'] == 'Homepage'
-        assert response['prev_page'] == None
+        assert response['prev_page'] is None
         assert response['next_page'] == 'http://example.com/posts/Page2'
         assert response['html'] == '<p>This is the front page</p>'
         assert response['uuid'] == 'uuid-post-homepage'
@@ -222,7 +222,7 @@ class Test_view_post:
     def test_failure(self, pyramid_config, pyramid_req):
         pyramid_req.matchdict['postname'] = 'nonexisting page'
         response = views.view_post(pyramid_req)
-        assert type(response) == HTTPNotFound
+        assert isinstance(response, HTTPNotFound)
 
 
 class Test_view_all_posts:
@@ -294,7 +294,7 @@ class Test_edit_post:
         del pyramid_req.params['form.submitted']
         response = views.view_post(pyramid_req)
         assert response['title'] == 'Homepage'
-        assert response['prev_page'] == None
+        assert response['prev_page'] is None
         assert response['next_page'] == 'http://example.com/posts/Page2'
         assert response['html'] == '<p>Some test body.</p>'
         assert 'test1' in response['tags']
@@ -322,7 +322,7 @@ class Test_del_post:
 
         del pyramid_req.params['form.submitted']
         response = views.view_post(pyramid_req)
-        assert type(response) == HTTPNotFound
+        assert isinstance(response, HTTPNotFound)
 
 
 class Test_rss:
@@ -369,7 +369,7 @@ class Test_tag_view:
     def test_failure(self, pyramid_config, pyramid_req):
         pyramid_req.matchdict['tag_name'] = 'doesntexist'
         response = myblog.tags.tag_view(pyramid_req)
-        assert type(response) == HTTPNotFound
+        assert isinstance(response, HTTPNotFound)
 
 
 class Test_tag_manager:
