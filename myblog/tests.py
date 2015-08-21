@@ -6,7 +6,7 @@ from webtest.app import AppError
 import requests
 import PyRSS2Gen
 import ago
-import datetime, copy, re, os
+import datetime, copy, re, os, contextlib
 try:
     import unittest.mock as mock
     # unittest.mock was added in python3
@@ -510,6 +510,22 @@ class Test_functional_tests:
         return testapp.post('/logout?csrf_token={}'.format(csrf_token),
                             dict(came_from = '/'))
 
+    @contextlib.contextmanager
+    def logged_in(self, testapp):
+        '''
+        This is a context manager that provides a logged in session as admin.
+        Use as follows:
+
+            with logged_in(testapp):
+                # Do stuff whilst logged in.
+                pass
+        '''
+        self.login(testapp)
+        try:
+            yield
+        finally:
+            self.logout(testapp)
+
     def test_homepage(self, testapp):
         res = testapp.get('http://localhost/')
         page = str(res.html)
@@ -558,25 +574,22 @@ class Test_functional_tests:
         assert res.json == {'redirect': '/'}
 
     def test_can_access_edit_pages_after_logging_in(self, testapp):
-        self.login(testapp)
-        res = testapp.get('/posts/Page2/edit')
-        assert res.status == '200 OK'
-        assert 'This is page 2' in str(res.html)
-        self.logout(testapp)
+        with self.logged_in(testapp):
+            res = testapp.get('/posts/Page2/edit')
+            assert res.status == '200 OK'
+            assert 'This is page 2' in str(res.html)
 
     def test_can_access_del_pages_after_logging_in(self, testapp):
-        self.login(testapp)
-        res = testapp.get('/posts/Page2/del')
-        assert res.status == '200 OK'
-        # TODO-add more checks over here maybe
-        self.logout(testapp)
+        with self.logged_in(testapp):
+            res = testapp.get('/posts/Page2/del')
+            assert res.status == '200 OK'
+            # TODO-add more checks over here maybe
 
     def test_can_access_add_pages_after_logging_in(self, testapp):
-        self.login(testapp)
-        res = testapp.get('/posts/some new page/add')
-        assert res.status == '200 OK'
-        assert 'some new page' in str(res.html)
-        self.logout(testapp)
+        with self.logged_in(testapp):
+            res = testapp.get('/posts/some new page/add')
+            assert res.status == '200 OK'
+            assert 'some new page' in str(res.html)
 
     @pytest.mark.parametrize('url', ['/posts/Page2/edit',
                                      '/posts/Page2/del',
@@ -589,52 +602,52 @@ class Test_functional_tests:
 
     def test_crud(self, testapp):
         """Testing all CRUD operations in one big test."""
-        self.login(testapp)
+        with self.logged_in(testapp):
 
-        # 1. Create a post
-        res = testapp.get('/posts/some new page/add')
-        form = res.forms["edit-post"]
-        form["body"] = 'This is a test body.'
-        form["tags"] = 'test2, test1, test1'
-        res = form.submit('form.submitted')
+            # 1. Create a post
+            res = testapp.get('/posts/some new page/add')
+            form = res.forms["edit-post"]
+            form["body"] = 'This is a test body.'
+            form["tags"] = 'test2, test1, test1'
+            res = form.submit('form.submitted')
 
-        # 2. Read the post
-        res = testapp.get('/posts/some new page')
-        assert res.status == '200 OK'
-        assert '<h1>some new page</h1>' in str(res.html)
-        assert '<p>This is a test body.</p>' in str(res.html)
-        assert 'test1' in str(res.html)
-        assert 'test2' in str(res.html)
-        assert '/tags/test1' in str(res.html)
-        assert '/tags/test2' in str(res.html)
-
-        # 3. Edit the post
-        res = res.click(href = r'.*/edit')
-        form = res.forms["edit-post"]
-        form["body"] = 'This is a brand new test body.'
-        assert form["tags"].value == 'test1, test2'
-        form["tags"] = 'test2, test3'
-        res = form.submit('form.submitted')
-
-        # 4. Test the post has been updated
-        res = testapp.get('/posts/some new page')
-        assert res.status == '200 OK'
-        assert '<h1>some new page</h1>' in str(res.html)
-        assert '<p>This is a brand new test body.</p>' in str(res.html)
-        assert 'test2' in str(res.html)
-        assert 'test3' in str(res.html)
-        assert '/tags/test2' in str(res.html)
-        assert '/tags/test3' in str(res.html)
-
-        # 5. Delete the post
-        res = res.click(href = r'.*/del')
-        form = res.forms["del-post"]
-        res = form.submit('form.submitted')
-
-        # 6. Test we get a 404 on trying to read the post
-        with pytest.raises(AppError) as excinfo:
+            # 2. Read the post
             res = testapp.get('/posts/some new page')
-        assert '404 Not Found' in str(excinfo.value)
+            assert res.status == '200 OK'
+            assert '<h1>some new page</h1>' in str(res.html)
+            assert '<p>This is a test body.</p>' in str(res.html)
+            assert 'test1' in str(res.html)
+            assert 'test2' in str(res.html)
+            assert '/tags/test1' in str(res.html)
+            assert '/tags/test2' in str(res.html)
+
+            # 3. Edit the post
+            res = res.click(href = r'.*/edit')
+            form = res.forms["edit-post"]
+            form["body"] = 'This is a brand new test body.'
+            assert form["tags"].value == 'test1, test2'
+            form["tags"] = 'test2, test3'
+            res = form.submit('form.submitted')
+
+            # 4. Test the post has been updated
+            res = testapp.get('/posts/some new page')
+            assert res.status == '200 OK'
+            assert '<h1>some new page</h1>' in str(res.html)
+            assert '<p>This is a brand new test body.</p>' in str(res.html)
+            assert 'test2' in str(res.html)
+            assert 'test3' in str(res.html)
+            assert '/tags/test2' in str(res.html)
+            assert '/tags/test3' in str(res.html)
+
+            # 5. Delete the post
+            res = res.click(href = r'.*/del')
+            form = res.forms["del-post"]
+            res = form.submit('form.submitted')
+
+            # 6. Test we get a 404 on trying to read the post
+            with pytest.raises(AppError) as excinfo:
+                res = testapp.get('/posts/some new page')
+            assert '404 Not Found' in str(excinfo.value)
 
     def test_logout_changes_page_back_to_page_before_logging_in(self, testapp):
         '''
