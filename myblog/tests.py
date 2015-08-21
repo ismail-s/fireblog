@@ -6,7 +6,11 @@ from webtest.app import AppError
 import requests
 import PyRSS2Gen
 import ago
-import datetime, copy, re, os, contextlib
+import datetime
+import copy
+import re
+import os
+import contextlib
 try:
     import unittest.mock as mock
     # unittest.mock was added in python3
@@ -25,7 +29,8 @@ import myblog.utils
 from myblog import include_all_components, groupfinder
 import myblog
 
-data = requests.get('http://personatestuser.org/email_with_assertion/http%3A%2F%2Flocalhost').json()
+data = requests.get(
+    'http://personatestuser.org/email_with_assertion/http%3A%2F%2Flocalhost').json()
 email = data['email']
 assertion = data['assertion']
 
@@ -33,60 +38,64 @@ assertion = data['assertion']
 theme_folder = os.path.join(os.path.dirname(__file__), 'templates')
 available_themes = next(os.walk(theme_folder))[1]
 
-@pytest.fixture(params=available_themes, scope = 'session')
+
+@pytest.fixture(params=available_themes, scope='session')
 def theme(request):
     return request.param
+
 
 @pytest.fixture
 def pyramid_req(theme):
     res = testing.DummyRequest()
     res.registry.settings.update({'myblog.allViewPostLen': 1000,
-                                'dogpile_cache.backend': 'memory',
-                                'myblog.theme': theme})
+                                  'dogpile_cache.backend': 'memory',
+                                  'myblog.theme': theme})
     return res
 
-@pytest.fixture(scope = 'session')
+
+@pytest.fixture(scope='session')
 def mydb(request):
     engine = create_engine('sqlite://')
     DBSession.configure(bind=engine)
     Base.metadata.create_all(engine)
     with transaction.manager:
         # TODO-add tags to this test data. Some tests may also need updating.
-        tag1 = Tags(tag = 'tag1', uuid = 'uuid-tag111')
-        tag2 = Tags(tag = 'tag2', uuid = 'uuid-tag222')
+        tag1 = Tags(tag='tag1', uuid='uuid-tag111')
+        tag2 = Tags(tag='tag2', uuid='uuid-tag222')
         DBSession.add(tag1)
         DBSession.add(tag2)
         post = Post(name='Homepage',
                     markdown='This is the front page',
-                    html = '<p>This is the front page</p>',
-                    created = datetime.datetime(2013, 1, 1),
-                    uuid = 'uuid-post-homepage')
+                    html='<p>This is the front page</p>',
+                    created=datetime.datetime(2013, 1, 1),
+                    uuid='uuid-post-homepage')
         post.tags.append(tag1)
         DBSession.add(post)
         post2 = Post(name='Page2',
-                    markdown='This is page 2',
-                    html = '<p>This is page 2</p>',
-                    created = datetime.datetime(2014, 1, 1),
-                    uuid = 'uuid-post-page2')
+                     markdown='This is page 2',
+                     html='<p>This is page 2</p>',
+                     created=datetime.datetime(2014, 1, 1),
+                     uuid='uuid-post-page2')
         post2.tags.extend([tag1, tag2])
         DBSession.add(post2)
     with transaction.manager:
-        me = Users(userid = 'id5489746@mockmyid.com',
-                    group = 'g:admin')
-        him = Users(userid = email,
-                    group = 'g:admin')
-        commenter = Users(userid = 'commenter@example.com',
-                            group = 'g:commenter')
+        me = Users(userid='id5489746@mockmyid.com',
+                   group='g:admin')
+        him = Users(userid=email,
+                    group='g:admin')
+        commenter = Users(userid='commenter@example.com',
+                          group='g:commenter')
         DBSession.add(me)
         DBSession.add(him)
         DBSession.add(commenter)
     with transaction.manager:
-        comment1 = Comments(created = datetime.datetime(2014, 1, 1),
-                            comment = 'test comment',
-                            uuid = 'comment1-uuid')
+        comment1 = Comments(created=datetime.datetime(2014, 1, 1),
+                            comment='test comment',
+                            uuid='comment1-uuid')
         comment1.post = post
         comment1.author = me
         DBSession.add(comment1)
+
     def fin():
         DBSession.remove()
     request.addfinalizer(fin)
@@ -99,16 +108,18 @@ def pyramid_config(mydb, request):
     config.include('pyramid_mako')
     include_all_components(config)
     mydb.rollback()
-    mydb.begin(subtransactions = True)
+    mydb.begin(subtransactions=True)
+
     def fin():
         testing.tearDown()
         mydb.rollback()
     request.addfinalizer(fin)
     return config
 
+
 @pytest.fixture(scope='session')
 def setup_testapp(mydb, theme, request):
-    settings =  {'sqlalchemy.url': 'sqlite://',
+    settings = {'sqlalchemy.url': 'sqlite://',
                 'persona.audiences': 'http://localhost',
                 'persona.secret': 'some_secret',
                 'dogpile_cache.backend': 'memory',
@@ -117,11 +128,13 @@ def setup_testapp(mydb, theme, request):
     app = myblog.main({}, **settings)
     return webtest.TestApp(app)
 
+
 @pytest.fixture
 def testapp(request, mydb, setup_testapp):
     testapp = setup_testapp
     mydb.rollback()
-    mydb.begin(subtransactions = True)
+    mydb.begin(subtransactions=True)
+
     def fin():
         mydb.rollback()
     request.addfinalizer(fin)
@@ -129,6 +142,7 @@ def testapp(request, mydb, setup_testapp):
 
 
 class Test_home:
+
     def test_success(self, pyramid_config, pyramid_req):
         response = views.home(pyramid_req)
         assert 'Page2' in response['title']
@@ -139,6 +153,7 @@ class Test_home:
 
 
 class Test_add_post:
+
     @staticmethod
     def submit_add_post(request, postname, body, tags):
         request.matchdict['postname'] = postname
@@ -156,7 +171,8 @@ class Test_add_post:
         response = Post_modifying_views(pyramid_req).add_post()
         assert 'somenewpage' in response['title']
         assert response['post_text'] == ''
-        assert response['save_url'] == 'http://example.com/posts/somenewpage/add'
+        assert response[
+            'save_url'] == 'http://example.com/posts/somenewpage/add'
 
     def test_GET_failure(self, pyramid_config, pyramid_req):
         pyramid_req.matchdict['postname'] = 'Homepage'
@@ -165,9 +181,9 @@ class Test_add_post:
 
     def test_POST_success(self, pyramid_config, pyramid_req):
         postname = 'somenewpage'
-        response = self.submit_add_post(pyramid_req, postname = postname,
-                                        body = 'Some test body.',
-                                        tags = 'tag2, tag1, tag2, ')
+        response = self.submit_add_post(pyramid_req, postname=postname,
+                                        body='Some test body.',
+                                        tags='tag2, tag1, tag2, ')
         assert response.location == 'http://example.com/posts/somenewpage'
 
         pyramid_req.matchdict['postname'] = postname
@@ -181,6 +197,7 @@ class Test_add_post:
 
 
 class Test_view_post:
+
     def test_success(self, pyramid_config, pyramid_req):
         pyramid_req.matchdict['postname'] = 'Homepage'
         response = views.view_post(pyramid_req)
@@ -192,7 +209,7 @@ class Test_view_post:
         assert 'tag1' in response['tags']
         assert 'tag2' not in response['tags']
         assert response['post_date'] == ago.human(datetime.datetime(2013, 1, 1),
-                                                precision = 1)
+                                                  precision=1)
         # TODO-move this code into a separate test
         # assert response['comment_add_url'] == 'http://example.com/comment/add'
         # assert response['comments'] == [{
@@ -209,6 +226,7 @@ class Test_view_post:
 
 
 class Test_view_all_posts:
+
     def test_success(self, pyramid_config, pyramid_req):
         response = views.view_all_posts(pyramid_req)
         assert response["code_styles"] == False
@@ -224,8 +242,8 @@ class Test_view_all_posts:
             # TODO-check that long posts are truncated correctly
 
     def test_success_with_pygments_code_css_included(self,
-                                                    pyramid_config,
-                                                    pyramid_req):
+                                                     pyramid_config,
+                                                     pyramid_req):
         post_name = 'tdghdht'
         post_body = '''some test body
 
@@ -237,8 +255,8 @@ def test(dfgv):
 
 that is all.'''
         submit_res = Test_add_post.submit_add_post(pyramid_req,
-                                            postname = post_name,
-                                            body = post_body,tags='')
+                                                   postname=post_name,
+                                                   body=post_body, tags='')
 
         # For some reason, we have to actually view the post before it appears
         # on view_all_posts page. Not sure why, but I'm not losing sleep over
@@ -251,6 +269,7 @@ that is all.'''
 
 
 class Test_edit_post:
+
     def test_GET_success(self, pyramid_config, pyramid_req):
         pyramid_req.matchdict['postname'] = 'Homepage'
         response = Post_modifying_views(pyramid_req).edit_post()
@@ -283,6 +302,7 @@ class Test_edit_post:
 
 
 class Test_del_post:
+
     def test_GET_success(self, pyramid_config, pyramid_req):
         pyramid_req.matchdict['postname'] = 'Homepage'
         response = Post_modifying_views(pyramid_req).del_post()
@@ -320,6 +340,7 @@ class Test_rss:
     'epage</title><link>http://example.com/posts/Homepage</link><description>&lt;p&gt;This'
     ' is the front page&lt;/p&gt;</description><category>tag1</category><pubDate>Tue, 01 Jan 2013 00:00:00 GMT<'
     '/pubDate></item></channel></rss>'
+
     def test_success(self, pyramid_config, pyramid_req):
         response = views.render_rss_feed(pyramid_req)
         assert self.rss_success_text_1 in response.text
@@ -327,9 +348,10 @@ class Test_rss:
 
 
 class Test_tag_view:
+
     @pytest.mark.parametrize("tag, actual_posts", [
         ('tag1', [("Homepage", "<p>This is the front page</p>"),
-                 ("Page2", "<p>This is page 2</p>")]),
+                  ("Page2", "<p>This is page 2</p>")]),
         ('tag2', [("Page2", "<p>This is page 2</p>")])])
     def test_success(self, tag, actual_posts, pyramid_config, pyramid_req):
         pyramid_req.matchdict['tag_name'] = tag
@@ -349,12 +371,14 @@ class Test_tag_view:
         response = myblog.tags.tag_view(pyramid_req)
         assert type(response) == HTTPNotFound
 
+
 class Test_tag_manager:
+
     def test_success(self, pyramid_config, pyramid_req):
         res = myblog.tags.tag_manager(pyramid_req)
-        assert res == dict(tags = [('tag1', 2), ('tag2', 1)],
-                           title = 'Tag manager',
-                           save_url = 'http://example.com/tags')
+        assert res == dict(tags=[('tag1', 2), ('tag2', 1)],
+                           title='Tag manager',
+                           save_url='http://example.com/tags')
 
     def test_POST_success(self, pyramid_config, pyramid_req):
         """Test deleting tag1 and renaming tag2."""
@@ -366,21 +390,23 @@ class Test_tag_manager:
 
         # I'm not fully sure why we do this. But it works and stops issues with autoflush and whatnot.
         # But in production it seems to be ok...
-        DBSession.begin(subtransactions = True)
+        DBSession.begin(subtransactions=True)
         res = myblog.tags.tag_manager(pyramid_req)
         DBSession.commit()
         assert res.location == 'http://example.com/tags'
 
         pyramid_req.params = {}
         res = myblog.tags.tag_manager(pyramid_req)
-        assert res == dict(tags = [('tag22', 1)],
-                           title = 'Tag manager',
-                           save_url = 'http://example.com/tags')
+        assert res == dict(tags=[('tag22', 1)],
+                           title='Tag manager',
+                           save_url='http://example.com/tags')
+
 
 class Test_comment_add:
+
     @staticmethod
     def get_comment_list(postname, pyramid_req):
-        post = DBSession.query(Post).filter_by(name = 'Page2').first()
+        post = DBSession.query(Post).filter_by(name='Page2').first()
         event = myblog.utils.RenderingPost(post, pyramid_req)
         return myblog.comments.render_comments_list_from_event(event)
 
@@ -389,7 +415,7 @@ class Test_comment_add:
         pyramid_req.params['postname'] = 'Page2'
         pyramid_req.params['comment'] = comment
         pyramid_req.params['form.submitted'] = True
-        with mock.patch('requests.post', autospec = True) as mock_requests_post:
+        with mock.patch('requests.post', autospec=True) as mock_requests_post:
             mock_response = mock.Mock()
             mock_response.json.return_value = {'success': True}
             mock_requests_post.return_value = mock_response
@@ -410,7 +436,8 @@ class Test_comment_add:
         pyramid_req.params['postname'] = 'Page2'
         pyramid_req.params['comment'] = comment
         pyramid_req.params['form.submitted'] = True
-        pyramid_config.testing_securitypolicy(userid = 'id5489746@mockmyid.com', permissive = True)
+        pyramid_config.testing_securitypolicy(
+            userid='id5489746@mockmyid.com', permissive=True)
         res = myblog.comments.comment_add(pyramid_req)
         assert res.location == 'http://example.com/posts/Page2'
 
@@ -425,32 +452,35 @@ class Test_comment_add:
 
 
 class Test_comment_delete:
+
     def test_success(self, pyramid_config, pyramid_req):
         pyramid_req.params['comment-uuid'] = 'comment1-uuid'
         pyramid_req.params['postname'] = 'Homepage'
-        res =myblog.comments.comment_delete(pyramid_req)
+        res = myblog.comments.comment_delete(pyramid_req)
         assert res.location == 'http://example.com/posts/Homepage'
 
-        comments_list = Test_comment_add.get_comment_list('Homepage', pyramid_req)
+        comments_list = Test_comment_add.get_comment_list(
+            'Homepage', pyramid_req)
         assert comments_list == []
 
 
 class Test_uuid:
+
     @pytest.mark.parametrize('uuid, location', [
-    ('uuid-post-homepage', 'http://example.com/posts/Homepage'),
-    ('uuid-post-page2', 'http://example.com/posts/Page2'),
-    ('uuid-post-h', 'http://example.com/posts/Homepage'),
-    ('uuid-post-p', 'http://example.com/posts/Page2')])
+        ('uuid-post-homepage', 'http://example.com/posts/Homepage'),
+        ('uuid-post-page2', 'http://example.com/posts/Page2'),
+        ('uuid-post-h', 'http://example.com/posts/Homepage'),
+        ('uuid-post-p', 'http://example.com/posts/Page2')])
     def test_post_success(self, uuid, location, pyramid_config, pyramid_req):
         pyramid_req.matchdict['uuid'] = uuid
         response = views.uuid(pyramid_req)
         assert response.location == location
 
     @pytest.mark.parametrize('uuid, location', [
-    ('uuid-tag111', 'http://example.com/tags/tag1'),
-    ('uuid-tag222', 'http://example.com/tags/tag2'),
-    ('uuid-tag1', 'http://example.com/tags/tag1'),
-    ('uuid-tag2', 'http://example.com/tags/tag2')])
+        ('uuid-tag111', 'http://example.com/tags/tag1'),
+        ('uuid-tag222', 'http://example.com/tags/tag2'),
+        ('uuid-tag1', 'http://example.com/tags/tag1'),
+        ('uuid-tag2', 'http://example.com/tags/tag2')])
     def test_tag_success(self, uuid, location, pyramid_config, pyramid_req):
         pyramid_req.matchdict['uuid'] = uuid
         response = views.uuid(pyramid_req)
@@ -470,7 +500,8 @@ class Test_uuid:
 
 
 class Test_groupfinder:
-    @pytest.mark.parametrize('email_address',[
+
+    @pytest.mark.parametrize('email_address', [
         'id5489746@mockmyid.com',
         email])
     def test_success(self, email_address, pyramid_config, pyramid_req):
@@ -481,10 +512,12 @@ class Test_groupfinder:
         res = groupfinder('some_fake_address@example.com', pyramid_req)
         assert res == ['g:commenter']
 
+
 class Test_getusername:
-    @pytest.mark.parametrize('email, username',[
-    ('id5489746@mockmyid.com', 'id5489746'),
-    ('commenter@example.com', 'commenter')
+
+    @pytest.mark.parametrize('email, username', [
+        ('id5489746@mockmyid.com', 'id5489746'),
+        ('commenter@example.com', 'commenter')
     ])
     def test_success(self, pyramid_config, email, username):
         assert myblog.get_username(email) == username
@@ -494,21 +527,22 @@ class Test_getusername:
 
 
 class Test_functional_tests:
+
     def get_csrf_token(self, testapp):
         res = testapp.get('http://localhost/')
         return re.search(r"csrf_token: '(?P<token>[a-zA-Z0-9]+)'",
-                            str(res.html)).group('token')
+                         str(res.html)).group('token')
 
     def login(self, testapp):
         csrf_token = self.get_csrf_token(testapp)
         viewer_login = '/login?csrf_token={}'.format(csrf_token)
         return testapp.post(viewer_login, dict(assertion=assertion,
-                                                came_from = '/'))
+                                               came_from='/'))
 
     def logout(self, testapp):
         csrf_token = self.get_csrf_token(testapp)
         return testapp.post('/logout?csrf_token={}'.format(csrf_token),
-                            dict(came_from = '/'))
+                            dict(came_from='/'))
 
     @contextlib.contextmanager
     def logged_in(self, testapp):
@@ -622,7 +656,7 @@ class Test_functional_tests:
             assert '/tags/test2' in str(res.html)
 
             # 3. Edit the post
-            res = res.click(href = r'.*/edit')
+            res = res.click(href=r'.*/edit')
             form = res.forms["edit-post"]
             form["body"] = 'This is a brand new test body.'
             assert form["tags"].value == 'test1, test2'
@@ -640,7 +674,7 @@ class Test_functional_tests:
             assert '/tags/test3' in str(res.html)
 
             # 5. Delete the post
-            res = res.click(href = r'.*/del')
+            res = res.click(href=r'.*/del')
             form = res.forms["del-post"]
             res = form.submit('form.submitted')
 
@@ -657,7 +691,8 @@ class Test_functional_tests:
         things like logging in which means that person needs to see a different
         page.
         '''
-        get_page2_html = lambda : testapp.get('http://localhost/posts/Page2').html
+        get_page2_html = lambda: testapp.get(
+            'http://localhost/posts/Page2').html
         unauthenticated_homepage = get_page2_html()
         self.login(testapp)
         authenticated_homepage = get_page2_html()

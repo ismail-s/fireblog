@@ -21,7 +21,8 @@ except KeyError:
     # As a result, as a fallback in these cases (atm only when tests are run,
     # which is when we actually want to check that the cache is correctly
     # managed by the website) we use the memory cache backend.
-    region = get_region('', backend = 'dogpile.cache.memory')
+    region = get_region('', backend='dogpile.cache.memory')
+
 
 def _find_request_obj_in_args(args, *more_args):
     '''
@@ -35,9 +36,11 @@ def _find_request_obj_in_args(args, *more_args):
             return elem
     return None
 
+
 def cache_key_generator(*args, **kwargs):
     old_key_generator = dogpile.cache.util.function_key_generator(*args,
-                                                                **kwargs)
+                                                                  **kwargs)
+
     def new_key_generator(*args, **kwargs):
         # args = (context, request) or (request)
         request = _find_request_obj_in_args(args)
@@ -59,8 +62,8 @@ class TemplateResponseDict(dict):
     pass
 
 
-def use_template(template = None):
-    def wrapper(f, template = template):
+def use_template(template=None):
+    def wrapper(f, template=template):
         @functools.wraps(f)
         def inner(context, request):
             res = f(context, request)
@@ -70,38 +73,42 @@ def use_template(template = None):
             to_render = eval(res.text)
             if type(to_render) != dict:
                 raise Exception("The use_template decorator is being used "
-                "incorrectly: the decorated view callable must return a dict.")
+                                "incorrectly: the decorated view callable must return a dict.")
             return render_to_response(template, to_render, request)
         return inner
     return wrapper
+
 
 def render_to_response(template, res, request):
     theme = request.registry.settings['myblog.theme']
     template = 'myblog:templates/' + theme + '/' + template
     return renderers.render_to_response(template, res, request)
 
+
 def get_anonymous_userid():
     anon_email = 'anonymous@example.com'
-    user = DBSession.query(Users.userid).filter_by(userid = anon_email).first()
+    user = DBSession.query(Users.userid).filter_by(userid=anon_email).first()
     if not user:
         # Create user
-        user = Users(userid = anon_email)
+        user = Users(userid=anon_email)
         DBSession.add(user)
     return user.userid
+
 
 @region.cache_on_arguments()
 def to_markdown(input_text):
     '''Basic wrapper around the markdown library.
-    
+
     Basically, it means that we state the extensions we
     use only once-here.'''
     extensions = ['markdown.extensions.codehilite',
-                'markdown.extensions.fenced_code']
-    res = markdown(input_text, extensions = extensions)
+                  'markdown.extensions.fenced_code']
+    res = markdown(input_text, extensions=extensions)
     return res
 
+
 def append_tags_from_string_to_tag_object(tag_string, tag_object):
-    tags_on_tag_object = [] # This is to be a list of tags on the tag_object
+    tags_on_tag_object = []  # This is to be a list of tags on the tag_object
     for tag in tag_object:
         tags_on_tag_object.append(tag.tag)
     new_tag_list = tag_string.split(',')
@@ -118,9 +125,9 @@ def append_tags_from_string_to_tag_object(tag_string, tag_object):
             continue
 
         # 1.1 Get a tag object.
-        existing_tag = DBSession.query(Tags).filter_by(tag = tag).first()
+        existing_tag = DBSession.query(Tags).filter_by(tag=tag).first()
         if not existing_tag:
-            tag_obj = Tags(tag = tag)
+            tag_obj = Tags(tag=tag)
             DBSession.add(tag_obj)
         else:
             tag_obj = existing_tag
@@ -133,29 +140,34 @@ def append_tags_from_string_to_tag_object(tag_string, tag_object):
         if tag not in new_tag_list:
             tag_object.remove(DBSession.query(Tags).filter_by(tag=tag).first())
 
+
 def _turn_tag_object_into_sorted_list(tag_object):
     tags = [t.tag for t in tag_object]
     tags.sort()
     return tags
+
 
 def turn_tag_object_into_string_for_forms(tag_object):
     tags = _turn_tag_object_into_sorted_list(tag_object)
     tags = ', '.join(tags)
     return tags
 
+
 def turn_tag_object_into_html_string_for_display(request, tag_object):
     tags = _turn_tag_object_into_sorted_list(tag_object)
     if not tags:
         return ''
     for e, tag in enumerate(tags):
-        tags[e] = "<a href = {link}>{tag}</a>".format(tag = tag,
-                            link = request.route_url('tag_view',
-                                                    tag_name = tag))
+        tags[e] = "<a href = {link}>{tag}</a>".format(tag=tag,
+                                                      link=request.route_url('tag_view',
+                                                                             tag_name=tag))
     return ', '.join(tags)
 
+
 def create_post_list_from_posts_obj(request, post_obj):
-    settings =  request.registry.settings
-    LENGTH_OF_EACH_POST_TO_INCLUDE_IN_ALL_POST_VIEW = settings['myblog.allViewPostLen']
+    settings = request.registry.settings
+    LENGTH_OF_EACH_POST_TO_INCLUDE_IN_ALL_POST_VIEW = settings[
+        'myblog.allViewPostLen']
     l = LENGTH_OF_EACH_POST_TO_INCLUDE_IN_ALL_POST_VIEW
     res = []
     code_styles = False  # Is true if we need to include pygments css
@@ -164,7 +176,7 @@ def create_post_list_from_posts_obj(request, post_obj):
         to_append = {}
         to_append["name"] = post.name
         to_append["html"] = to_markdown(post.markdown[:l] + '\n\n...')
-        to_append["date"] = ago.human(post.created, precision = 1)
+        to_append["date"] = ago.human(post.created, precision=1)
         res.append(to_append)
         if not code_styles and 'class="codehilite"' in to_append["html"]:
             code_styles = True
@@ -176,6 +188,7 @@ class RenderingPost(object):
     Subscribers can add html sections to self.sections and these will be
     put below the post on the webpage.
     """
+
     def __init__(self, post, request):
         self.post = post
         self.request = request

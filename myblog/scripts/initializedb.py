@@ -7,7 +7,7 @@ from sqlalchemy import engine_from_config
 from pyramid.paster import (
     get_appsettings,
     setup_logging,
-    )
+)
 
 from pyramid.scripts.common import parse_vars
 
@@ -16,7 +16,7 @@ from ..models import (
     Post,
     Users,
     Base,
-    )
+)
 
 
 def usage(argv):
@@ -39,9 +39,9 @@ def main(argv=sys.argv):
     with transaction.manager:
         post = Post(name='Homepage',
                     markdown='This is the front page',
-                    html = '<p>This is the front page</p>')
+                    html='<p>This is the front page</p>')
         DBSession.add(post)
     with transaction.manager:
-        me = Users(userid = 'astroman3d@gmail.com',
-                    group = 'g:admin')
+        me = Users(userid='astroman3d@gmail.com',
+                   group='g:admin')
         DBSession.add(me)
