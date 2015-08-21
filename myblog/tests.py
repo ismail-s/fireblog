@@ -208,8 +208,8 @@ class Test_view_post:
         assert response['uuid'] == 'uuid-post-homepage'
         assert 'tag1' in response['tags']
         assert 'tag2' not in response['tags']
-        assert response['post_date'] == ago.human(datetime.datetime(2013, 1, 1),
-                                                  precision=1)
+        assert response['post_date'] == ago.human(
+            datetime.datetime(2013, 1, 1), precision=1)
         # TODO-move this code into a separate test
         # assert response['comment_add_url'] == 'http://example.com/comment/add'
         # assert response['comments'] == [{
@@ -265,7 +265,7 @@ that is all.'''
         view_res = views.view_post(pyramid_req)
         del pyramid_req.matchdict['postname']
         response = views.view_all_posts(pyramid_req)
-        assert response["code_styles"] == True
+        assert response["code_styles"]
 
 
 class Test_edit_post:

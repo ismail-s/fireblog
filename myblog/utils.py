@@ -73,8 +73,9 @@ def use_template(template=None):
                 return res
             to_render = eval(res.text)
             if not isinstance(to_render, dict):
-                raise Exception("The use_template decorator is being used "
-                                "incorrectly: the decorated view callable must return a dict.")
+                raise Exception(
+                    "The use_template decorator is being used "
+                    "incorrectly: the decorated view callable must return a dict.")
             return render_to_response(template, to_render, request)
         return inner
     return wrapper
@@ -158,9 +159,8 @@ def turn_tag_object_into_html_string_for_display(request, tag_object):
     if not tags:
         return ''
     for e, tag in enumerate(tags):
-        tags[e] = "<a href = {link}>{tag}</a>".format(tag=tag,
-                                                      link=request.route_url('tag_view',
-                                                                             tag_name=tag))
+        tags[e] = "<a href = {link}>{tag}</a>".format(
+            tag=tag, link=request.route_url('tag_view', tag_name=tag))
     return ', '.join(tags)
 
 

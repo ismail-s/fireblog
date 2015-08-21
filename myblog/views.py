@@ -169,11 +169,13 @@ class Post_modifying_views(object):
                  decorator=use_template('edit.mako'), permission='add')
     def add_post(self):
         if len(self.matching_posts):
-            return HTTPFound(location=self.request.route_url('change_post',
-                                                             postname=self.postname,
-                                                             action='edit'))
-        save_url = self.request.route_url('change_post', postname=self.postname,
-                                          action='add')
+            return HTTPFound(
+                location=self.request.route_url(
+                    'change_post',
+                    postname=self.postname,
+                    action='edit'))
+        save_url = self.request.route_url(
+            'change_post', postname=self.postname, action='add')
         # We can then feed the save url into the template for the form
         return TemplateResponseDict(title='Adding page: ' + self.postname,
                                     save_url=save_url,
@@ -184,9 +186,11 @@ class Post_modifying_views(object):
                  request_param='form.submitted', permission='add')
     def add_post_POST(self):
         if len(self.matching_posts):
-            return HTTPFound(location=self.request.route_url('change_post',
-                                                             postname=self.postname,
-                                                             action='edit'))
+            return HTTPFound(
+                location=self.request.route_url(
+                    'change_post',
+                    postname=self.postname,
+                    action='edit'))
         post = Post()
         post.name = self.postname
         post.markdown = self.request.params['body']
@@ -198,8 +202,10 @@ class Post_modifying_views(object):
         # could have previously tried to get this post, but the 404 response
         # could have been cached.
         invalidate_post(self.postname)
-        return HTTPFound(location=self.request.route_url('view_post',
-                                                         postname=self.postname))
+        return HTTPFound(
+            location=self.request.route_url(
+                'view_post',
+                postname=self.postname))
 
     @view_config(match_param="action=edit", request_method="GET",
                  decorator=use_template('edit.mako'), permission='edit')
@@ -208,8 +214,8 @@ class Post_modifying_views(object):
             return HTTPFound(location=self.request.route_url('home'))
 
         post = self.matching_posts[0]
-        save_url = self.request.route_url('change_post',
-                                          postname=self.postname, action='edit')
+        save_url = self.request.route_url(
+            'change_post', postname=self.postname, action='edit')
         post_text = post.markdown
 
         tags = utils.turn_tag_object_into_string_for_forms(post.tags)

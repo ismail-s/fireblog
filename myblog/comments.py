@@ -53,8 +53,9 @@ def comment_add(request):
         recaptcha = request.params.get('g-recaptcha-response', '')
         payload = dict(secret='6LdPugUTAAAAACBpJ6IvHD2EF-PI-TaIhXvmbPf6',
                        response=recaptcha)
-        result = requests.post('https://www.google.com/recaptcha/api/siteverify',
-                               data=payload)
+        result = requests.post(
+            'https://www.google.com/recaptcha/api/siteverify',
+            data=payload)
         try:
             if result.json()['success'] != True:
                 return HTTPNotFound()
