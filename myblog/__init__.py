@@ -4,12 +4,17 @@ from sqlalchemy.orm.exc import NoResultFound
 from pyramid.security import Allow, ALL_PERMISSIONS
 from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.events import BeforeRender
-
+from pyramid.response import Response
+import myblog.utils as utils
 from myblog.models import (
     DBSession,
     Base,
     Users
 )
+
+def template_response_adapter(s):
+    response = Response(repr(s))
+    return response
 
 def get_bower_url(request, path_to_resource):
     return request.static_url('myblog:../bower_components/' + path_to_resource)
@@ -65,17 +70,16 @@ def add_routes(config):
     config.add_route('view_all_posts', '/all_posts')
 
     config.add_route('view_post', '/' + POST_URL_PREFIX + '/{postname}')
-    config.add_route('add_post', '/' + POST_URL_PREFIX + '/{postname}/add')
-    config.add_route('edit_post', '/' + POST_URL_PREFIX + '/{postname}/edit')
-    config.add_route('del_post', '/' + POST_URL_PREFIX + '/{postname}/del')
+    config.add_route('change_post', '/' + POST_URL_PREFIX + '/{postname}/{action}')
 
     config.add_route('tag_view', '/tags/{tag_name}')
     config.add_route('tag_manager', '/tags')
 
-    config.add_route('comment_add', '/comment/add')
-    config.add_route('comment_del', '/comment/del')
     config.add_subscriber(add_username_function, BeforeRender)
 
+def include_all_components(config):
+    add_routes(config)
+    config.include('.comments', route_prefix = '/comment')
 
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
@@ -90,12 +94,13 @@ def main(global_config, **settings):
     config.include("pyramid_persona")
     config.add_static_view(name='bower', path='myblog:../bower_components')
     config.add_request_method(get_bower_url)
+    config.add_response_adapter(template_response_adapter, utils.TemplateResponseDict)
     authn_policy = AuthTktAuthenticationPolicy(
         settings['persona.secret'],
         callback=groupfinder)
     config.set_authentication_policy(authn_policy)
     # Pyramid_persona has already set an authorization policy, so
     # this has not been done here.
-    add_routes(config)
+    include_all_components(config)
     config.scan()
     return config.make_wsgi_app()
