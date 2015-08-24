@@ -18,9 +18,10 @@ from myblog.models import (
 
 def add_comment_section_below_posts(event):
     comments_list = render_comments_list_from_event(event)
+    comment_add_url = event.request.route_url('comment_add')
     html = utils.render_to_response('comments.mako',
                                     {'comments': comments_list,
-                                     'comment_add_url': event.request.route_url('comment_add'),
+                                     'comment_add_url': comment_add_url,
                                      'post_title': event.post.name},
                                     event.request).text
     event.sections.append(html)
@@ -57,7 +58,7 @@ def comment_add(request):
             'https://www.google.com/recaptcha/api/siteverify',
             data=payload)
         try:
-            if result.json()['success'] != True:
+            if not result.json()['success']:
                 return HTTPNotFound()
         except Exception:
             return HTTPNotFound()

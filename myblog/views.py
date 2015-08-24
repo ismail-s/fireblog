@@ -33,7 +33,7 @@ def render_rss_feed(request):
         title = post.name
         link = request.route_url('view_post', postname=title)
         description = post.html
-        #guid = PyRSS2Gen.Guid('')
+        # guid = PyRSS2Gen.Guid('')
         pub_date = post.created
         categories = []
         for tag in post.tags:
@@ -41,7 +41,7 @@ def render_rss_feed(request):
 
         item = PyRSS2Gen.RSSItem(title=title,
                                  link=link, description=description,
-                                 #guid= guid,
+                                 # guid= guid,
                                  categories=categories,
                                  pubDate=pub_date)
 

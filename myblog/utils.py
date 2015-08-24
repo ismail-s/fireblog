@@ -17,10 +17,10 @@ except KeyError:
     # KeyError occurs when this module is directly imported before myblog:main
     # is called. Basically, in the myblog:main function, pyramid_dogpile_cache
     # plugin sets up dogpile.cache using settings from the usual ini files.
-    # However, if this module is imported first, then this setup doesn't happen.
-    # As a result, as a fallback in these cases (atm only when tests are run,
-    # which is when we actually want to check that the cache is correctly
-    # managed by the website) we use the memory cache backend.
+    # However, if this module is imported first, then this setup doesn't
+    # happen. As a result, as a fallback in these cases (atm only when tests
+    # are run, which is when we actually want to check that the cache is
+    # correctly managed by the website) we use the memory cache backend.
     region = get_region('', backend='dogpile.cache.memory')
 
 
@@ -75,7 +75,8 @@ def use_template(template=None):
             if not isinstance(to_render, dict):
                 raise Exception(
                     "The use_template decorator is being used "
-                    "incorrectly: the decorated view callable must return a dict.")
+                    "incorrectly: the decorated view callable must return a "
+                    "dict.")
             return render_to_response(template, to_render, request)
         return inner
     return wrapper

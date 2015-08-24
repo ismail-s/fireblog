@@ -30,7 +30,8 @@ from myblog import include_all_components, groupfinder
 import myblog
 
 data = requests.get(
-    'http://personatestuser.org/email_with_assertion/http%3A%2F%2Flocalhost').json()
+    'http://personatestuser.org/email_with_assertion/http%3A%2F%2Flocalhost')
+data = data.json()
 email = data['email']
 assertion = data['assertion']
 
@@ -229,12 +230,11 @@ class Test_view_all_posts:
 
     def test_success(self, pyramid_config, pyramid_req):
         response = views.view_all_posts(pyramid_req)
-        assert response["code_styles"] == False
+        assert response["code_styles"] is False
         posts = response["posts"]
 
         actual_posts = [("Page2", "<p>This is page 2</p>"),
                         ("Homepage", "<p>This is the front page</p>")]
-        #post_names = [x[0] for x in actual_posts]
 
         for post, actual_post in zip(posts, actual_posts):
             assert post["name"] == actual_post[0]
@@ -330,16 +330,21 @@ class Test_rss:
     # function is called. So, I've separated the output into 2 strings,
     # omitting the lastBuildDate datetime. So everything else except
     # that is checked.
-    rss_success_text_1 = '<?xml version="1.0" encoding="iso-8859-1"?>\n<rss version="2.0"><channel><title'
-    '>Not the Answer</title><link>https://blog.ismail-s.com</link><description>A pers'
-    'onal blog about science, computers and life.</description><lastBuildDate>'
-    rss_success_text_2 = '</lastBuildDate><generator>PyRSS2Gen-1.1.0</generator><doc'
-    's>http://blogs.law.harvard.edu/tech/rss</docs><item><title>Page2</title><link>ht'
-    'tp://example.com/posts/Page2</link><description>&lt;p&gt;This is page 2&lt;/p&gt;</des'
-    'cription><category>tag2</category><category>tag1</category><pubDate>Wed, 01 Jan 2014 00:00:00 GMT</pubDate></item><item><title>Hom'
-    'epage</title><link>http://example.com/posts/Homepage</link><description>&lt;p&gt;This'
-    ' is the front page&lt;/p&gt;</description><category>tag1</category><pubDate>Tue, 01 Jan 2013 00:00:00 GMT<'
-    '/pubDate></item></channel></rss>'
+    rss_success_text_1 = ''
+    '<?xml version="1.0" encoding="iso-8859-1"?>\n<rss version="2.0"><channel>'
+    '<title>Not the Answer</title><link>https://blog.ismail-s.com</link>'
+    '<description>A personal blog about science, computers and life.'
+    '</description><lastBuildDate>'
+    rss_success_text_2 = ''
+    '</lastBuildDate><generator>PyRSS2Gen-1.1.0</generator><docs>'
+    'http://blogs.law.harvard.edu/tech/rss</docs><item><title>Page2</title>'
+    '<link>http://example.com/posts/Page2</link><description>&lt;p&gt;'
+    'This is page 2&lt;/p&gt;</description><category>tag2</category>'
+    '<category>tag1</category><pubDate>Wed, 01 Jan 2014 00:00:00 GMT</pubDate>'
+    '</item><item><title>Homepage</title><link>'
+    'http://example.com/posts/Homepage</link><description>&lt;p&gt;This is '
+    'the front page&lt;/p&gt;</description><category>tag1</category>'
+    '<pubDate>Tue, 01 Jan 2013 00:00:00 GMT</pubDate></item></channel></rss>'
 
     def test_success(self, pyramid_config, pyramid_req):
         response = views.render_rss_feed(pyramid_req)
@@ -388,7 +393,8 @@ class Test_tag_manager:
         pyramid_req.params['text-tag1'] = 'tag1'
         pyramid_req.params['text-tag2'] = 'tag22'
 
-        # I'm not fully sure why we do this. But it works and stops issues with autoflush and whatnot.
+        # I'm not fully sure why we do this. But it works and stops issues
+        # with autoflush and whatnot.
         # But in production it seems to be ok...
         DBSession.begin(subtransactions=True)
         res = myblog.tags.tag_manager(pyramid_req)
