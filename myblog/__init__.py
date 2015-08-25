@@ -11,6 +11,7 @@ from myblog.models import (
     Base,
     Users
 )
+from configparser import ConfigParser
 
 
 def template_response_adapter(s):
@@ -88,9 +89,22 @@ def include_all_components(config):
     config.include('.comments', route_prefix='/comment')
 
 
+def get_secret_settings(secrets_file, *, defaults):
+    if not secrets_file:
+        return {}
+    secrets = ConfigParser(defaults=defaults)
+    secrets.read(secrets_file)
+    return dict(secrets['DEFAULT'])
+
+
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
+    # Get extra config settings from secrets file
+    secrets_file = settings.get('secrets', None)
+    secrets_dict = get_secret_settings(secrets_file, defaults=global_config)
+    settings.update(secrets_dict)
+
     allViewPostLen = int(settings.get('myblog.allViewPostLen', 1000))
     settings['myblog.allViewPostLen'] = allViewPostLen
     engine = engine_from_config(settings, 'sqlalchemy.')
