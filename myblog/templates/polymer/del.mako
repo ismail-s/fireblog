@@ -8,11 +8,12 @@ ${parent.head()}
 <%block name="header">${title}</%block>
 
 <%block name="content">
-<p>Are you sure you want to delete this page? If so, click the button below.</p>
+<paper-material class="card" elevation = "2">
+    <p>Are you sure you want to delete this page? If so, click the button below.</p>
 
-<form id = "del-post" action = "${save_url}" method = "post">
-<input type="hidden" name="form.submitted">
-<form-submit-button>Delete this post</form-submit-button>
-</form>
-
+    <form id = "del-post" action = "${save_url}" method = "post">
+        <input type="hidden" name="form.submitted">
+        <form-submit-button>Delete this post</form-submit-button>
+    </form>
+</paper-material>
 </%block>
