@@ -211,14 +211,6 @@ class Test_view_post:
         assert 'tag2' not in response['tags']
         assert response['post_date'] == ago.human(
             datetime.datetime(2013, 1, 1), precision=1)
-        # TODO-move this code into a separate test
-        # assert response['comment_add_url'] == 'http://example.com/comment/add'
-        # assert response['comments'] == [{
-        #         'created': ago.human(datetime.datetime(2014, 1, 1),
-        #                 precision = 1),
-        #         'author': 'id5489746',
-        #         'comment': 'test comment',
-        #         'uuid': 'comment1-uuid'}]
 
     def test_failure(self, pyramid_config, pyramid_req):
         pyramid_req.matchdict['postname'] = 'nonexisting page'
@@ -408,13 +400,26 @@ class Test_tag_manager:
                            save_url='http://example.com/tags')
 
 
-class Test_comment_add:
+class Test_comment_view:
 
     @staticmethod
     def get_comment_list(postname, pyramid_req):
-        post = DBSession.query(Post).filter_by(name='Page2').first()
+        post = DBSession.query(Post).filter_by(name=postname).first()
         event = myblog.utils.RenderingPost(post, pyramid_req)
         return myblog.comments.render_comments_list_from_event(event)
+
+    def test_success(self, pyramid_config, pyramid_req):
+        res = self.get_comment_list('Homepage', pyramid_req)
+        expected_comment = {
+            'created': ago.human(datetime.datetime(2014, 1, 1), precision=1),
+            'author': 'id5489746',
+            'comment': 'test comment',
+            'uuid': 'comment1-uuid'}
+        assert len(res) == 1
+        assert res[0] == expected_comment
+
+
+class Test_comment_add:
 
     def test_anon_success(self, pyramid_config, pyramid_req):
         comment = 'A test comment...'
@@ -429,7 +434,8 @@ class Test_comment_add:
         assert res.location == 'http://example.com/posts/Page2'
 
         pyramid_req.params = {}
-        comments_list = self.get_comment_list('Page2', pyramid_req)
+        comments_list = Test_comment_view.get_comment_list(
+            'Page2', pyramid_req)
         assert len(comments_list) == 1
         comment_res = comments_list[0]
         assert comment_res['author'] == 'anonymous'
@@ -448,7 +454,8 @@ class Test_comment_add:
         assert res.location == 'http://example.com/posts/Page2'
 
         pyramid_req.params = {}
-        comments_list = self.get_comment_list('Page2', pyramid_req)
+        comments_list = Test_comment_view.get_comment_list(
+            'Page2', pyramid_req)
         assert len(comments_list) == 1
         comment_res = comments_list[0]
         assert comment_res['author'] == 'id5489746'
@@ -465,7 +472,7 @@ class Test_comment_delete:
         res = myblog.comments.comment_delete(pyramid_req)
         assert res.location == 'http://example.com/posts/Homepage'
 
-        comments_list = Test_comment_add.get_comment_list(
+        comments_list = Test_comment_view.get_comment_list(
             'Homepage', pyramid_req)
         assert comments_list == []
 
