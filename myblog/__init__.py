@@ -86,7 +86,7 @@ def add_routes(config):
 
 def include_all_components(config):
     add_routes(config)
-    config.include('.comments', route_prefix='/comment')
+    config.include('myblog.comments', route_prefix='/comment')
 
 
 def get_secret_settings(secrets_file, *, defaults):
