@@ -1,4 +1,4 @@
-from operator import itemgetter
+from operator import attrgetter
 import myblog.utils as utils
 from myblog.utils import use_template, TemplateResponseDict
 from pyramid.view import view_config
@@ -21,10 +21,10 @@ def tag_view(request):
         tag_obj = DBSession.query(Tags).filter_by(tag=tag).one()
     except NoResultFound:
         return HTTPNotFound('no such tag exists.')
-
+    posts_obj = tag_obj.posts
+    posts_obj = sorted(posts_obj, key=attrgetter("created"))
     posts, code_styles = utils.create_post_list_from_posts_obj(
-        request, tag_obj.posts)
-    posts = sorted(posts, key=itemgetter("date"), reverse=True)
+        request, posts_obj)
 
     return TemplateResponseDict(title='Posts tagged with {}'.format(tag),
                                 posts=posts,

@@ -1,7 +1,6 @@
 import myblog.utils as utils
 from myblog.views import invalidate_post
 import requests
-import ago
 from pyramid.view import view_config
 from pyramid.events import subscriber
 from pyramid.httpexceptions import (
@@ -32,7 +31,7 @@ def render_comments_list_from_event(event):
     comments_list = []
     for comment in comments:
         to_append = {}
-        to_append['created'] = ago.human(comment.created, precision=1)
+        to_append['created'] = utils.format_datetime(comment.created)
         to_append['author'] = comment.author.username
         to_append['comment'] = comment.comment
         to_append['uuid'] = comment.uuid

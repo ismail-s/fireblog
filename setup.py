@@ -20,7 +20,7 @@ requires = [
     'zope.sqlalchemy',
     'waitress',
     'markdown',
-    'ago',
+    'arrow',
     'shortuuid',
     'webtest',
     'pytest',

@@ -1,8 +1,8 @@
 from markdown import markdown
-import ago
 from myblog.models import DBSession, Tags, Users
 from pyramid_dogpile_cache import get_region
 import dogpile.cache.util
+import arrow
 import functools
 from pyramid import renderers
 from pyramid.request import Request
@@ -23,6 +23,10 @@ except KeyError:
     # correctly managed by the website) we use the memory cache backend.
     region = get_region('', backend='dogpile.cache.memory')
 
+
+def format_datetime(datetime):
+    '''Return a string representing the datetime object. eg \'20 Jan 2014\''''
+    return arrow.get(datetime).format('DD MMM YYYY')
 
 def _find_request_obj_in_args(args, *more_args):
     '''
@@ -177,7 +181,7 @@ def create_post_list_from_posts_obj(request, post_obj):
         to_append = {}
         to_append["name"] = post.name
         to_append["html"] = to_markdown(post.markdown[:l] + '\n\n...')
-        to_append["date"] = ago.human(post.created, precision=1)
+        to_append["date"] = format_datetime(post.created)
         res.append(to_append)
         if not code_styles and 'class="codehilite"' in to_append["html"]:
             code_styles = True

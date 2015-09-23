@@ -1,7 +1,6 @@
 from operator import itemgetter
 import myblog.utils as utils
 from myblog.utils import use_template, TemplateResponseDict
-import ago
 import PyRSS2Gen
 import dogpile.cache.util
 import datetime
@@ -125,11 +124,13 @@ def get_post_section_as_dict(request, page, postname):
     # Get tags and make them into a string
     tags = utils.turn_tag_object_into_html_string_for_display(request,
                                                               page.tags)
+
+    post_date = utils.format_datetime(page.created)
     return dict(title=page.name,
                 html=page.html,
                 uuid=page.uuid,
                 tags=tags,
-                post_date=ago.human(page.created, precision=1),
+                post_date= post_date,
                 prev_page=previous,
                 next_page=next)
 
