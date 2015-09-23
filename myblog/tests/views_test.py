@@ -1,6 +1,5 @@
 import pytest
 import PyRSS2Gen
-import ago
 import datetime
 import copy
 import re
@@ -80,8 +79,7 @@ class Test_view_post:
         assert response['uuid'] == 'uuid-post-homepage'
         assert 'tag1' in response['tags']
         assert 'tag2' not in response['tags']
-        assert response['post_date'] == ago.human(
-            datetime.datetime(2013, 1, 1), precision=1)
+        assert response['post_date'] == '01 Jan 2013'
 
     def test_failure(self, pyramid_config, pyramid_req):
         pyramid_req.matchdict['postname'] = 'nonexisting page'

@@ -1,7 +1,6 @@
 import myblog.comments
 import myblog.utils
 from myblog.models import DBSession, Post
-import ago
 import datetime
 
 try:
@@ -22,7 +21,7 @@ class Test_comment_view:
     def test_success(self, pyramid_config, pyramid_req):
         res = self.get_comment_list('Homepage', pyramid_req)
         expected_comment = {
-            'created': ago.human(datetime.datetime(2014, 1, 1), precision=1),
+            'created': '01 Jan 2014',
             'author': 'id5489746',
             'comment': 'test comment',
             'uuid': 'comment1-uuid'}
