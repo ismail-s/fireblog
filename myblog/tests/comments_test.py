@@ -10,6 +10,7 @@ try:
 except ImportError:
     import mock
 
+
 class Test_comment_view:
 
     @staticmethod

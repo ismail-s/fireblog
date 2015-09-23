@@ -23,7 +23,8 @@ def theme(request):
 @pytest.fixture(scope='session')
 def persona_test_admin_login():
     data = requests.get(
-        'http://personatestuser.org/email_with_assertion/http%3A%2F%2Flocalhost')
+        'http://personatestuser.org/email_with_assertion/'
+        'http%3A%2F%2Flocalhost')
     data = data.json()
     res = {}
     res['email'] = data['email']

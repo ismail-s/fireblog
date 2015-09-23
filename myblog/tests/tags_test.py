@@ -3,6 +3,7 @@ import myblog.tags
 from pyramid.httpexceptions import HTTPNotFound
 from myblog.models import DBSession
 
+
 class Test_tag_view:
 
     @pytest.mark.parametrize("tag, actual_posts", [

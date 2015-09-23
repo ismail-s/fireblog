@@ -4,7 +4,8 @@ import myblog
 
 class Test_groupfinder:
 
-    def test_success(self, persona_test_admin_login, pyramid_config, pyramid_req):
+    def test_success(self, persona_test_admin_login,
+                     pyramid_config, pyramid_req):
         emails = ['id5489746@mockmyid.com', persona_test_admin_login['email']]
         for email in emails:
             res = myblog.groupfinder(email, pyramid_req)
