@@ -28,6 +28,7 @@ def format_datetime(datetime):
     '''Return a string representing the datetime object. eg \'20 Jan 2014\''''
     return arrow.get(datetime).format('DD MMM YYYY')
 
+
 def _find_request_obj_in_args(args, *more_args):
     '''
     Pass in a list of args, and this function returns the first one that is an

@@ -130,7 +130,7 @@ def get_post_section_as_dict(request, page, postname):
                 html=page.html,
                 uuid=page.uuid,
                 tags=tags,
-                post_date= post_date,
+                post_date=post_date,
                 prev_page=previous,
                 next_page=next)
 
