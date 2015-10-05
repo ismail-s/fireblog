@@ -1,6 +1,6 @@
 from operator import itemgetter
-import myblog.utils as utils
-from myblog.utils import use_template, TemplateResponseDict
+import fireblog.utils as utils
+from fireblog.utils import use_template, TemplateResponseDict
 import PyRSS2Gen
 import dogpile.cache.util
 import datetime
@@ -15,7 +15,7 @@ import sqlalchemy.sql as sql
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy import desc
-from myblog.models import (
+from fireblog.models import (
     DBSession,
     Post,
     Tags,

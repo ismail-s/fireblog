@@ -31,9 +31,9 @@ requires = [
 ]
 
 if __name__ == '__main__':
-    setup(name='myblog',
+    setup(name='fireblog',
           version='0.0',
-          description='myblog',
+          description='fireblog',
           long_description=README + '\n\n' + CHANGES,
           classifiers=[
               "Programming Language :: Python",
@@ -48,12 +48,12 @@ if __name__ == '__main__':
           packages=find_packages(),
           include_package_data=True,
           zip_safe=False,
-          test_suite='myblog',
+          test_suite='fireblog',
           install_requires=requires,
           entry_points="""\
       [paste.app_factory]
-      main = myblog:main
+      main = fireblog:main
       [console_scripts]
-      initialize_myblog_db = myblog.scripts.initializedb:main
+      initialize_fireblog_db = fireblog.scripts.initializedb:main
       """,
           )

@@ -1,5 +1,5 @@
-import myblog.utils as utils
-from myblog.views import invalidate_post
+import fireblog.utils as utils
+from fireblog.views import invalidate_post
 import requests
 from pyramid.view import view_config
 from pyramid.events import subscriber
@@ -7,7 +7,7 @@ from pyramid.httpexceptions import (
     HTTPFound,
     HTTPNotFound,
 )
-from myblog.models import (
+from fireblog.models import (
     DBSession,
     Post,
     Comments,

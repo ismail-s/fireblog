@@ -5,10 +5,10 @@ import os
 import datetime
 import webtest
 from pyramid import testing
-from myblog import include_all_components
+from fireblog import include_all_components
 from sqlalchemy import create_engine
-from myblog.models import DBSession, Base, Post, Users, Tags, Comments
-import myblog
+from fireblog.models import DBSession, Base, Post, Users, Tags, Comments
+import fireblog
 
 # Get all available themes
 theme_folder = os.path.join(os.path.dirname(__file__), '../templates')
@@ -35,9 +35,9 @@ def persona_test_admin_login():
 @pytest.fixture
 def pyramid_req(theme):
     res = testing.DummyRequest()
-    res.registry.settings.update({'myblog.allViewPostLen': 1000,
+    res.registry.settings.update({'fireblog.allViewPostLen': 1000,
                                   'dogpile_cache.backend': 'memory',
-                                  'myblog.theme': theme})
+                                  'fireblog.theme': theme})
     return res
 
 
@@ -111,9 +111,9 @@ def setup_testapp(mydb, theme, request):
                 'persona.audiences': 'http://localhost',
                 'persona.secret': 'some_secret',
                 'dogpile_cache.backend': 'memory',
-                'myblog.allViewPostLen': 1000,
-                'myblog.theme': theme}
-    app = myblog.main({}, **settings)
+                'fireblog.allViewPostLen': 1000,
+                'fireblog.theme': theme}
+    app = fireblog.main({}, **settings)
     return webtest.TestApp(app)
 
 

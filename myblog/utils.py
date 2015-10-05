@@ -1,5 +1,5 @@
 from markdown import markdown
-from myblog.models import DBSession, Tags, Users
+from fireblog.models import DBSession, Tags, Users
 from pyramid_dogpile_cache import get_region
 import dogpile.cache.util
 import arrow
@@ -14,8 +14,8 @@ from pyramid.httpexceptions import HTTPException
 try:
     region = get_region('')
 except KeyError:
-    # KeyError occurs when this module is directly imported before myblog:main
-    # is called. Basically, in the myblog:main function, pyramid_dogpile_cache
+    # KeyError occurs when this module is directly imported before fireblog:main
+    # is called. Basically, in the fireblog:main function, pyramid_dogpile_cache
     # plugin sets up dogpile.cache using settings from the usual ini files.
     # However, if this module is imported first, then this setup doesn't
     # happen. As a result, as a fallback in these cases (atm only when tests
@@ -88,8 +88,8 @@ def use_template(template=None):
 
 
 def render_to_response(template, res, request):
-    theme = request.registry.settings['myblog.theme']
-    template = 'myblog:templates/' + theme + '/' + template
+    theme = request.registry.settings['fireblog.theme']
+    template = 'fireblog:templates/' + theme + '/' + template
     return renderers.render_to_response(template, res, request)
 
 
@@ -173,7 +173,7 @@ def turn_tag_object_into_html_string_for_display(request, tag_object):
 def create_post_list_from_posts_obj(request, post_obj):
     settings = request.registry.settings
     LENGTH_OF_EACH_POST_TO_INCLUDE_IN_ALL_POST_VIEW = settings[
-        'myblog.allViewPostLen']
+        'fireblog.allViewPostLen']
     l = LENGTH_OF_EACH_POST_TO_INCLUDE_IN_ALL_POST_VIEW
     res = []
     code_styles = False  # Is true if we need to include pygments css

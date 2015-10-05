@@ -1,5 +1,5 @@
 import pytest
-import myblog
+import fireblog
 
 
 class Test_groupfinder:
@@ -8,11 +8,11 @@ class Test_groupfinder:
                      pyramid_config, pyramid_req):
         emails = ['id5489746@mockmyid.com', persona_test_admin_login['email']]
         for email in emails:
-            res = myblog.groupfinder(email, pyramid_req)
+            res = fireblog.groupfinder(email, pyramid_req)
             assert res == ['g:admin']
 
     def test_failure(self, pyramid_config, pyramid_req):
-        res = myblog.groupfinder('some_fake_address@example.com', pyramid_req)
+        res = fireblog.groupfinder('some_fake_address@example.com', pyramid_req)
         assert res == ['g:commenter']
 
 
@@ -23,7 +23,7 @@ class Test_getusername:
         ('commenter@example.com', 'commenter')
     ])
     def test_success(self, pyramid_config, email, username):
-        assert myblog.get_username(email) == username
+        assert fireblog.get_username(email) == username
 
     def test_failure(self, pyramid_config):
-        assert myblog.get_username('nonexistentemail@example.com') == ''
+        assert fireblog.get_username('nonexistentemail@example.com') == ''

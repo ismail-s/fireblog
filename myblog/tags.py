@@ -1,13 +1,13 @@
 from operator import attrgetter
-import myblog.utils as utils
-from myblog.utils import use_template, TemplateResponseDict
+import fireblog.utils as utils
+from fireblog.utils import use_template, TemplateResponseDict
 from pyramid.view import view_config
 from pyramid.httpexceptions import (
     HTTPFound,
     HTTPNotFound,
 )
 from sqlalchemy.orm.exc import NoResultFound
-from myblog.models import (
+from fireblog.models import (
     DBSession,
     Tags,
 )

@@ -7,9 +7,9 @@ import re
 
 from pyramid.httpexceptions import HTTPNotFound
 
-import myblog.views as views
-from myblog.views import Post_modifying_views
-import myblog.utils
+import fireblog.views as views
+from fireblog.views import Post_modifying_views
+import fireblog.utils
 
 
 class Test_home:

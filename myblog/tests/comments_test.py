@@ -1,6 +1,6 @@
-import myblog.comments
-import myblog.utils
-from myblog.models import DBSession, Post
+import fireblog.comments
+import fireblog.utils
+from fireblog.models import DBSession, Post
 import datetime
 
 try:
@@ -15,8 +15,8 @@ class Test_comment_view:
     @staticmethod
     def get_comment_list(postname, pyramid_req):
         post = DBSession.query(Post).filter_by(name=postname).first()
-        event = myblog.utils.RenderingPost(post, pyramid_req)
-        return myblog.comments.render_comments_list_from_event(event)
+        event = fireblog.utils.RenderingPost(post, pyramid_req)
+        return fireblog.comments.render_comments_list_from_event(event)
 
     def test_success(self, pyramid_config, pyramid_req):
         res = self.get_comment_list('Homepage', pyramid_req)
@@ -40,7 +40,7 @@ class Test_comment_add:
             mock_response = mock.Mock()
             mock_response.json.return_value = {'success': True}
             mock_requests_post.return_value = mock_response
-            res = myblog.comments.comment_add(pyramid_req)
+            res = fireblog.comments.comment_add(pyramid_req)
         assert res.location == 'http://example.com/posts/Page2'
 
         pyramid_req.params = {}
@@ -60,7 +60,7 @@ class Test_comment_add:
         pyramid_req.params['form.submitted'] = True
         pyramid_config.testing_securitypolicy(
             userid='id5489746@mockmyid.com', permissive=True)
-        res = myblog.comments.comment_add(pyramid_req)
+        res = fireblog.comments.comment_add(pyramid_req)
         assert res.location == 'http://example.com/posts/Page2'
 
         pyramid_req.params = {}
@@ -79,7 +79,7 @@ class Test_comment_delete:
     def test_success(self, pyramid_config, pyramid_req):
         pyramid_req.params['comment-uuid'] = 'comment1-uuid'
         pyramid_req.params['postname'] = 'Homepage'
-        res = myblog.comments.comment_delete(pyramid_req)
+        res = fireblog.comments.comment_delete(pyramid_req)
         assert res.location == 'http://example.com/posts/Homepage'
 
         comments_list = Test_comment_view.get_comment_list(
