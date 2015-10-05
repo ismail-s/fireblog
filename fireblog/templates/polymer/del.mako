@@ -2,7 +2,7 @@
 
 <%block name="head">
 ${parent.head()}
-<link rel="import" href="${request.static_url('myblog:static/form-submit.html')}">
+<link rel="import" href="${request.static_url('fireblog:static/form-submit.html')}">
 </%block>
 
 <%block name="header">${title}</%block>

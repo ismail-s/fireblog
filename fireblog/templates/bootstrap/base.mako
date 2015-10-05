@@ -15,8 +15,8 @@
 
     <!-- Custom styles for this template -->
     <style>
-        <%include file="myblog:static/custom-theme.css"/>
-        ## <%include file="myblog:static/bootstrap-cleaned.css"/>
+        <%include file="fireblog:static/custom-theme.css"/>
+        ## <%include file="fireblog:static/bootstrap-cleaned.css"/>
     </style>
 
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
