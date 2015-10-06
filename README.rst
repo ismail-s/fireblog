@@ -1,6 +1,7 @@
 Fireblog README
 ==================
 .. image:: https://travis-ci.org/ismail-s/fireblog.svg?branch=develop
+  :target: https://travis-ci.org/ismail-s/fireblog
 *Note: I have just recently put this repo onto github, so the below instructions aren't quite perfect just yet.*
 
 Getting Started
