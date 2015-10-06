@@ -1,4 +1,9 @@
 language: python
+# whitelist
+branches:
+  only:
+    - master
+    - develop
 python:
   - "3.3"
   - "3.4"
