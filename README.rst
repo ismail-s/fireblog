@@ -1,5 +1,7 @@
-myblog README
+Fireblog README
 ==================
+
+*Note: I have just recently put this repo onto github, so the below instructions aren't quite perfect just yet.*
 
 Getting Started
 ---------------
