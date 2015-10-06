@@ -25,6 +25,7 @@ requires = [
     'webtest',
     'pytest',
     'pytest-cov',
+    'pytest-pep8',
     'PyRSS2Gen',
     'alembic',
     'requests'
