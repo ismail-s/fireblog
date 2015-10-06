@@ -17,7 +17,8 @@ class Test_home:
     def test_success(self, pyramid_config, pyramid_req):
         response = views.home(pyramid_req)
         assert 'Page2' in response['title']
-        prev_page_regex = r'(?:http://(?:localhost|example\.com)/posts/Homepage)\Z'
+        prev_page_regex = (r'(?:http://(?:localhost|example\.com)'
+                            r'/posts/Homepage)\Z')
         assert re.match(prev_page_regex, response['prev_page'])
         assert response['next_page'] is None
         assert response['html'] == '<p>This is page 2</p>'
