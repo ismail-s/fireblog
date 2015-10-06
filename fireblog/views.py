@@ -1,6 +1,6 @@
 from operator import itemgetter
 import fireblog.utils as utils
-from fireblog.events import RenderingPost
+import fireblog.events as events
 from fireblog.utils import use_template, TemplateResponseDict
 import PyRSS2Gen
 import dogpile.cache.util
@@ -81,7 +81,7 @@ def view_post(request):
 
     # Fire off an event that lets any plugins or whatever add content below the
     # post. Currently this is used just to add comments below the post.
-    event = RenderingPost(post=page, request=request)
+    event = events.RenderingPost(post=page, request=request)
     request.registry.notify(event)
 
     post_dict['bottom_of_page_sections'] = event.sections
@@ -203,6 +203,7 @@ class Post_modifying_views(object):
         # Make sure the non-existence of this post is not cached. ie someone
         # could have previously tried to get this post, but the 404 response
         # could have been cached.
+        request.registry.notify(events.PostCreated(post))
         invalidate_post(self.postname)
         return HTTPFound(
             location=self.request.route_url(
@@ -241,6 +242,7 @@ class Post_modifying_views(object):
         DBSession.add(post)
         location = self.request.route_url('view_post',
                                           postname=self.postname)
+        request.registry.notify(events.PostEdited(post))
         invalidate_post(self.postname)
         return HTTPFound(location=location)
 
@@ -262,6 +264,7 @@ class Post_modifying_views(object):
         if len(self.matching_posts) != 1:
             return HTTPFound(location=request.route_url('home'))
         post = self.matching_posts[0]
+        request.registry.notify(events.PostDeleted(post))
         DBSession.delete(post)
         invalidate_post(self.postname)
         return HTTPFound(location=self.request.route_url('home'))
