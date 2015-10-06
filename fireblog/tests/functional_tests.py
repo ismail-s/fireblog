@@ -116,8 +116,10 @@ class Test_functional_tests:
             res = testapp.get(url)
         assert '403 Forbidden' in str(exc_info.value)
 
-    def test_crud(self, testapp, persona_test_admin_login):
+    def test_crud(self, theme, testapp, persona_test_admin_login):
         """Testing all CRUD operations in one big test."""
+        if theme == 'polymer':
+            pytest.skip("This test can't work with the js based form fields in the polymer theme.")
         with self.logged_in(testapp, persona_test_admin_login):
 
             # 1. Create a post
