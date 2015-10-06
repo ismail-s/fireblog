@@ -68,6 +68,11 @@ class Test_add_post:
         assert 'tag1' in response['tags']
         assert 'tag2' in response['tags']
 
+        # Check the previous post has a link to this one
+        pyramid_req.matchdict['postname'] = 'Page2'
+        response = views.view_post(pyramid_req)
+        assert response['next_page'] == 'http://example.com/posts/' + postname
+
 
 class Test_view_post:
 
@@ -178,14 +183,29 @@ class Test_del_post:
         assert response.location == 'http://example.com/'
 
     def test_POST_success(self, pyramid_config, pyramid_req):
-        pyramid_req.matchdict['postname'] = 'Homepage'
+        #1. Add a new post, so we have 3 posts.
+        Test_add_post.submit_add_post(
+                                    pyramid_req,
+                                    postname='somenewpost',
+                                    body='Some test body.',
+                                    tags='tag2, tag1, tag2')
+        # 2. Delete the middle post
+        pyramid_req.matchdict['postname'] = 'Page2'
         pyramid_req.params['form.submitted'] = True
         response = Post_modifying_views(pyramid_req).del_post_POST()
         assert response.location == 'http://example.com/'
-
+        # 3. Check the post has been deleted
         del pyramid_req.params['form.submitted']
         response = views.view_post(pyramid_req)
         assert isinstance(response, HTTPNotFound)
+        # 4. Check the newest post now links to the first post
+        pyramid_req.matchdict['postname'] = 'somenewpost'
+        response = views.view_post(pyramid_req)
+        assert response['prev_page'] == 'http://example.com/posts/Homepage'
+        # 5. Check the first post links to the newest post
+        pyramid_req.matchdict['postname'] = 'Homepage'
+        response = views.view_post(pyramid_req)
+        assert response['next_page'] == 'http://example.com/posts/somenewpost'
 
 
 class Test_rss:
