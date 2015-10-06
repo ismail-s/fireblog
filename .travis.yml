@@ -8,6 +8,7 @@ python:
   - "nightly" # currently points to 3.6-dev
   - "pypy3"
 # command to install dependencies
-install: "python setup.py develop"
+install:
+  - python setup.py develop
 # command to run tests
 script: py.test
