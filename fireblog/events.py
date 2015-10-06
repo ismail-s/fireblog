@@ -13,3 +13,18 @@ class RenderingPost(object):
         self.post = post
         self.request = request
         self.sections = []
+
+
+class PostCreated(object):
+    def __init__(self, post):
+        self.post = post
+
+
+class PostDeleted(object):
+    def __init__(self, post):
+        self.post = post
+
+
+class PostEdited(object):
+    def __init__(self, post):
+        self.post = post
