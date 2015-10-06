@@ -1,4 +1,4 @@
 [run]
 omit =
-    myblog/tests.py
-    myblog/scripts/*
+    fireblog/tests.py
+    fireblog/scripts/*
