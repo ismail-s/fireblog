@@ -1,5 +1,6 @@
 from operator import itemgetter
 import fireblog.utils as utils
+from fireblog.events import RenderingPost
 from fireblog.utils import use_template, TemplateResponseDict
 import PyRSS2Gen
 import dogpile.cache.util
@@ -80,7 +81,7 @@ def view_post(request):
 
     # Fire off an event that lets any plugins or whatever add content below the
     # post. Currently this is used just to add comments below the post.
-    event = utils.RenderingPost(post=page, request=request)
+    event = RenderingPost(post=page, request=request)
     request.registry.notify(event)
 
     post_dict['bottom_of_page_sections'] = event.sections
