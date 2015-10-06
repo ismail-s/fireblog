@@ -11,7 +11,7 @@ Getting Started
 
 - $VENV/bin/python setup.py develop
 
-- $VENV/bin/initialize_myblog_db development.ini
+- $VENV/bin/initialize_fireblog_db development.ini
 
 - $VENV/bin/pserve development.ini
 
