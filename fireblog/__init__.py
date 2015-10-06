@@ -20,7 +20,8 @@ def template_response_adapter(s):
 
 
 def get_bower_url(request, path_to_resource):
-    return request.static_url('fireblog:../bower_components/' + path_to_resource)
+    asset = 'fireblog:../bower_components/' + path_to_resource
+    return request.static_url(asset)
 
 
 def get_username(email_address):
