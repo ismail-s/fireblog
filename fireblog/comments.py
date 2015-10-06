@@ -1,4 +1,5 @@
 import fireblog.utils as utils
+from fireblog.events import RenderingPost
 from fireblog.views import invalidate_post
 import requests
 from pyramid.view import view_config
@@ -92,4 +93,4 @@ def comment_delete(request):
 def includeme(config):
     config.add_route('comment_add', '/add')
     config.add_route('comment_del', '/del')
-    config.add_subscriber(add_comment_section_below_posts, utils.RenderingPost)
+    config.add_subscriber(add_comment_section_below_posts, RenderingPost)
