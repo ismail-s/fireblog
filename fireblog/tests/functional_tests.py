@@ -177,7 +177,7 @@ class Test_functional_tests:
         things like logging in which means that person needs to see a different
         page.
         '''
-        def get_page2_html:
+        def get_page2_html():
             return testapp.get('http://localhost/posts/Page2').html
         unauthenticated_homepage = get_page2_html()
         with self.logged_in(testapp, persona_test_admin_login):
