@@ -12,7 +12,8 @@ class Test_groupfinder:
             assert res == ['g:admin']
 
     def test_failure(self, pyramid_config, pyramid_req):
-        res = fireblog.groupfinder('some_fake_address@example.com', pyramid_req)
+        fake_email = 'some_fake_address@example.com'
+        res = fireblog.groupfinder(fake_email, pyramid_req)
         assert res == ['g:commenter']
 
 
