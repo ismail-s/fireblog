@@ -74,10 +74,9 @@ def home(request):
 @view_config(route_name='view_post', decorator=use_template('post.mako'))
 def view_post(request):
     page = DBSession.query(Post).filter_by(id=request.matchdict['id']).first()
-    postname = page.name
     if not page:
         return HTTPNotFound('no such page exists')
-    post_dict = get_post_section_as_dict(request, page, postname=postname)
+    post_dict = get_post_section_as_dict(request, page, postname=page.name)
 
     # Fire off an event that lets any plugins or whatever add content below the
     # post. Currently this is used just to add comments below the post.
@@ -145,7 +144,7 @@ def invalidate_post(postname):
              decorator=use_template('multiple_posts.mako'))
 def view_all_posts(request):
     # We use sqlalchemy Core here for performance.
-    query = sql.select([Post.name, Post.markdown, Post.created]).\
+    query = sql.select([Post.id, Post.name, Post.markdown, Post.created]).\
         order_by(Post.created.desc())
     posts = DBSession.execute(query).fetchall()
     # TODO-log a critical error here maybe if all posts are deleted

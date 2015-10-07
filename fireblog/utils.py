@@ -181,6 +181,7 @@ def create_post_list_from_posts_obj(request, post_obj):
     # in the page
     for post in post_obj:
         to_append = {}
+        to_append["id"] = post.id
         to_append["name"] = post.name
         to_append["html"] = to_markdown(post.markdown[:l] + '\n\n...')
         to_append["date"] = format_datetime(post.created)
