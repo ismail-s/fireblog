@@ -51,7 +51,8 @@ def comment_add(request):
     comment_text = request.params.get('comment', None)
     if not request.authenticated_userid:
         recaptcha = request.params.get('g-recaptcha-response', '')
-        recaptcha_site_secret = request.registry.settings['fireblog.recaptcha-secret']
+        settings = request.registry.settings
+        recaptcha_site_secret = settings['fireblog.recaptcha-secret']
         payload = dict(secret=recaptcha_site_secret,
                        response=recaptcha)
         result = requests.post(
