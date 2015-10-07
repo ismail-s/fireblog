@@ -30,7 +30,7 @@ def render_rss_feed(request):
     items = []
     for post in posts[:10]:
         title = post.name
-        link = request.route_url('view_post', postname=title)
+        link = request.route_url('view_post', id=post.id, postname=title)
         description = post.html
         # guid = PyRSS2Gen.Guid('')
         pub_date = post.created
@@ -64,9 +64,10 @@ def home(request):
     # Get the most recent post.
     # We use the Core of sqlalchemy here for performance, and because
     # we don't need the power of the ORM here.
-    query = sql.select([Post.name]).order_by(Post.created.desc()).limit(1)
-    postname = DBSession.execute(query).fetchone().name
-    request.matchdict['postname'] = postname
+    query = sql.select([Post.id, Post.name]).order_by(Post.created.desc()).limit(1)
+    query_res = DBSession.execute(query).fetchone()
+    request.matchdict['postname'] = query_res.name
+    request.matchdict['id'] = query_res.id
     return view_post(request)
 
 
