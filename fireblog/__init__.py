@@ -75,9 +75,9 @@ def add_routes(config):
     config.add_route('rss', '/rss')
     config.add_route('view_all_posts', '/all_posts')
 
-    config.add_route('view_post', '/' + POST_URL_PREFIX + '/{postname}')
+    config.add_route('view_post', '/' + POST_URL_PREFIX + '/{id}/{postname}')
     config.add_route('change_post', '/' + POST_URL_PREFIX +
-                     '/{postname}/{action}')
+                     '/{id}/{postname}/{action}')
 
     config.add_route('tag_view', '/tags/{tag_name}')
     config.add_route('tag_manager', '/tags')
