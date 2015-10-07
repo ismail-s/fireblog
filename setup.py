@@ -28,7 +28,8 @@ requires = [
     'pytest-pep8',
     'PyRSS2Gen',
     'alembic',
-    'requests'
+    'requests',
+    'WebHelpers2'
 ]
 
 if __name__ == '__main__':
