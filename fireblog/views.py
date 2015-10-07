@@ -72,8 +72,8 @@ def home(request):
 
 @view_config(route_name='view_post', decorator=use_template('post.mako'))
 def view_post(request):
-    postname = request.matchdict['postname']
-    page = DBSession.query(Post).filter_by(name=postname).first()
+    page = DBSession.query(Post).filter_by(id=request.matchdict['id']).first()
+    postname = page.name
     if not page:
         return HTTPNotFound('no such page exists')
     post_dict = get_post_section_as_dict(request, page, postname=postname)
@@ -113,11 +113,12 @@ def get_post_section_as_dict(request, page, postname):
 
     if previous:
         previous = request.route_url('view_post',
+                                     id=previous.id,
                                      postname=previous.name)
     else:
         previous = None
     if next:
-        next = request.route_url('view_post', postname=next.name)
+        next = request.route_url('view_post', id=next.id, postname=next.name)
     else:
         next = None
 
