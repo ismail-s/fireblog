@@ -37,7 +37,8 @@ def pyramid_req(theme):
     res = testing.DummyRequest()
     res.registry.settings.update({'fireblog.allViewPostLen': 1000,
                                   'dogpile_cache.backend': 'memory',
-                                  'fireblog.theme': theme})
+                                  'fireblog.theme': theme,
+                                  'fireblog.recaptcha-secret': 'secret...'})
     return res
 
 
@@ -112,7 +113,8 @@ def setup_testapp(mydb, theme, request):
                 'persona.secret': 'some_secret',
                 'dogpile_cache.backend': 'memory',
                 'fireblog.allViewPostLen': 1000,
-                'fireblog.theme': theme}
+                'fireblog.theme': theme,
+                'fireblog.recaptcha-secret': 'secret...'}
     app = fireblog.main({}, **settings)
     return webtest.TestApp(app)
 
