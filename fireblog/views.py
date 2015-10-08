@@ -272,15 +272,17 @@ def uuid(request):
     uuid_to_find = request.matchdict['uuid']
 
     # Check for a matching post.
-    posts = DBSession.query(Post.uuid, Post.name).\
+    posts = DBSession.query(Post.id, Post.uuid, Post.name).\
         filter(Post.uuid.startswith(uuid_to_find)).all()
 
     if len(posts) > 1:
         # TODO-give a more helpful response here.
         return Response('More than one uuid matched.')
     if posts:  # Here we check if there was just one post.
+        post = posts[0]
         return HTTPFound(location=request.route_url('view_post',
-                                                    postname=posts[0].name))
+                                                    id=post.id,
+                                                    postname=post.name))
 
     # Check for a matching tag
     tags = DBSession.query(Tags.uuid, Tags.tag).\
