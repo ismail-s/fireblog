@@ -6,6 +6,8 @@
 Welcome to fireblog's documentation!
 ====================================
 
+This is a work in progress atm.
+
 Contents:
 
 .. toctree::
