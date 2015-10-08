@@ -161,19 +161,21 @@ class Post_modifying_views(object):
 
     def __init__(self, request):
         self.request = request
-        self.postname = self.request.matchdict['postname']
-        self.no_of_posts_with_postname = DBSession.query(Post).\
-            filter_by(name=self.postname).count()
-        self.matching_posts = DBSession.query(Post).\
-            filter_by(name=self.postname).all()
+        self.post_id = request.matchdict['id']
+        self.postname = request.matchdict['postname']
+        self.post = DBSession.query(Post).\
+            filter_by(id=self.post_id).first()
+        if self.post and self.postname != self.post.name:
+            self.postname = self.post.name
 
     @view_config(match_param="action=add", request_method="GET",
                  decorator=use_template('edit.mako'), permission='add')
     def add_post(self):
-        if len(self.matching_posts):
+        if self.post:
             return HTTPFound(
                 location=self.request.route_url(
                     'change_post',
+                    id=self.post_id,
                     postname=self.postname,
                     action='edit'))
         save_url = self.request.route_url(
@@ -187,10 +189,11 @@ class Post_modifying_views(object):
     @view_config(match_param="action=add", request_method="POST",
                  request_param='form.submitted', permission='add')
     def add_post_POST(self):
-        if len(self.matching_posts):
+        if self.post:
             return HTTPFound(
                 location=self.request.route_url(
                     'change_post',
+                    id=self.post_id,
                     postname=self.postname,
                     action='edit'))
         post = Post()
@@ -207,17 +210,18 @@ class Post_modifying_views(object):
         return HTTPFound(
             location=self.request.route_url(
                 'view_post',
+                id=post.id,
                 postname=self.postname))
 
     @view_config(match_param="action=edit", request_method="GET",
                  decorator=use_template('edit.mako'), permission='edit')
     def edit_post(self):
-        if len(self.matching_posts) != 1:
+        if not self.post:
             return HTTPFound(location=self.request.route_url('home'))
 
-        post = self.matching_posts[0]
+        post = self.post
         save_url = self.request.route_url(
-            'change_post', postname=self.postname, action='edit')
+            'change_post', id=self.post_id, postname=self.postname, action='edit')
         post_text = post.markdown
 
         tags = utils.turn_tag_object_into_string_for_forms(post.tags)
@@ -228,30 +232,31 @@ class Post_modifying_views(object):
                                     save_url=save_url)
 
     @view_config(match_param="action=edit", request_method="POST",
-                 request_param='form.submitted', permission='edit')
+                 request_param='form.submitted', permission=None)
     def edit_post_POST(self):
-        if len(self.matching_posts) != 1:
+        if not self.post:
             return HTTPFound(location=self.request.route_url('home'))
 
-        post = self.matching_posts[0]
+        post = self.post
         post.markdown = self.request.params['body']
         post.html = utils.to_markdown(self.request.params['body'])
         tags = self.request.params['tags']
         utils.append_tags_from_string_to_tag_object(tags, post.tags)
         DBSession.add(post)
         location = self.request.route_url('view_post',
+                                          id=self.post_id,
                                           postname=self.postname)
         invalidate_post(self.postname)
         return HTTPFound(location=location)
 
     @view_config(match_param="action=del", request_method="GET",
-                 decorator=use_template('del.mako'), permission='del')
+                 decorator=use_template('del.mako'), permission=None)
     def del_post(self):
         # TODO-maybe don't allow deletion of a post if it is the only one.
-        if len(self.matching_posts) != 1:
+        if not self.post:
             return HTTPFound(location=self.request.route_url('home'))
         save_url = self.request.route_url(
-            'change_post', postname=self.postname, action='del')
+            'change_post', id=self.post_id, postname=self.postname, action='del')
         return TemplateResponseDict(title="Deleting post: " + self.postname,
                                     save_url=save_url)
 
@@ -259,10 +264,9 @@ class Post_modifying_views(object):
                  request_param='form.submitted', permission='del')
     def del_post_POST(self):
         # TODO-maybe don't allow deletion of a post if it is the only one.
-        if len(self.matching_posts) != 1:
-            return HTTPFound(location=request.route_url('home'))
-        post = self.matching_posts[0]
-        DBSession.delete(post)
+        if not self.post:
+            return HTTPFound(location=self.request.route_url('home'))
+        DBSession.delete(self.post)
         invalidate_post(self.postname)
         return HTTPFound(location=self.request.route_url('home'))
 
