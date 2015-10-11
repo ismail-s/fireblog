@@ -102,11 +102,11 @@ def get_post_section_as_dict(request, page, postname):
     if not all((request, page, postname)):
         raise Exception('Function called incorrectly-check calling code.')
     # Here we use sqlalchemy Core in order to get a slight speed boost.
-    previous_sql = sql.select([Post.name]).\
+    previous_sql = sql.select([Post.id, Post.name]).\
         where(Post.created < page.created).\
         order_by(Post.created.desc())
     previous = DBSession.execute(previous_sql).first()
-    next_sql = sql.select([Post.name]).\
+    next_sql = sql.select([Post.id, Post.name]).\
         where(Post.created > page.created).\
         order_by(Post.created)
     next = DBSession.execute(next_sql).first()
