@@ -237,7 +237,7 @@ class Post_modifying_views(object):
                                     save_url=save_url)
 
     @view_config(match_param="action=edit", request_method="POST",
-                 request_param='form.submitted', permission=None)
+                 request_param='form.submitted', permission='edit')
     def edit_post_POST(self):
         if not self.post:
             return HTTPFound(location=self.request.route_url('home'))
@@ -255,7 +255,7 @@ class Post_modifying_views(object):
         return HTTPFound(location=location)
 
     @view_config(match_param="action=del", request_method="GET",
-                 decorator=use_template('del.mako'), permission=None)
+                 decorator=use_template('del.mako'), permission='del')
     def del_post(self):
         # TODO-maybe don't allow deletion of a post if it is the only one.
         if not self.post:
