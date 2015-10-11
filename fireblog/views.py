@@ -156,44 +156,40 @@ def view_all_posts(request):
                                 code_styles=code_styles)
 
 
-@view_defaults(route_name='change_post')
-class Post_modifying_views(object):
+@view_defaults(route_name='add_post', permission='add')
+class Add_Post(object):
 
     def __init__(self, request):
         self.request = request
-        self.post_id = request.matchdict['id']
         self.postname = request.matchdict['postname']
-        self.post = DBSession.query(Post).\
-            filter_by(id=self.post_id).first()
-        if self.post and self.postname != self.post.name:
-            self.postname = self.post.name
+        self.matching_post = DBSession.query(Post.id).\
+            filter_by(name=self.postname).first()
 
-    @view_config(match_param="action=add", request_method="GET",
-                 decorator=use_template('edit.mako'), permission='add')
+    @view_config(request_method="GET",
+                 decorator=use_template('edit.mako'))
     def add_post(self):
-        if self.post:
+        if self.matching_post:
             return HTTPFound(
                 location=self.request.route_url(
                     'change_post',
-                    id=self.post_id,
+                    id=self.matching_post.id,
                     postname=self.postname,
                     action='edit'))
-        save_url = self.request.route_url(
-            'change_post', postname=self.postname, action='add')
+        save_url = self.request.route_url('add_post', postname=self.postname)
         # We can then feed the save url into the template for the form
         return TemplateResponseDict(title='Adding page: ' + self.postname,
                                     save_url=save_url,
                                     post_text='',
                                     tags='')
 
-    @view_config(match_param="action=add", request_method="POST",
-                 request_param='form.submitted', permission='add')
+    @view_config(request_method="POST",
+                 request_param='form.submitted')
     def add_post_POST(self):
-        if self.post:
+        if self.matching_post:
             return HTTPFound(
                 location=self.request.route_url(
                     'change_post',
-                    id=self.post_id,
+                    id=self.matching_post.id,
                     postname=self.postname,
                     action='edit'))
         post = Post()
@@ -207,11 +203,20 @@ class Post_modifying_views(object):
         # could have previously tried to get this post, but the 404 response
         # could have been cached.
         invalidate_post(self.postname)
-        return HTTPFound(
-            location=self.request.route_url(
-                'view_post',
-                id=post.id,
-                postname=self.postname))
+        return HTTPFound(location=self.request.route_url('home'))
+
+
+@view_defaults(route_name='change_post')
+class Post_modifying_views(object):
+
+    def __init__(self, request):
+        self.request = request
+        self.post_id = request.matchdict['id']
+        self.postname = request.matchdict['postname']
+        self.post = DBSession.query(Post).\
+            filter_by(id=self.post_id).first()
+        if self.post and self.postname != self.post.name:
+            self.postname = self.post.name
 
     @view_config(match_param="action=edit", request_method="GET",
                  decorator=use_template('edit.mako'), permission='edit')
