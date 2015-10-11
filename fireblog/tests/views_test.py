@@ -168,17 +168,22 @@ class Test_del_post:
 
     def test_GET_success(self, pyramid_config, pyramid_req):
         pyramid_req.matchdict['postname'] = 'Homepage'
+        pyramid_req.matchdict['id'] = '1'
         response = Post_modifying_views(pyramid_req).del_post()
         assert 'Homepage' in response['title']
-        assert response['save_url'] == 'http://example.com/posts/Homepage/del'
+        assert response['save_url'] == 'http://example.com/posts/1/Homepage/del'
 
     def test_GET_failure(self, pyramid_config, pyramid_req):
-        pyramid_req.matchdict['postname'] = 'nonexisting page'
+        # Here, we use the same postname as an existing post, but use a
+        # different id.
+        pyramid_req.matchdict['postname'] = 'Homepage'
+        pyramid_req.matchdict['id'] = '3'
         response = Post_modifying_views(pyramid_req).del_post()
         assert response.location == 'http://example.com/'
 
     def test_POST_success(self, pyramid_config, pyramid_req):
         pyramid_req.matchdict['postname'] = 'Homepage'
+        pyramid_req.matchdict['id'] = '1'
         pyramid_req.params['form.submitted'] = True
         response = Post_modifying_views(pyramid_req).del_post_POST()
         assert response.location == 'http://example.com/'
@@ -218,10 +223,10 @@ class Test_rss:
 class Test_uuid:
 
     @pytest.mark.parametrize('uuid, location', [
-        ('uuid-post-homepage', 'http://example.com/posts/Homepage'),
-        ('uuid-post-page2', 'http://example.com/posts/Page2'),
-        ('uuid-post-h', 'http://example.com/posts/Homepage'),
-        ('uuid-post-p', 'http://example.com/posts/Page2')])
+        ('uuid-post-homepage', 'http://example.com/posts/1/Homepage'),
+        ('uuid-post-page2', 'http://example.com/posts/2/Page2'),
+        ('uuid-post-h', 'http://example.com/posts/1/Homepage'),
+        ('uuid-post-p', 'http://example.com/posts/2/Page2')])
     def test_post_success(self, uuid, location, pyramid_config, pyramid_req):
         pyramid_req.matchdict['uuid'] = uuid
         response = views.uuid(pyramid_req)
