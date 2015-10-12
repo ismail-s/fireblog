@@ -89,27 +89,27 @@ class Test_functional_tests:
     def test_can_access_edit_pages_after_logging_in(
             self, testapp, persona_test_admin_login):
         with self.logged_in(testapp, persona_test_admin_login):
-            res = testapp.get('/posts/Page2/edit')
+            res = testapp.get('/posts/2/Page2/edit')
             assert res.status == '200 OK'
             assert 'This is page 2' in str(res.html)
 
     def test_can_access_del_pages_after_logging_in(
             self, testapp, persona_test_admin_login):
         with self.logged_in(testapp, persona_test_admin_login):
-            res = testapp.get('/posts/Page2/del')
+            res = testapp.get('/posts/2/Page2/del')
             assert res.status == '200 OK'
             # TODO-add more checks over here maybe
 
     def test_can_access_add_pages_after_logging_in(
             self, testapp, persona_test_admin_login):
         with self.logged_in(testapp, persona_test_admin_login):
-            res = testapp.get('/posts/some new page/add')
+            res = testapp.get('/add_post/some new page')
             assert res.status == '200 OK'
             assert 'some new page' in str(res.html)
 
-    @pytest.mark.parametrize('url', ['/posts/Page2/edit',
-                                     '/posts/Page2/del',
-                                     '/posts/some new page/add',
+    @pytest.mark.parametrize('url', ['/posts/2/Page2/edit',
+                                     '/posts/2/Page2/del',
+                                     '/posts/add_post/some new page',
                                      '/tags'])
     def test_cant_access_admin_pages_with_no_login(self, testapp, url):
         with pytest.raises(AppError) as exc_info:
@@ -178,7 +178,7 @@ class Test_functional_tests:
         page.
         '''
         def get_page2_html():
-            return testapp.get('http://localhost/posts/Page2').html
+            return testapp.get('http://localhost/posts/2/Page2').html
         unauthenticated_homepage = get_page2_html()
         with self.logged_in(testapp, persona_test_admin_login):
             authenticated_homepage = get_page2_html()
