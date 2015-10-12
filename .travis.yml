@@ -14,4 +14,6 @@ python:
 install:
   - python setup.py develop
 # command to run tests
-script: python setup.py test
+script:
+  - rm -rf .eggs
+  - python setup.py test
