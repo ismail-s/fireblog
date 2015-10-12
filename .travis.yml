@@ -14,4 +14,4 @@ python:
 install:
   - python setup.py develop
 # command to run tests
-script: python setup.py pytest
+script: py.test
