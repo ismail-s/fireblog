@@ -23,7 +23,7 @@ requires = [
     'arrow',
     'shortuuid',
     'webtest',
-    'pytest',
+    'py.test',
     'pytest-cov',
     'pytest-pep8',
     'PyRSS2Gen',
