@@ -23,12 +23,11 @@ requires = [
     'arrow',
     'shortuuid',
     'webtest',
-    'pytest',
-    'pytest-cov',
-    'pytest-pep8',
     'PyRSS2Gen',
     'alembic',
-    'requests'
+    'requests',
+    'pytest-cov',
+    'pytest-pep8'
 ]
 
 if __name__ == '__main__':
