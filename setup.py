@@ -1,4 +1,5 @@
 import os
+import sys
 
 from setuptools import setup, find_packages
 
@@ -7,6 +8,11 @@ with open(os.path.join(here, 'README.rst')) as f:
     README = f.read()
 with open(os.path.join(here, 'CHANGES.txt')) as f:
     CHANGES = f.read()
+
+# Require installation of pytest-runner if user wants to run tests
+# via python setup.py pytest
+needs_pytest = {'pytest', 'test', 'ptr'}.intersection(sys.argv)
+setup_requires = ['pytest-runner'] if needs_pytest else []
 
 requires = [
     'pyramid',
@@ -23,9 +29,6 @@ requires = [
     'arrow',
     'shortuuid',
     'webtest',
-    'py.test',
-    'pytest-cov',
-    'pytest-pep8',
     'PyRSS2Gen',
     'alembic',
     'requests'
@@ -50,7 +53,13 @@ if __name__ == '__main__':
           include_package_data=True,
           zip_safe=False,
           test_suite='fireblog',
+          setup_requires=setup_requires,
           install_requires=requires,
+          tests_require = [
+            'pytest',
+            'pytest-cov',
+            'pytest-pep8',
+          ],
           entry_points="""\
       [paste.app_factory]
       main = fireblog:main
