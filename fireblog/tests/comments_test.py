@@ -41,11 +41,11 @@ class Test_comment_add:
             mock_response.json.return_value = {'success': True}
             mock_requests_post.return_value = mock_response
             res = fireblog.comments.comment_add(pyramid_req)
-        assert res.location == 'http://example.com/posts/2/Page2'
+        assert res.location == 'http://example.com/posts/2/Page2-1%2A2'
 
         pyramid_req.params = {}
         comments_list = Test_comment_view.get_comment_list(
-            'Page2', pyramid_req)
+            'Page2 1*2', pyramid_req)
         assert len(comments_list) == 1
         comment_res = comments_list[0]
         assert comment_res['author'] == 'anonymous'
@@ -61,11 +61,11 @@ class Test_comment_add:
         pyramid_config.testing_securitypolicy(
             userid='id5489746@mockmyid.com', permissive=True)
         res = fireblog.comments.comment_add(pyramid_req)
-        assert res.location == 'http://example.com/posts/2/Page2'
+        assert res.location == 'http://example.com/posts/2/Page2-1%2A2'
 
         pyramid_req.params = {}
         comments_list = Test_comment_view.get_comment_list(
-            'Page2', pyramid_req)
+            'Page2 1*2', pyramid_req)
         assert len(comments_list) == 1
         comment_res = comments_list[0]
         assert comment_res['author'] == 'id5489746'

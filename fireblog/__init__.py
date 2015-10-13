@@ -36,6 +36,10 @@ def add_username_function(event):
     event['get_username'] = get_username
 
 
+def add_urlify_function(event):
+    event['urlify'] = utils.urlify
+
+
 def groupfinder(userid, request):
     query = DBSession.query(Users). \
         filter(Users.userid == userid)
@@ -81,6 +85,7 @@ def add_routes(config):
     config.add_route('tag_manager', '/tags')
 
     config.add_subscriber(add_username_function, BeforeRender)
+    config.add_subscriber(add_urlify_function, BeforeRender)
 
 
 def include_all_components(config):

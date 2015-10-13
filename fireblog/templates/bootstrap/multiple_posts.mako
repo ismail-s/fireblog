@@ -21,7 +21,7 @@ ${extra_styles}
 % for post in posts:
 <div class = "panel panel-default">
     <div class = "panel-heading all-posts-header">
-    <a href = "${request.route_url('view_post', id=post["id"], postname = post["name"])}">
+    <a href = "${request.route_url('view_post', id=post["id"], postname = urlify(post["name"]))}">
         <h2>
                 ${post["name"]} <small>Created ${post["date"]}</small>
         </h2>

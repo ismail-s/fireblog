@@ -43,16 +43,16 @@ class Test_functional_tests:
         res = testapp.get('http://localhost/')
         page = str(res.html)
         assert res.status == '200 OK'
-        assert '<h1>Page2</h1>' in page or\
-            '<h1 class="center">Page2</h1>' in page
+        assert '<h1>Page2 1*2</h1>' in page or\
+            '<h1 class="center">Page2 1*2</h1>' in page
         assert '<p>This is page 2</p>' in page
 
     def test_get_page(self, testapp):
         res = testapp.get('http://localhost/posts/2/Page2')
         page = str(res.html)
         assert res.status == '200 OK'
-        assert '<h1>Page2</h1>' in page or\
-            '<h1 class="center">Page2</h1>' in page
+        assert '<h1>Page2 1*2</h1>' in page or\
+            '<h1 class="center">Page2 1*2</h1>' in page
         assert '<p>This is page 2</p>' in page
         found_comment_h2_elem = False
         for elem in res.html.find_all('h2'):

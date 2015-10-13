@@ -1,4 +1,5 @@
 import fireblog.utils as utils
+from fireblog.utils import urlify as u
 from fireblog.views import invalidate_post
 import requests
 from pyramid.view import view_config
@@ -73,7 +74,7 @@ def comment_add(request):
     invalidate_post(post.name)
     return HTTPFound(location=request.route_url('view_post',
                                                 id=post_id,
-                                                postname=post.name))
+                                                postname=u(post.name)))
 
 
 @view_config(route_name='comment_del', permission='comment-del')
@@ -89,7 +90,7 @@ def comment_delete(request):
     invalidate_post(comment.post.name)
     return HTTPFound(location=request.route_url('view_post',
                                                 id=post_id,
-                                                postname=comment.post.name))
+                                                postname=u(comment.post.name)))
 
 
 def includeme(config):

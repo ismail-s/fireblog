@@ -63,7 +63,8 @@ class Test_add_post:
         pyramid_req.matchdict['id'] = 3
         response = views.view_post(pyramid_req)
         assert response['title'] == 'somenewpage'
-        assert response['prev_page'] == 'http://example.com/posts/2/Page2'
+        assert response['prev_page'] == ('http://example.com/'
+                                         'posts/2/Page2-1%2A2')
         assert response['next_page'] is None
         assert response['html'] == '<p>Some test body.</p>'
         assert 'tag1' in response['tags']
@@ -78,7 +79,8 @@ class Test_view_post:
         response = views.view_post(pyramid_req)
         assert response['title'] == 'Homepage'
         assert response['prev_page'] is None
-        assert response['next_page'] == 'http://example.com/posts/2/Page2'
+        assert response['next_page'] == ('http://example.com/'
+                                         'posts/2/Page2-1%2A2')
         assert response['html'] == '<p>This is the front page</p>'
         assert response['uuid'] == 'uuid-post-homepage'
         assert 'tag1' in response['tags']
@@ -101,7 +103,7 @@ class Test_view_all_posts:
         assert response["code_styles"] is False
         posts = response["posts"]
 
-        actual_posts = [("Page2", "<p>This is page 2</p>"),
+        actual_posts = [("Page2 1*2", "<p>This is page 2</p>"),
                         ("Homepage", "<p>This is the front page</p>")]
 
         for post, actual_post in zip(posts, actual_posts):
@@ -169,7 +171,8 @@ class Test_edit_post:
         response = views.view_post(pyramid_req)
         assert response['title'] == 'Homepage'
         assert response['prev_page'] is None
-        assert response['next_page'] == 'http://example.com/posts/2/Page2'
+        assert response['next_page'] == ('http://example.com/'
+                                         'posts/2/Page2-1%2A2')
         assert response['html'] == '<p>Some test body.</p>'
         assert 'test1' in response['tags']
         assert 'test2' in response['tags']
@@ -236,9 +239,9 @@ class Test_uuid:
 
     @pytest.mark.parametrize('uuid, location', [
         ('uuid-post-homepage', 'http://example.com/posts/1/Homepage'),
-        ('uuid-post-page2', 'http://example.com/posts/2/Page2'),
+        ('uuid-post-page2', 'http://example.com/posts/2/Page2-1%2A2'),
         ('uuid-post-h', 'http://example.com/posts/1/Homepage'),
-        ('uuid-post-p', 'http://example.com/posts/2/Page2')])
+        ('uuid-post-p', 'http://example.com/posts/2/Page2-1%2A2')])
     def test_post_success(self, uuid, location, pyramid_config, pyramid_req):
         pyramid_req.matchdict['uuid'] = uuid
         response = views.uuid(pyramid_req)
