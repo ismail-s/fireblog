@@ -1,6 +1,7 @@
 from pyramid.config import Configurator
 from sqlalchemy import engine_from_config
 from sqlalchemy.orm.exc import NoResultFound
+from webhelpers2.text import urlify
 from pyramid.security import Allow, ALL_PERMISSIONS
 from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.events import BeforeRender
@@ -34,6 +35,10 @@ def get_username(email_address):
 
 def add_username_function(event):
     event['get_username'] = get_username
+
+
+def add_urlify_function(event):
+    event['u'] = urlify
 
 
 def groupfinder(userid, request):
@@ -81,6 +86,7 @@ def add_routes(config):
     config.add_route('tag_manager', '/tags')
 
     config.add_subscriber(add_username_function, BeforeRender)
+    config.add_subscriber(add_urlify_function, BeforeRender)
 
 
 def include_all_components(config):
