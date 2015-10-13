@@ -7,14 +7,14 @@
             <small>Posted ${comment['created']} by ${comment['author']}.</small>
             <p>${comment['comment']}</p>
 % if 'g:admin' in request.effective_principals:
-            <p><a href="${request.route_url('comment_del', _query = {'comment-uuid': comment['uuid'],'post-id': id})}">Delete this comment</a></p>
+            <p><a href="${request.route_url('comment_del', _query = {'comment-uuid': comment['uuid'],'post-id': post_id})}">Delete this comment</a></p>
 % endif
             <hr>
 % endfor
             <small>Posted ${comments[-1]['created']} by ${comments[-1]['author']}.</small>
             <p>${comments[-1]['comment']}</p>
 % if 'g:admin' in request.effective_principals:
-            <p><a href="${request.route_url('comment_del', _query = {'comment-uuid': comments[-1]['uuid'],'post-id': id})}">Delete this comment</a></p>
+            <p><a href="${request.route_url('comment_del', _query = {'comment-uuid': comments[-1]['uuid'],'post-id': post_id})}">Delete this comment</a></p>
 % endif
         </div>
 % endif
@@ -29,7 +29,7 @@
             id="add-comment"
             class = "form-control"></textarea>
         </div>
-        <input type="hidden" name="post-id" value="${id}">
+        <input type="hidden" name="post-id" value="${post_id}">
         <div class="form-group">
             <input type = "submit" name = "form.submitted"
             value = "Submit" class = "form-control"/>
@@ -52,7 +52,7 @@ If you want to keep track of your comments, and have\
  sign in (we magically create an account for you behind the scenes).\
             </label>
         </div>
-        <input type="hidden" name="post-id" value="${id}">
+        <input type="hidden" name="post-id" value="${post_id}">
         <div class="form-group">
             <div class="g-recaptcha" data-sitekey="6LdPugUTAAAAAFJMGiJpfvFjXwPTqVk0mIV9EnrD"></div>
         </div>

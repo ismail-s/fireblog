@@ -21,7 +21,8 @@ def add_comment_section_below_posts(event):
     html = utils.render_to_response('comments.mako',
                                     {'comments': comments_list,
                                      'comment_add_url': comment_add_url,
-                                     'post_title': event.post.name},
+                                     'post_title': event.post.name,
+                                     'post_id': event.post.id},
                                     event.request).text
     event.sections.append(html)
 
