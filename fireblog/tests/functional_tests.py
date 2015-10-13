@@ -48,7 +48,7 @@ class Test_functional_tests:
         assert '<p>This is page 2</p>' in page
 
     def test_get_page(self, testapp):
-        res = testapp.get('http://localhost/posts/Page2')
+        res = testapp.get('http://localhost/posts/2/Page2')
         page = str(res.html)
         assert res.status == '200 OK'
         assert '<h1>Page2</h1>' in page or\
@@ -109,7 +109,7 @@ class Test_functional_tests:
 
     @pytest.mark.parametrize('url', ['/posts/2/Page2/edit',
                                      '/posts/2/Page2/del',
-                                     '/posts/add_post/some new page',
+                                     '/add_post/some new page',
                                      '/tags'])
     def test_cant_access_admin_pages_with_no_login(self, testapp, url):
         with pytest.raises(AppError) as exc_info:
@@ -124,14 +124,14 @@ class Test_functional_tests:
         with self.logged_in(testapp, persona_test_admin_login):
 
             # 1. Create a post
-            res = testapp.get('/posts/some new page/add')
+            res = testapp.get('/add_post/some new page')
             form = res.forms["edit-post"]
             form["body"] = 'This is a test body.'
             form["tags"] = 'test2, test1, test1'
             res = form.submit('form.submitted')
 
             # 2. Read the post
-            res = testapp.get('/posts/some new page')
+            res = testapp.get('/posts/3/some new page')
             assert res.status == '200 OK'
             assert '<h1>some new page</h1>' in str(res.html)
             assert '<p>This is a test body.</p>' in str(res.html)
@@ -149,7 +149,7 @@ class Test_functional_tests:
             res = form.submit('form.submitted')
 
             # 4. Test the post has been updated
-            res = testapp.get('/posts/some new page')
+            res = testapp.get('/posts/3/some new page')
             assert res.status == '200 OK'
             assert '<h1>some new page</h1>' in str(res.html)
             assert '<p>This is a brand new test body.</p>' in str(res.html)
@@ -165,7 +165,7 @@ class Test_functional_tests:
 
             # 6. Test we get a 404 on trying to read the post
             with pytest.raises(AppError) as excinfo:
-                res = testapp.get('/posts/some new page')
+                res = testapp.get('/posts/3/some new page')
             assert '404 Not Found' in str(excinfo.value)
 
     def test_logout_changes_page_back_to_page_before_logging_in(
