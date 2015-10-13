@@ -33,7 +33,7 @@ class Test_comment_add:
 
     def test_anon_success(self, pyramid_config, pyramid_req):
         comment = 'A test comment...'
-        pyramid_req.params['postname'] = 'Page2'
+        pyramid_req.params['post-id'] = 2
         pyramid_req.params['comment'] = comment
         pyramid_req.params['form.submitted'] = True
         with mock.patch('requests.post', autospec=True) as mock_requests_post:
@@ -41,7 +41,7 @@ class Test_comment_add:
             mock_response.json.return_value = {'success': True}
             mock_requests_post.return_value = mock_response
             res = fireblog.comments.comment_add(pyramid_req)
-        assert res.location == 'http://example.com/posts/Page2'
+        assert res.location == 'http://example.com/posts/2/Page2'
 
         pyramid_req.params = {}
         comments_list = Test_comment_view.get_comment_list(
@@ -55,13 +55,13 @@ class Test_comment_add:
 
     def test_logged_in_success(self, pyramid_config, pyramid_req):
         comment = 'A test comment...'
-        pyramid_req.params['postname'] = 'Page2'
+        pyramid_req.params['post-id'] = 2
         pyramid_req.params['comment'] = comment
         pyramid_req.params['form.submitted'] = True
         pyramid_config.testing_securitypolicy(
             userid='id5489746@mockmyid.com', permissive=True)
         res = fireblog.comments.comment_add(pyramid_req)
-        assert res.location == 'http://example.com/posts/Page2'
+        assert res.location == 'http://example.com/posts/2/Page2'
 
         pyramid_req.params = {}
         comments_list = Test_comment_view.get_comment_list(
@@ -78,9 +78,9 @@ class Test_comment_delete:
 
     def test_success(self, pyramid_config, pyramid_req):
         pyramid_req.params['comment-uuid'] = 'comment1-uuid'
-        pyramid_req.params['postname'] = 'Homepage'
+        pyramid_req.params['post-id'] = 1
         res = fireblog.comments.comment_delete(pyramid_req)
-        assert res.location == 'http://example.com/posts/Homepage'
+        assert res.location == 'http://example.com/posts/1/Homepage'
 
         comments_list = Test_comment_view.get_comment_list(
             'Homepage', pyramid_req)

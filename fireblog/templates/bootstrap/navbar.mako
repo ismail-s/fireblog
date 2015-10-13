@@ -28,10 +28,10 @@
 % endif
 % if request.matched_route.name in ('view_post', 'home'):
 % if request.has_permission('edit'):
-        <li><a href="${request.route_url('change_post', postname = title, action = 'edit')}">Edit this page</a></li>
+        <li><a href="${request.route_url('change_post', postname = title, id = id, action = 'edit')}">Edit this page</a></li>
 % endif
 % if request.has_permission('del'):
-        <li><a href="${request.route_url('change_post', postname = title, action = 'del')}">Delete this page</a></li>
+        <li><a href="${request.route_url('change_post', postname = title, id = id, action = 'del')}">Delete this page</a></li>
 % endif
 % endif
 % if 'g:admin' in request.effective_principals:

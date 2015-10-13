@@ -47,7 +47,7 @@ def comment_add(request):
     userid/username.'''
     if 'form.submitted' not in request.params:
         return HTTPNotFound()
-    postname = request.params.get('postname', None)
+    post_id = request.params.get('post-id', None)
     comment_text = request.params.get('comment', None)
     if not request.authenticated_userid:
         recaptcha = request.params.get('g-recaptcha-response', '')
@@ -62,31 +62,33 @@ def comment_add(request):
         except Exception:
             return HTTPNotFound()
     author = request.authenticated_userid or utils.get_anonymous_userid()
-    if not all((postname, comment_text, author)):
+    if not all((post_id, comment_text, author)):
         return HTTPNotFound()
-    post = DBSession.query(Post).filter_by(name=postname).one()
+    post = DBSession.query(Post).filter_by(id=post_id).one()
     author = DBSession.query(Users).filter_by(userid=author).one()
     comment = Comments(comment=comment_text)
     comment.author = author
     post.comments.append(comment)
-    invalidate_post(postname)
+    invalidate_post(post.name)
     return HTTPFound(location=request.route_url('view_post',
-                                                postname=postname))
+                                                id=post_id,
+                                                postname=post.name))
 
 
 @view_config(route_name='comment_del', permission='comment-del')
 def comment_delete(request):
     comment_uuid = request.params.get('comment-uuid', None)
-    postname = request.params.get('postname', None)
-    if not all((comment_uuid, postname)):
+    post_id = request.params.get('post-id', None)
+    if not all((comment_uuid, post_id)):
         return HTTPNotFound()
     comment = DBSession.query(Comments).filter_by(uuid=comment_uuid).first()
     if not comment:
         return HTTPNotFound()
     DBSession.delete(comment)
-    invalidate_post(postname)
+    invalidate_post(comment.post.name)
     return HTTPFound(location=request.route_url('view_post',
-                                                postname=postname))
+                                                id=post_id,
+                                                postname=comment.post.name))
 
 
 def includeme(config):
