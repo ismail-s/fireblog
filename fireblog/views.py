@@ -128,7 +128,7 @@ def get_post_section_as_dict(request, page, postname):
 
     post_date = utils.format_datetime(page.created)
     return dict(title=page.name,
-                id=page.id,
+                post_id=page.id,
                 html=page.html,
                 uuid=page.uuid,
                 tags=tags,
