@@ -3,7 +3,7 @@ import sys
 import transaction
 
 from sqlalchemy import engine_from_config
-
+from markdown import markdown
 from pyramid.paster import (
     get_appsettings,
     setup_logging,
@@ -18,6 +18,23 @@ from ..models import (
     Base,
 )
 
+
+first_post = """
+If you can see this webpage correctly, then you've setup the blog
+and got it working. Good on you!
+
+When you ran the {script_name} script, you were asked to provide an admin
+email address. Click the sign-in button on this page to sign in using that
+email address.
+
+Once signed in, you can edit this post (posts are written in
+[Markdown](http://daringfireball.net/projects/markdown/), add a new post,
+delete posts and manage tags. I plan to add more functionality in the coming
+months.
+
+For more information about this blog, see the
+[github page](www.github.com/ismail-s/fireblog) Any issues, report them there.
+"""
 
 def usage(argv):
     cmd = os.path.basename(argv[0])
@@ -36,12 +53,17 @@ def main(argv=sys.argv):
     engine = engine_from_config(settings, 'sqlalchemy.')
     DBSession.configure(bind=engine)
     Base.metadata.create_all(engine)
+    post_markdown = first_post.format(script_name=os.path.basename(argv[0]))
+    email_address = input('Please provide an admin email address: ')
+    print('Creating the database for you...')
     with transaction.manager:
-        post = Post(name='Homepage',
-                    markdown='This is the front page',
-                    html='<p>This is the front page</p>')
+        post = Post(name='Hello World!',
+                    markdown=post_markdown,
+                    html=markdown(post_markdown))
         DBSession.add(post)
     with transaction.manager:
-        me = Users(userid='astroman3d@gmail.com',
+        me = Users(userid=email_address,
                    group='g:admin')
         DBSession.add(me)
+    print('The database has now been setup.')
+    print('Run "pserve {ini_file}" to start the blog'.format(ini_file=config_uri))
