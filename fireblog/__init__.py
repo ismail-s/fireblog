@@ -37,7 +37,7 @@ def add_username_function(event):
 
 
 def add_urlify_function(event):
-    event['u'] = utils.urlify
+    event['urlify'] = utils.urlify
 
 
 def groupfinder(userid, request):
