@@ -103,7 +103,7 @@ def get_anonymous_userid():
             # Create user
             user = Users(userid=anon_email)
             DBSession.add(user)
-    return user.userid
+    return anon_email
 
 
 @region.cache_on_arguments()
