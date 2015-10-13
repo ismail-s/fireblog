@@ -26,6 +26,12 @@ except KeyError:
     region = get_region('', backend='dogpile.cache.memory')
 
 
+def urlify(string):
+    """Replace spaces with dashes. We don't do anything else like urlencoding,
+    as pyramid does that already for us."""
+    return string.replace(' ', '-')
+
+
 def format_datetime(datetime):
     '''Return a string representing the datetime object. eg \'20 Jan 2014\''''
     return arrow.get(datetime).format('DD MMM YYYY')

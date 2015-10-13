@@ -1,7 +1,6 @@
 from pyramid.config import Configurator
 from sqlalchemy import engine_from_config
 from sqlalchemy.orm.exc import NoResultFound
-from webhelpers2.text import urlify
 from pyramid.security import Allow, ALL_PERMISSIONS
 from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.events import BeforeRender
@@ -38,7 +37,7 @@ def add_username_function(event):
 
 
 def add_urlify_function(event):
-    event['u'] = urlify
+    event['u'] = utils.urlify
 
 
 def groupfinder(userid, request):

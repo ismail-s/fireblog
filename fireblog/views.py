@@ -1,9 +1,9 @@
 from operator import itemgetter
 import fireblog.utils as utils
 from fireblog.utils import use_template, TemplateResponseDict
+from fireblog.utils import urlify as u
 import PyRSS2Gen
 import dogpile.cache.util
-from webhelpers2.text import urlify as u
 import datetime
 from pyramid.view import view_config, view_defaults
 from pyramid.response import Response

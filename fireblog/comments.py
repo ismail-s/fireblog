@@ -1,7 +1,7 @@
 import fireblog.utils as utils
+from fireblog.utils import urlify as u
 from fireblog.views import invalidate_post
 import requests
-from webhelpers2.text import urlify as u
 from pyramid.view import view_config
 from pyramid.events import subscriber
 from pyramid.httpexceptions import (
