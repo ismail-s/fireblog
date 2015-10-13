@@ -62,7 +62,7 @@ def mydb(request, persona_test_admin_login):
         post.tags.append(tag1)
         DBSession.add(post)
         post2 = Post(id=2,
-                     name='Page2',
+                     name='Page2 1*2',
                      markdown='This is page 2',
                      html='<p>This is page 2</p>',
                      created=datetime.datetime(2014, 1, 1),
