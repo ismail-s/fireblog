@@ -4,6 +4,7 @@ from pyramid_dogpile_cache import get_region
 import dogpile.cache.util
 import arrow
 import functools
+import transaction
 from pyramid import renderers
 from pyramid.request import Request
 from pyramid.response import Response
@@ -97,10 +98,11 @@ def render_to_response(template, res, request):
 def get_anonymous_userid():
     anon_email = 'anonymous@example.com'
     user = DBSession.query(Users.userid).filter_by(userid=anon_email).first()
-    if not user:
-        # Create user
-        user = Users(userid=anon_email)
-        DBSession.add(user)
+    with transaction.manager:
+        if not user:
+            # Create user
+            user = Users(userid=anon_email)
+            DBSession.add(user)
     return user.userid
 
 
