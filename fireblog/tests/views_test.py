@@ -63,7 +63,8 @@ class Test_add_post:
         pyramid_req.matchdict['id'] = 3
         response = views.view_post(pyramid_req)
         assert response['title'] == 'somenewpage'
-        assert response['prev_page'] == 'http://example.com/posts/2/Page2-1%2A2'
+        assert response['prev_page'] == ('http://example.com/'
+                                         'posts/2/Page2-1%2A2')
         assert response['next_page'] is None
         assert response['html'] == '<p>Some test body.</p>'
         assert 'tag1' in response['tags']
@@ -78,7 +79,8 @@ class Test_view_post:
         response = views.view_post(pyramid_req)
         assert response['title'] == 'Homepage'
         assert response['prev_page'] is None
-        assert response['next_page'] == 'http://example.com/posts/2/Page2-1%2A2'
+        assert response['next_page'] == ('http://example.com/'
+                                         'posts/2/Page2-1%2A2')
         assert response['html'] == '<p>This is the front page</p>'
         assert response['uuid'] == 'uuid-post-homepage'
         assert 'tag1' in response['tags']
@@ -169,7 +171,8 @@ class Test_edit_post:
         response = views.view_post(pyramid_req)
         assert response['title'] == 'Homepage'
         assert response['prev_page'] is None
-        assert response['next_page'] == 'http://example.com/posts/2/Page2-1%2A2'
+        assert response['next_page'] == ('http://example.com/'
+                                         'posts/2/Page2-1%2A2')
         assert response['html'] == '<p>Some test body.</p>'
         assert 'test1' in response['tags']
         assert 'test2' in response['tags']
