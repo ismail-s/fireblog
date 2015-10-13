@@ -39,14 +39,12 @@ def render_comments_list_from_event(event):
     return comments_list
 
 
-@view_config(route_name='comment_add')
+@view_config(route_name='comment_add', request_param='form.submitted')
 def comment_add(request):
     '''We allow anyone to have access to this view. But we check whether a
     person is authenticated or not within this view. This is because we are
     allowing people to add comments anonymously ie not under an individual
     userid/username.'''
-    if 'form.submitted' not in request.params:
-        return HTTPNotFound()
     post_id = request.params.get('post-id', None)
     comment_text = request.params.get('comment', None)
     if not request.authenticated_userid:
