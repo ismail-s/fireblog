@@ -145,7 +145,8 @@ class Test_edit_post:
         response = Post_modifying_views(pyramid_req).edit_post()
         assert 'Homepage' in response['title']
         assert response['post_text'] == 'This is the front page'
-        assert response['save_url'] == 'http://example.com/posts/1/Homepage/edit'
+        assert response['save_url'] == ('http://example.com/'
+                                        'posts/1/Homepage/edit')
 
     def test_GET_failure(self, pyramid_config, pyramid_req):
         # Only the id should be being checked, not the postname
@@ -181,7 +182,8 @@ class Test_del_post:
         pyramid_req.matchdict['id'] = 1
         response = Post_modifying_views(pyramid_req).del_post()
         assert 'Homepage' in response['title']
-        assert response['save_url'] == 'http://example.com/posts/1/Homepage/del'
+        assert response['save_url'] == ('http://example.com/'
+                                        'posts/1/Homepage/del')
 
     def test_GET_failure(self, pyramid_config, pyramid_req):
         # Here, we use the same postname as an existing post, but use a

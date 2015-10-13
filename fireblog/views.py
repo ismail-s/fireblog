@@ -64,7 +64,8 @@ def home(request):
     # Get the most recent post.
     # We use the Core of sqlalchemy here for performance, and because
     # we don't need the power of the ORM here.
-    query = sql.select([Post.id, Post.name]).order_by(Post.created.desc()).limit(1)
+    query = sql.select([Post.id, Post.name]).\
+            order_by(Post.created.desc()).limit(1)
     query_res = DBSession.execute(query).fetchone()
     request.matchdict['postname'] = query_res.name
     request.matchdict['id'] = query_res.id
@@ -227,7 +228,10 @@ class Post_modifying_views(object):
 
         post = self.post
         save_url = self.request.route_url(
-            'change_post', id=self.post_id, postname=self.postname, action='edit')
+                                          'change_post',
+                                          id=self.post_id,
+                                          postname=self.postname,
+                                          action='edit')
         post_text = post.markdown
 
         tags = utils.turn_tag_object_into_string_for_forms(post.tags)
@@ -262,7 +266,10 @@ class Post_modifying_views(object):
         if not self.post:
             return HTTPFound(location=self.request.route_url('home'))
         save_url = self.request.route_url(
-            'change_post', id=self.post_id, postname=self.postname, action='del')
+                                          'change_post',
+                                          id=self.post_id,
+                                          postname=self.postname,
+                                          action='del')
         return TemplateResponseDict(title="Deleting post: " + self.postname,
                                     save_url=save_url)
 
