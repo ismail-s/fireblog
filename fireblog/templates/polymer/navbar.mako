@@ -19,10 +19,10 @@ ${parent.header_toolbar()}
       </div>
     % if request.matched_route.name in ('view_post', 'home'):
         % if request.has_permission('edit'):
-        <div><a href="${request.route_url('change_post', postname = title, action = 'edit')}"><paper-icon-button icon="create"></paper-icon-button></a></div>
+        <div><a href="${request.route_url('change_post', postname = title, id = post_id, action = 'edit')}"><paper-icon-button icon="create"></paper-icon-button></a></div>
         % endif
         % if request.has_permission('del'):
-        <div><a href="${request.route_url('change_post', postname = title, action = 'del')}"><paper-icon-button icon="delete"></paper-icon-button></a></div>
+        <div><a href="${request.route_url('change_post', postname = title, id = post_id, action = 'del')}"><paper-icon-button icon="delete"></paper-icon-button></a></div>
         % endif
     % endif
     % if 'g:admin' in request.effective_principals:
@@ -59,7 +59,7 @@ $(document).ready(function(){
     $("#add-post-button").click(function(event){
         var page_to_add = $("#page-to-add").val();
         if (page_to_add != ""){
-            window.location.href = "/posts/"+page_to_add+"/add";
+            window.location.href = "/add_post/"+page_to_add;
         }
         event.preventDefault();
     });

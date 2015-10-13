@@ -53,14 +53,16 @@ def mydb(request, persona_test_admin_login):
         tag2 = Tags(tag='tag2', uuid='uuid-tag222')
         DBSession.add(tag1)
         DBSession.add(tag2)
-        post = Post(name='Homepage',
+        post = Post(id=1,
+                    name='Homepage',
                     markdown='This is the front page',
                     html='<p>This is the front page</p>',
                     created=datetime.datetime(2013, 1, 1),
                     uuid='uuid-post-homepage')
         post.tags.append(tag1)
         DBSession.add(post)
-        post2 = Post(name='Page2',
+        post2 = Post(id=2,
+                     name='Page2',
                      markdown='This is page 2',
                      html='<p>This is page 2</p>',
                      created=datetime.datetime(2014, 1, 1),

@@ -28,10 +28,10 @@
 % endif
 % if request.matched_route.name in ('view_post', 'home'):
 % if request.has_permission('edit'):
-        <li><a href="${request.route_url('change_post', postname = title, action = 'edit')}">Edit this page</a></li>
+        <li><a href="${request.route_url('change_post', postname = title, id = post_id, action = 'edit')}">Edit this page</a></li>
 % endif
 % if request.has_permission('del'):
-        <li><a href="${request.route_url('change_post', postname = title, action = 'del')}">Delete this page</a></li>
+        <li><a href="${request.route_url('change_post', postname = title, id = post_id, action = 'del')}">Delete this page</a></li>
 % endif
 % endif
 % if 'g:admin' in request.effective_principals:
@@ -57,7 +57,7 @@ $(document).ready(function(){
     $("#add_button").click(function(event){
         var page_to_add = $("#page_to_add").val();
         if (page_to_add != ""){
-            window.location.href = "/posts/"+page_to_add+"/add";
+            window.location.href = "/add_post/"+page_to_add;
         }
         event.preventDefault();
     });

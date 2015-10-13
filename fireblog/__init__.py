@@ -67,17 +67,15 @@ class Root(object):
 
 
 def add_routes(config):
-    POST_URL_PREFIX = 'posts'  # TODO-move this to config file and
-    # Make sure the navbar template also gets it from this config file.
     config.add_static_view('static', 'static', cache_max_age=3600)
     config.add_route('home', '/')
     config.add_route('uuid', '/uuid/{uuid}')
     config.add_route('rss', '/rss')
     config.add_route('view_all_posts', '/all_posts')
 
-    config.add_route('view_post', '/' + POST_URL_PREFIX + '/{postname}')
-    config.add_route('change_post', '/' + POST_URL_PREFIX +
-                     '/{postname}/{action}')
+    config.add_route('add_post', '/add_post/{postname}')
+    config.add_route('view_post', '/posts/{id}/{postname}')
+    config.add_route('change_post', '/posts/{id}/{postname}/{action}')
 
     config.add_route('tag_view', '/tags/{tag_name}')
     config.add_route('tag_manager', '/tags')

@@ -4,6 +4,7 @@ from pyramid_dogpile_cache import get_region
 import dogpile.cache.util
 import arrow
 import functools
+import transaction
 from pyramid import renderers
 from pyramid.request import Request
 from pyramid.response import Response
@@ -97,11 +98,12 @@ def render_to_response(template, res, request):
 def get_anonymous_userid():
     anon_email = 'anonymous@example.com'
     user = DBSession.query(Users.userid).filter_by(userid=anon_email).first()
-    if not user:
-        # Create user
-        user = Users(userid=anon_email)
-        DBSession.add(user)
-    return user.userid
+    with transaction.manager:
+        if not user:
+            # Create user
+            user = Users(userid=anon_email)
+            DBSession.add(user)
+    return anon_email
 
 
 @region.cache_on_arguments()
@@ -181,6 +183,7 @@ def create_post_list_from_posts_obj(request, post_obj):
     # in the page
     for post in post_obj:
         to_append = {}
+        to_append["id"] = post.id
         to_append["name"] = post.name
         to_append["html"] = to_markdown(post.markdown[:l] + '\n\n...')
         to_append["date"] = format_datetime(post.created)
