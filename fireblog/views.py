@@ -3,6 +3,7 @@ import fireblog.utils as utils
 from fireblog.utils import use_template, TemplateResponseDict
 import PyRSS2Gen
 import dogpile.cache.util
+from webhelpers2.text import urlify as u
 import datetime
 from pyramid.view import view_config, view_defaults
 from pyramid.response import Response
@@ -30,7 +31,7 @@ def render_rss_feed(request):
     items = []
     for post in posts[:10]:
         title = post.name
-        link = request.route_url('view_post', id=post.id, postname=title)
+        link = request.route_url('view_post', id=post.id, postname=u(title))
         description = post.html
         # guid = PyRSS2Gen.Guid('')
         pub_date = post.created
@@ -115,11 +116,11 @@ def get_post_section_as_dict(request, page, postname):
     if previous:
         previous = request.route_url('view_post',
                                      id=previous.id,
-                                     postname=previous.name)
+                                     postname=u(previous.name))
     else:
         previous = None
     if next:
-        next = request.route_url('view_post', id=next.id, postname=next.name)
+        next = request.route_url('view_post', id=next.id, postname=u(next.name))
     else:
         next = None
 
@@ -175,7 +176,7 @@ class Add_Post(object):
                 location=self.request.route_url(
                     'change_post',
                     id=self.matching_post.id,
-                    postname=self.postname,
+                    postname=u(self.postname),
                     action='edit'))
         save_url = self.request.route_url('add_post', postname=self.postname)
         # We can then feed the save url into the template for the form
@@ -192,7 +193,7 @@ class Add_Post(object):
                 location=self.request.route_url(
                     'change_post',
                     id=self.matching_post.id,
-                    postname=self.postname,
+                    postname=u(self.postname),
                     action='edit'))
         post = Post()
         post.name = self.postname
@@ -230,7 +231,7 @@ class Post_modifying_views(object):
         save_url = self.request.route_url(
                                           'change_post',
                                           id=self.post_id,
-                                          postname=self.postname,
+                                          postname=u(self.postname),
                                           action='edit')
         post_text = post.markdown
 
@@ -255,7 +256,7 @@ class Post_modifying_views(object):
         DBSession.add(post)
         location = self.request.route_url('view_post',
                                           id=self.post_id,
-                                          postname=self.postname)
+                                          postname=u(self.postname))
         invalidate_post(self.postname)
         return HTTPFound(location=location)
 
@@ -268,7 +269,7 @@ class Post_modifying_views(object):
         save_url = self.request.route_url(
                                           'change_post',
                                           id=self.post_id,
-                                          postname=self.postname,
+                                          postname=u(self.postname),
                                           action='del')
         return TemplateResponseDict(title="Deleting post: " + self.postname,
                                     save_url=save_url)
@@ -299,7 +300,7 @@ def uuid(request):
         post = posts[0]
         return HTTPFound(location=request.route_url('view_post',
                                                     id=post.id,
-                                                    postname=post.name))
+                                                    postname=u(post.name)))
 
     # Check for a matching tag
     tags = DBSession.query(Tags.uuid, Tags.tag).\
