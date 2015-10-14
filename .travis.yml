@@ -1,6 +1,8 @@
 language: python
 # whitelist
-cache: pip
+cache:
+  directories:
+    - ./pip-cache
 branches:
   only:
     - master
@@ -13,8 +15,8 @@ python:
   - "pypy3"
 # command to install dependencies
 install:
-  - pip install coveralls
-  - pip install -r requirements.txt
+  - pip install --download-cache pip-cache coveralls
+  - pip install --download-cache pip-cache -r requirements.txt
   - python setup.py develop
 # command to run tests
 script:
