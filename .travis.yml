@@ -12,8 +12,11 @@ python:
   - "pypy3"
 # command to install dependencies
 install:
+  - pip install coveralls
   - python setup.py develop
 # command to run tests
 script:
   - if [[ $TRAVIS_PYTHON_VERSION != pypy* ]]; then py.test --cov-config .coveragerc --cov-report term-missing --cov fireblog; fi
   - if [[ $TRAVIS_PYTHON_VERSION == pypy* ]]; then py.test; fi
+after_success:
+  - if [[ $TRAVIS_PYTHON_VERSION != pypy* ]]; then coveralls; fi
