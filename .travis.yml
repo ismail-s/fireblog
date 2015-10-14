@@ -1,5 +1,6 @@
 language: python
 # whitelist
+cache: pip
 branches:
   only:
     - master
