@@ -66,6 +66,12 @@ class Test_add_post:
         assert 'tag1' in response['tags']
         assert 'tag2' in response['tags']
 
+    def test_POST_failure(self, pyramid_config, pyramid_req):
+        response = self.submit_add_post(pyramid_req, postname='Homepage',
+                                        body='Some test body.',
+                                        tags='tag2')
+        assert response.location == 'http://example.com/posts/1/Homepage/edit'
+
 
 class Test_view_post:
 
@@ -173,6 +179,13 @@ class Test_edit_post:
         assert 'test1' in response['tags']
         assert 'test2' in response['tags']
 
+    def test_POST_failure(self, pyramid_config, pyramid_req):
+        # Only the id should be being checked, not the postname
+        pyramid_req.matchdict['postname'] = 'Homepage'
+        pyramid_req.matchdict['id'] = 3
+        response = Post_modifying_views(pyramid_req).edit_post_POST()
+        assert response.location == 'http://example.com/'
+
 
 class Test_del_post:
 
@@ -202,6 +215,12 @@ class Test_del_post:
         del pyramid_req.params['form.submitted']
         response = views.view_post(pyramid_req)
         assert isinstance(response, HTTPNotFound)
+
+    def test_POST_failure(self, pyramid_config, pyramid_req):
+        pyramid_req.matchdict['postname'] = 'Homepage'
+        pyramid_req.matchdict['id'] = 3
+        response = Post_modifying_views(pyramid_req).del_post_POST()
+        assert response.location == 'http://example.com/'
 
 
 class Test_rss:
