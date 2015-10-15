@@ -51,7 +51,7 @@ def use_template(template=None):
                 return res
             to_render = eval(res.text)
             if not isinstance(to_render, dict):
-                raise Exception(
+                raise Exception(  # pragma: no cover
                     "The use_template decorator is being used "
                     "incorrectly: the decorated view callable must return a "
                     "dict.")

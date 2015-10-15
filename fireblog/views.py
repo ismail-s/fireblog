@@ -72,7 +72,7 @@ def view_post(request):
     page = DBSession.query(Post).filter_by(id=request.matchdict['id']).first()
     if not page:
         return HTTPNotFound('no such page exists')
-    post_dict = get_post_section_as_dict(request, page, postname=page.name)
+    post_dict = _get_post_section_as_dict(request, page, postname=page.name)
 
     # Fire off an event that lets any plugins or whatever add content below the
     # post. Currently this is used just to add comments below the post.
@@ -94,8 +94,8 @@ def post_key_generator(*args, **kwargs):
 
 
 @utils.region.cache_on_arguments(function_key_generator=post_key_generator)
-def get_post_section_as_dict(request, page, postname):
-    if not all((request, page, postname)):
+def _get_post_section_as_dict(request, page, postname):
+    if not all((request, page, postname)):  # pragma: no cover
         raise Exception('Function called incorrectly-check calling code.')
     # Here we use sqlalchemy Core in order to get a slight speed boost.
     previous_sql = sql.select([Post.id, Post.name]).\
@@ -135,7 +135,7 @@ def get_post_section_as_dict(request, page, postname):
 
 
 def invalidate_post(postname):
-    get_post_section_as_dict.invalidate(None, None, postname=postname)
+    _get_post_section_as_dict.invalidate(None, None, postname=postname)
 
 
 @view_config(route_name='view_all_posts',

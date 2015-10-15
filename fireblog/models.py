@@ -23,9 +23,14 @@ from zope.sqlalchemy import ZopeTransactionExtension
 
 
 def create_username(context):
-    userid = context.current_parameters['userid']
-    if not userid:
-        userid = uuid()  # Set it to some random thing...
+    incorrectly_called_exc = ('create_username function called incorrectly. '
+                              'Check calling code.')
+    try:
+        userid = context.current_parameters['userid']
+    except KeyError:
+        raise Exception(incorrectly_called_exc)
+    if userid.find('@') == -1:
+        raise Exception(incorrectly_called_exc)
     username = userid[:userid.find('@')]
     while DBSession.query(Users.username).filter_by(username=username).first():
         username += str(random.randrange(0, 9))
