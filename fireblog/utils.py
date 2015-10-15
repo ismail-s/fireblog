@@ -7,7 +7,6 @@ import functools
 import transaction
 from pyramid import renderers
 from pyramid.request import Request
-from pyramid.response import Response
 from pyramid.testing import DummyRequest
 from pyramid.httpexceptions import HTTPException
 

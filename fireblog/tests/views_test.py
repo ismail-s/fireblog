@@ -1,7 +1,4 @@
 import pytest
-import PyRSS2Gen
-import datetime
-import copy
 import re
 
 
@@ -9,7 +6,6 @@ from pyramid.httpexceptions import HTTPNotFound
 
 import fireblog.views as views
 from fireblog.views import Post_modifying_views, Add_Post
-import fireblog.utils
 
 
 class Test_home:

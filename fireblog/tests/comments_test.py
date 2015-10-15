@@ -1,7 +1,6 @@
 import fireblog.comments
 import fireblog.utils
 from fireblog.models import DBSession, Post
-import datetime
 
 try:
     import unittest.mock as mock

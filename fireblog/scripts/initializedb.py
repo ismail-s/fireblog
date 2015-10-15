@@ -36,6 +36,7 @@ For more information about this blog, see the
 [github page](www.github.com/ismail-s/fireblog) Any issues, report them there.
 """
 
+
 def usage(argv):
     cmd = os.path.basename(argv[0])
     print('usage: %s <config_uri> [var=value]\n'
