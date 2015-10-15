@@ -17,4 +17,3 @@ alembic
 requests
 WebHelpers2
 pytest-cov
-pytest-pep8
