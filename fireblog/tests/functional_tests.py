@@ -113,7 +113,7 @@ class Test_functional_tests:
                                      '/tags'])
     def test_cant_access_admin_pages_with_no_login(self, testapp, url):
         with pytest.raises(AppError) as exc_info:
-            res = testapp.get(url)
+            testapp.get(url)
         assert '403 Forbidden' in str(exc_info.value)
 
     def test_crud(self, theme, testapp, persona_test_admin_login):
