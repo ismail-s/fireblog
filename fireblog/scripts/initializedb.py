@@ -67,4 +67,5 @@ def main(argv=sys.argv):
                    group='g:admin')
         DBSession.add(me)
     print('The database has now been setup.')
-    print('Run "pserve {ini_file}" to start the blog'.format(ini_file=config_uri))
+    print('Run "pserve {ini_file}" to start the blog'.format(
+        ini_file=config_uri))
