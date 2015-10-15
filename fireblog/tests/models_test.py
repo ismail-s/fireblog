@@ -1,6 +1,9 @@
 import pytest
 import fireblog.models as models
-import unittest.mock as mock
+try:
+    import unittest.mock as mock
+except ImportError:
+    import mock  # python3.2 support
 
 
 class Test_create_username:
