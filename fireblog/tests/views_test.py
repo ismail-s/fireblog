@@ -1,7 +1,4 @@
 import pytest
-import PyRSS2Gen
-import datetime
-import copy
 import re
 
 
@@ -9,7 +6,6 @@ from pyramid.httpexceptions import HTTPNotFound
 
 import fireblog.views as views
 from fireblog.views import Post_modifying_views, Add_Post
-import fireblog.utils
 
 
 class Test_home:
@@ -124,16 +120,16 @@ def test(dfgv):
 ```
 
 that is all.'''
-        submit_res = Test_add_post.submit_add_post(pyramid_req,
-                                                   postname=post_name,
-                                                   body=post_body, tags='')
+        Test_add_post.submit_add_post(pyramid_req,
+                                      postname=post_name,
+                                      body=post_body, tags='')
 
         # For some reason, we have to actually view the post before it appears
         # on view_all_posts page. Not sure why, but I'm not losing sleep over
         # this atm...
         pyramid_req.matchdict['postname'] = post_name
         pyramid_req.matchdict['id'] = 3
-        view_res = views.view_post(pyramid_req)
+        views.view_post(pyramid_req)
         del pyramid_req.matchdict['postname']
         response = views.view_all_posts(pyramid_req)
         assert response["code_styles"]

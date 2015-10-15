@@ -4,7 +4,6 @@ from shortuuid import uuid
 
 from sqlalchemy import (
     Column,
-    Index,
     Integer,
     Text,
     DateTime,

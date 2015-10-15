@@ -1,4 +1,3 @@
-from operator import itemgetter
 import fireblog.utils as utils
 from fireblog.utils import use_template, TemplateResponseDict
 from fireblog.utils import urlify as u
@@ -7,21 +6,16 @@ import dogpile.cache.util
 import datetime
 from pyramid.view import view_config, view_defaults
 from pyramid.response import Response
-from pyramid.testing import DummyRequest
 from pyramid.httpexceptions import (
     HTTPFound,
     HTTPNotFound,
 )
 import sqlalchemy.sql as sql
-from sqlalchemy.exc import DBAPIError
-from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy import desc
 from fireblog.models import (
     DBSession,
     Post,
     Tags,
-    Comments,
-    Users,
 )
 
 

@@ -36,6 +36,7 @@ For more information about this blog, see the
 [github page](www.github.com/ismail-s/fireblog) Any issues, report them there.
 """
 
+
 def usage(argv):
     cmd = os.path.basename(argv[0])
     print('usage: %s <config_uri> [var=value]\n'
@@ -66,4 +67,5 @@ def main(argv=sys.argv):
                    group='g:admin')
         DBSession.add(me)
     print('The database has now been setup.')
-    print('Run "pserve {ini_file}" to start the blog'.format(ini_file=config_uri))
+    print('Run "pserve {ini_file}" to start the blog'.format(
+        ini_file=config_uri))
