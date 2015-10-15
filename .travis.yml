@@ -23,5 +23,6 @@ install:
 script:
   - if [[ $TRAVIS_PYTHON_VERSION != pypy* ]]; then py.test --cov-config .coveragerc --cov-report term-missing --cov fireblog; fi
   - if [[ $TRAVIS_PYTHON_VERSION == pypy* ]]; then py.test; fi
+  - flake8 --max-complexity 10 fireblog
 after_success:
   - if [[ $TRAVIS_PYTHON_VERSION != pypy* ]]; then coveralls; fi
