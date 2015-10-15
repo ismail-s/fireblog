@@ -54,7 +54,7 @@ test.2 = two
 test = %(d)s1
 '''
         filename = self.create_test_file(tmpdir, content)
-        res = fireblog.get_secret_settings(filename, defaults={'d':'3'})
+        res = fireblog.get_secret_settings(filename, defaults={'d': '3'})
         assert res == {'d': '3', 'test': '31'}
 
     def test_returns_empty_dict_when_no_filename_passed(self):

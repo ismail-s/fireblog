@@ -1,7 +1,6 @@
 import pytest
 import fireblog.tags
 from pyramid.httpexceptions import HTTPNotFound
-from fireblog.models import DBSession
 
 
 class Test_tag_view:
