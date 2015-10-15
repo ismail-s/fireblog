@@ -51,8 +51,10 @@ def mydb(request, persona_test_admin_login):
         # TODO-add tags to this test data. Some tests may also need updating.
         tag1 = Tags(tag='tag1', uuid='uuid-tag111')
         tag2 = Tags(tag='tag2', uuid='uuid-tag222')
+        tag3 = Tags(tag='tag3', uuid='uuid-tag333')
         DBSession.add(tag1)
         DBSession.add(tag2)
+        DBSession.add(tag3)
         post = Post(id=1,
                     name='Homepage',
                     markdown='This is the front page',
