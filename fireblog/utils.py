@@ -1,13 +1,10 @@
 from markdown import markdown
 from fireblog.models import DBSession, Tags, Users
 from pyramid_dogpile_cache import get_region
-import dogpile.cache.util
 import arrow
 import functools
 import transaction
 from pyramid import renderers
-from pyramid.request import Request
-from pyramid.testing import DummyRequest
 from pyramid.httpexceptions import HTTPException
 
 # This is the dogpile_cache cache region.
