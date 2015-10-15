@@ -110,3 +110,16 @@ class Test_comment_delete:
         comments_list = Test_comment_view.get_comment_list(
             'Homepage', pyramid_req)
         assert comments_list == []
+
+    @pytest.mark.parametrize('params', [
+        {'post-id': None, 'comment-uuid': 'test'},
+        {'post-id': 2, 'comment-uuid': None}])
+    def test_fail_missing_params(self, params, pyramid_config, pyramid_req):
+        pyramid_req.params = params
+        res = fireblog.comments.comment_delete(pyramid_req)
+        assert isinstance(res, HTTPNotFound)
+
+    def test_fail_wrong_comment_uuid(self, pyramid_config, pyramid_req):
+        pyramid_req.params = {'post-id': 2, 'comment-uuid': 'test'}
+        res = fireblog.comments.comment_delete(pyramid_req)
+        assert isinstance(res, HTTPNotFound)
