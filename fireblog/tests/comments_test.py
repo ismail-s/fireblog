@@ -3,11 +3,7 @@ import fireblog.comments
 import fireblog.utils
 from fireblog.models import DBSession, Post
 from pyramid.httpexceptions import HTTPNotFound
-try:
-    import unittest.mock as mock
-    # unittest.mock was added in python3
-except ImportError:
-    import mock
+import unittest.mock as mock
 
 
 class Test_comment_view:
