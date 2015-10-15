@@ -36,37 +36,6 @@ def format_datetime(datetime):
     return arrow.get(datetime).format('DD MMM YYYY')
 
 
-def _find_request_obj_in_args(args, *more_args):
-    '''
-    Pass in a list of args, and this function returns the first one that is an
-    instance of pyramid.request.Request. Else, we return None.
-    '''
-    args = list(args)
-    args.extend(more_args)
-    for elem in args:
-        if isinstance(elem, Request) or isinstance(elem, DummyRequest):
-            return elem
-    return None
-
-
-def cache_key_generator(*args, **kwargs):
-    old_key_generator = dogpile.cache.util.function_key_generator(*args,
-                                                                  **kwargs)
-
-    def new_key_generator(*args, **kwargs):
-        # args = (context, request) or (request)
-        request = _find_request_obj_in_args(args)
-        testing_str = ''
-        if kwargs:
-            NO_ARG = object()
-            testing = kwargs.get('testing', NO_ARG)
-            if testing != NO_ARG and testing:
-                testing_str = 'testing'
-        return '|'.join(
-            (old_key_generator(), request.matchdict['postname'], testing_str))
-    return new_key_generator
-
-
 class TemplateResponseDict(dict):
     '''Instances of this dict can be used as the return type of a view callable
     that is using the use_template decorator. The use_template decorator will
