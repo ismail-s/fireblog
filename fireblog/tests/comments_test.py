@@ -1,3 +1,4 @@
+import pytest
 import fireblog.comments
 import fireblog.utils
 from fireblog.models import DBSession, Post
@@ -86,6 +87,16 @@ class Test_comment_add:
         assert comment_res['comment'] == comment
         assert comment_res['uuid']
         # TODO-assert about when comment was created...
+
+    @pytest.mark.parametrize('params', [
+        {'post-id': None, 'comment': 'test', 'form.submitted': True},
+        {'post-id': 2, 'comment': None, 'form.submitted': True}])
+    def test_logged_in_fail(self, params, pyramid_config, pyramid_req):
+        pyramid_req.params = params
+        pyramid_config.testing_securitypolicy(
+            userid='id5489746@mockmyid.com', permissive=True)
+        res = fireblog.comments.comment_add(pyramid_req)
+        assert isinstance(res, HTTPNotFound)
 
 
 class Test_comment_delete:
