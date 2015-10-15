@@ -93,7 +93,7 @@ def include_all_components(config):
     config.include('fireblog.comments', route_prefix='/comment')
 
 
-def get_secret_settings(secrets_file, *, defaults):
+def get_secret_settings(secrets_file, *, defaults=None):
     if not secrets_file:
         return {}
     secrets = ConfigParser(defaults=defaults)
