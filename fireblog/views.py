@@ -137,6 +137,8 @@ def _get_post_section_as_dict(request, page, post_id):
 
 
 def invalidate_post(post_id):
+    # Make sure post_id is an int
+    assert int(post_id)
     _get_post_section_as_dict.invalidate(None, None, post_id=post_id)
 
 
@@ -340,9 +342,9 @@ def uuid(request):
 
 def includeme(config):
     # These config statements invalidate cached posts when they become invalid.
-    config.add_subscriber(invalidate_post, events.PostCreated)
+    config.add_subscriber(invalidate_current_post, events.PostCreated)
     config.add_subscriber(invalidate_previous_post, events.PostCreated)
-    config.add_subscriber(invalidate_post, events.PostEdited)
-    config.add_subscriber(invalidate_post, events.PostDeleted)
+    config.add_subscriber(invalidate_current_post, events.PostEdited)
+    config.add_subscriber(invalidate_current_post, events.PostDeleted)
     config.add_subscriber(invalidate_previous_post, events.PostDeleted)
     config.add_subscriber(invalidate_next_post, events.PostDeleted)
