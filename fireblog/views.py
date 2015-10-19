@@ -140,6 +140,32 @@ def invalidate_post(post_id):
     _get_post_section_as_dict.invalidate(None, None, post_id=post_id)
 
 
+def invalidate_current_post(event):
+    assert hasattr(event, 'post')
+    post_id = event.post.id
+    invalidate_post(post_id)
+
+
+def invalidate_previous_post(event):
+    assert hasattr(event, 'post')
+    previous_sql = sql.select([Post.id]).\
+        where(Post.created < event.post.created).\
+        order_by(Post.created.desc())
+    post = DBSession.execute(previous_sql).first()
+    if post:
+        invalidate_post(post.id)
+
+
+def invalidate_next_post(event):
+    assert hasattr(event, 'post')
+    next_sql = sql.select([Post.id]).\
+        where(Post.created > event.post.created).\
+        order_by(Post.created)
+    next = DBSession.execute(next_sql).first()
+    if next:
+        invalidate_post(next.id)
+
+
 @view_config(route_name='view_all_posts',
              decorator=use_template('multiple_posts.mako'))
 def view_all_posts(request):
@@ -199,6 +225,7 @@ class Add_Post(object):
         tags = self.request.params['tags']
         utils.append_tags_from_string_to_tag_object(tags, post.tags)
         DBSession.add(post)
+        DBSession.flush()
         self.request.registry.notify(events.PostCreated(post))
         return HTTPFound(location=self.request.route_url('home'))
 
@@ -309,3 +336,13 @@ def uuid(request):
         return HTTPFound(location=request.route_url('tag_view',
                                                     tag_name=tags[0].tag))
     return HTTPNotFound('No uuid matches.')
+
+
+def includeme(config):
+    # These config statements invalidate cached posts when they become invalid.
+    config.add_subscriber(invalidate_post, events.PostCreated)
+    config.add_subscriber(invalidate_previous_post, events.PostCreated)
+    config.add_subscriber(invalidate_post, events.PostEdited)
+    config.add_subscriber(invalidate_post, events.PostDeleted)
+    config.add_subscriber(invalidate_previous_post, events.PostDeleted)
+    config.add_subscriber(invalidate_next_post, events.PostDeleted)
