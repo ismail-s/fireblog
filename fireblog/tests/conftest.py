@@ -19,6 +19,7 @@ available_themes = next(os.walk(theme_folder))[1]
 def clear_dogpile_region():
     region.backend._cache = {}
 
+
 @pytest.fixture(params=available_themes, scope='session')
 def theme(request):
     return request.param

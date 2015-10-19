@@ -75,7 +75,8 @@ class Test_add_post:
         pyramid_req.matchdict['postname'] = 'Page2'
         pyramid_req.matchdict['id'] = 2
         response = views.view_post(pyramid_req)
-        assert response['next_page'] == 'http://example.com/posts/3/' + postname
+        assert response[
+            'next_page'] == 'http://example.com/posts/3/' + postname
 
     def test_POST_failure(self, pyramid_config, pyramid_req):
         response = self.submit_add_post(pyramid_req, postname='Homepage',
@@ -224,10 +225,10 @@ class Test_del_post:
         views.view_post(pyramid_req)
         # 2. Add a new post, so we have 3 posts.
         Test_add_post.submit_add_post(
-                                    pyramid_req,
-                                    postname='somenewpost',
-                                    body='Some test body.',
-                                    tags='tag2, tag1, tag2')
+            pyramid_req,
+            postname='somenewpost',
+            body='Some test body.',
+            tags='tag2, tag1, tag2')
         # 3. Delete the middle post
         pyramid_req.matchdict['postname'] = 'Page2'
         pyramid_req.matchdict['id'] = 2
@@ -249,7 +250,8 @@ class Test_del_post:
         pyramid_req.matchdict['postname'] = 'Homepage'
         pyramid_req.matchdict['id'] = 1
         response = views.view_post(pyramid_req)
-        assert response['next_page'] == 'http://example.com/posts/3/somenewpost'
+        assert response[
+            'next_page'] == 'http://example.com/posts/3/somenewpost'
 
     def test_POST_failure(self, pyramid_config, pyramid_req):
         pyramid_req.matchdict['postname'] = 'Homepage'
