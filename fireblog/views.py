@@ -96,8 +96,6 @@ def post_key_generator(*args, **kwargs):
 
 @utils.region.cache_on_arguments(function_key_generator=post_key_generator)
 def _get_post_section_as_dict(request, page, postname):
-    if not all((request, page, postname)):  # pragma: no cover
-        raise Exception('Function called incorrectly-check calling code.')
     # Here we use sqlalchemy Core in order to get a slight speed boost.
     previous_sql = sql.select([Post.id, Post.name]).\
         where(Post.created < page.created).\
