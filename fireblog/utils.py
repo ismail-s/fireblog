@@ -19,6 +19,9 @@ except KeyError:
     # cases (atm only when tests are run, which is when we actually want
     # to check that the cache is correctly managed by the website) we use
     # the memory cache backend.
+    # Note: as the tests use the memory backend, I have made it so that
+    # the cache gets wiped after each test run. But this has meant the tests
+    # now rely on being run against the memory backend.
     region = get_region('', backend='dogpile.cache.memory')
 
 
@@ -162,15 +165,3 @@ def create_post_list_from_posts_obj(request, post_obj):
         if not code_styles and 'class="codehilite"' in to_append["html"]:
             code_styles = True
     return res, code_styles
-
-
-class RenderingPost(object):
-    """This is an event that gets fired when a post is being viewed.
-    Subscribers can add html sections to self.sections and these will be
-    put below the post on the webpage.
-    """
-
-    def __init__(self, post, request):
-        self.post = post
-        self.request = request
-        self.sections = []

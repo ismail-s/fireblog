@@ -49,6 +49,11 @@ class Test_add_post:
         assert response.location == 'http://example.com/posts/1/Homepage/edit'
 
     def test_POST_success(self, pyramid_config, pyramid_req):
+        # Get Page2 post into dogpile_cache
+        pyramid_req.matchdict['postname'] = 'Page2'
+        pyramid_req.matchdict['id'] = 2
+        views.view_post(pyramid_req)
+
         postname = 'somenewpage'
         response = self.submit_add_post(pyramid_req, postname=postname,
                                         body='Some test body.',
@@ -65,6 +70,13 @@ class Test_add_post:
         assert response['html'] == '<p>Some test body.</p>'
         assert 'tag1' in response['tags']
         assert 'tag2' in response['tags']
+
+        # Check the previous post has a link to this one
+        pyramid_req.matchdict['postname'] = 'Page2'
+        pyramid_req.matchdict['id'] = 2
+        response = views.view_post(pyramid_req)
+        assert response[
+            'next_page'] == 'http://example.com/posts/3/' + postname
 
     def test_POST_failure(self, pyramid_config, pyramid_req):
         response = self.submit_add_post(pyramid_req, postname='Homepage',
@@ -206,15 +218,40 @@ class Test_del_post:
         assert response.location == 'http://example.com/'
 
     def test_POST_success(self, pyramid_config, pyramid_req):
-        pyramid_req.matchdict['postname'] = 'Homepage'
-        pyramid_req.matchdict['id'] = 1
+        # 1. Get Homepage and somenewpost into dogpile_cache.
+        pyramid_req.matchdict = {'postname': 'Homepage', 'id': 1}
+        views.view_post(pyramid_req)
+        pyramid_req.matchdict = {'postname': 'somenewpost', 'id': 3}
+        views.view_post(pyramid_req)
+        # 2. Add a new post, so we have 3 posts.
+        Test_add_post.submit_add_post(
+            pyramid_req,
+            postname='somenewpost',
+            body='Some test body.',
+            tags='tag2, tag1, tag2')
+        # 3. Delete the middle post
+        pyramid_req.matchdict['postname'] = 'Page2'
+        pyramid_req.matchdict['id'] = 2
+
         pyramid_req.params['form.submitted'] = True
         response = Post_modifying_views(pyramid_req).del_post_POST()
         assert response.location == 'http://example.com/'
-
+        # 4. Check the post has been deleted
         del pyramid_req.params['form.submitted']
         response = views.view_post(pyramid_req)
         assert isinstance(response, HTTPNotFound)
+        # 5. Check the newest post now links to the first post
+        pyramid_req.matchdict['postname'] = 'somenewpost'
+        pyramid_req.matchdict['id'] = 3
+        response = views.view_post(pyramid_req)
+        assert response['prev_page'] == 'http://example.com/posts/1/Homepage'
+        # 6. Check the first post links to the newest post (ie the cache key
+        # has been deleted)
+        pyramid_req.matchdict['postname'] = 'Homepage'
+        pyramid_req.matchdict['id'] = 1
+        response = views.view_post(pyramid_req)
+        assert response[
+            'next_page'] == 'http://example.com/posts/3/somenewpost'
 
     def test_POST_failure(self, pyramid_config, pyramid_req):
         pyramid_req.matchdict['postname'] = 'Homepage'

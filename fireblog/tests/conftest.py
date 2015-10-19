@@ -8,11 +8,16 @@ from pyramid import testing
 from fireblog import include_all_components
 from sqlalchemy import create_engine
 from fireblog.models import DBSession, Base, Post, Users, Tags, Comments
+from fireblog.utils import region
 import fireblog
 
 # Get all available themes
 theme_folder = os.path.join(os.path.dirname(__file__), '../templates')
 available_themes = next(os.walk(theme_folder))[1]
+
+
+def clear_dogpile_region():
+    region.backend._cache = {}
 
 
 @pytest.fixture(params=available_themes, scope='session')
@@ -102,10 +107,12 @@ def pyramid_config(mydb, request):
     include_all_components(config)
     mydb.rollback()
     mydb.begin(subtransactions=True)
+    clear_dogpile_region()
 
     def fin():
         testing.tearDown()
         mydb.rollback()
+        clear_dogpile_region()
     request.addfinalizer(fin)
     return config
 
@@ -128,8 +135,10 @@ def testapp(request, mydb, setup_testapp):
     testapp = setup_testapp
     mydb.rollback()
     mydb.begin(subtransactions=True)
+    clear_dogpile_region()
 
     def fin():
         mydb.rollback()
+        clear_dogpile_region()
     request.addfinalizer(fin)
     return testapp

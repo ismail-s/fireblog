@@ -1,4 +1,5 @@
 import fireblog.utils as utils
+import fireblog.events as events
 from fireblog.utils import use_template, TemplateResponseDict
 from fireblog.utils import urlify as u
 import PyRSS2Gen
@@ -69,14 +70,15 @@ def home(request):
 
 @view_config(route_name='view_post', decorator=use_template('post.mako'))
 def view_post(request):
-    page = DBSession.query(Post).filter_by(id=request.matchdict['id']).first()
+    post_id = request.matchdict['id']
+    page = DBSession.query(Post).filter_by(id=post_id).first()
     if not page:
         return HTTPNotFound('no such page exists')
-    post_dict = _get_post_section_as_dict(request, page, postname=page.name)
+    post_dict = _get_post_section_as_dict(request, page, post_id=post_id)
 
     # Fire off an event that lets any plugins or whatever add content below the
     # post. Currently this is used just to add comments below the post.
-    event = utils.RenderingPost(post=page, request=request)
+    event = events.RenderingPost(post=page, request=request)
     request.registry.notify(event)
 
     post_dict['bottom_of_page_sections'] = event.sections
@@ -88,15 +90,15 @@ def post_key_generator(*args, **kwargs):
                                                                   **kwargs)
 
     def new_key_generator(*args, **kwargs):
-        postname = kwargs['postname']
-        return '|'.join((old_key_generator(), postname))
+        post_id = str(kwargs['post_id'])
+        return '|'.join((old_key_generator(), post_id))
     return new_key_generator
 
 
 @utils.region.cache_on_arguments(function_key_generator=post_key_generator)
-def _get_post_section_as_dict(request, page, postname):
-    if not all((request, page, postname)):  # pragma: no cover
-        raise Exception('Function called incorrectly-check calling code.')
+def _get_post_section_as_dict(request, page, post_id):
+    post_id = int(post_id)
+    assert page.id == post_id
     # Here we use sqlalchemy Core in order to get a slight speed boost.
     previous_sql = sql.select([Post.id, Post.name]).\
         where(Post.created < page.created).\
@@ -125,7 +127,7 @@ def _get_post_section_as_dict(request, page, postname):
 
     post_date = utils.format_datetime(page.created)
     return dict(title=page.name,
-                post_id=page.id,
+                post_id=post_id,
                 html=page.html,
                 uuid=page.uuid,
                 tags=tags,
@@ -134,8 +136,36 @@ def _get_post_section_as_dict(request, page, postname):
                 next_page=next)
 
 
-def invalidate_post(postname):
-    _get_post_section_as_dict.invalidate(None, None, postname=postname)
+def invalidate_post(post_id):
+    # Make sure post_id is an int
+    assert int(post_id)
+    _get_post_section_as_dict.invalidate(None, None, post_id=post_id)
+
+
+def invalidate_current_post(event):
+    assert hasattr(event, 'post')
+    post_id = event.post.id
+    invalidate_post(post_id)
+
+
+def invalidate_previous_post(event):
+    assert hasattr(event, 'post')
+    previous_sql = sql.select([Post.id]).\
+        where(Post.created < event.post.created).\
+        order_by(Post.created.desc())
+    post = DBSession.execute(previous_sql).first()
+    if post:
+        invalidate_post(post.id)
+
+
+def invalidate_next_post(event):
+    assert hasattr(event, 'post')
+    next_sql = sql.select([Post.id]).\
+        where(Post.created > event.post.created).\
+        order_by(Post.created)
+    next = DBSession.execute(next_sql).first()
+    if next:
+        invalidate_post(next.id)
 
 
 @view_config(route_name='view_all_posts',
@@ -197,10 +227,8 @@ class Add_Post(object):
         tags = self.request.params['tags']
         utils.append_tags_from_string_to_tag_object(tags, post.tags)
         DBSession.add(post)
-        # Make sure the non-existence of this post is not cached. ie someone
-        # could have previously tried to get this post, but the 404 response
-        # could have been cached.
-        invalidate_post(self.postname)
+        DBSession.flush()
+        self.request.registry.notify(events.PostCreated(post))
         return HTTPFound(location=self.request.route_url('home'))
 
 
@@ -252,7 +280,8 @@ class Post_modifying_views(object):
         location = self.request.route_url('view_post',
                                           id=self.post_id,
                                           postname=u(self.postname))
-        invalidate_post(self.postname)
+        self.request.registry.notify(events.PostEdited(post))
+        invalidate_post(self.post_id)
         return HTTPFound(location=location)
 
     @view_config(match_param="action=del", request_method="GET",
@@ -275,8 +304,9 @@ class Post_modifying_views(object):
         # TODO-maybe don't allow deletion of a post if it is the only one.
         if not self.post:
             return HTTPFound(location=self.request.route_url('home'))
+        self.request.registry.notify(events.PostDeleted(self.post))
         DBSession.delete(self.post)
-        invalidate_post(self.postname)
+        invalidate_post(self.post_id)
         return HTTPFound(location=self.request.route_url('home'))
 
 
@@ -308,3 +338,13 @@ def uuid(request):
         return HTTPFound(location=request.route_url('tag_view',
                                                     tag_name=tags[0].tag))
     return HTTPNotFound('No uuid matches.')
+
+
+def includeme(config):
+    # These config statements invalidate cached posts when they become invalid.
+    config.add_subscriber(invalidate_current_post, events.PostCreated)
+    config.add_subscriber(invalidate_previous_post, events.PostCreated)
+    config.add_subscriber(invalidate_current_post, events.PostEdited)
+    config.add_subscriber(invalidate_current_post, events.PostDeleted)
+    config.add_subscriber(invalidate_previous_post, events.PostDeleted)
+    config.add_subscriber(invalidate_next_post, events.PostDeleted)

@@ -1,6 +1,7 @@
 import pytest
 import fireblog.comments
 import fireblog.utils
+from fireblog.events import RenderingPost
 from fireblog.models import DBSession, Post
 from pyramid.httpexceptions import HTTPNotFound
 try:
@@ -14,7 +15,7 @@ class Test_comment_view:
     @staticmethod
     def get_comment_list(postname, pyramid_req):
         post = DBSession.query(Post).filter_by(name=postname).first()
-        event = fireblog.utils.RenderingPost(post, pyramid_req)
+        event = RenderingPost(post, pyramid_req)
         return fireblog.comments.render_comments_list_from_event(event)
 
     def test_success(self, pyramid_config, pyramid_req):
