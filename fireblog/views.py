@@ -70,10 +70,11 @@ def home(request):
 
 @view_config(route_name='view_post', decorator=use_template('post.mako'))
 def view_post(request):
-    page = DBSession.query(Post).filter_by(id=request.matchdict['id']).first()
+    post_id = request.matchdict['id']
+    page = DBSession.query(Post).filter_by(id=post_id).first()
     if not page:
         return HTTPNotFound('no such page exists')
-    post_dict = _get_post_section_as_dict(request, page, postname=page.name)
+    post_dict = _get_post_section_as_dict(request, page, post_id=post_id)
 
     # Fire off an event that lets any plugins or whatever add content below the
     # post. Currently this is used just to add comments below the post.
@@ -89,13 +90,15 @@ def post_key_generator(*args, **kwargs):
                                                                   **kwargs)
 
     def new_key_generator(*args, **kwargs):
-        postname = kwargs['postname']
-        return '|'.join((old_key_generator(), postname))
+        post_id = str(kwargs['post_id'])
+        return '|'.join((old_key_generator(), post_id))
     return new_key_generator
 
 
 @utils.region.cache_on_arguments(function_key_generator=post_key_generator)
-def _get_post_section_as_dict(request, page, postname):
+def _get_post_section_as_dict(request, page, post_id):
+    post_id = int(post_id)
+    assert page.id == post_id
     # Here we use sqlalchemy Core in order to get a slight speed boost.
     previous_sql = sql.select([Post.id, Post.name]).\
         where(Post.created < page.created).\
@@ -124,7 +127,7 @@ def _get_post_section_as_dict(request, page, postname):
 
     post_date = utils.format_datetime(page.created)
     return dict(title=page.name,
-                post_id=page.id,
+                post_id=post_id,
                 html=page.html,
                 uuid=page.uuid,
                 tags=tags,
@@ -133,8 +136,8 @@ def _get_post_section_as_dict(request, page, postname):
                 next_page=next)
 
 
-def invalidate_post(postname):
-    _get_post_section_as_dict.invalidate(None, None, postname=postname)
+def invalidate_post(post_id):
+    _get_post_section_as_dict.invalidate(None, None, post_id=post_id)
 
 
 @view_config(route_name='view_all_posts',
@@ -196,11 +199,7 @@ class Add_Post(object):
         tags = self.request.params['tags']
         utils.append_tags_from_string_to_tag_object(tags, post.tags)
         DBSession.add(post)
-        # Make sure the non-existence of this post is not cached. ie someone
-        # could have previously tried to get this post, but the 404 response
-        # could have been cached.
         self.request.registry.notify(events.PostCreated(post))
-        invalidate_post(self.postname)
         return HTTPFound(location=self.request.route_url('home'))
 
 
@@ -253,7 +252,7 @@ class Post_modifying_views(object):
                                           id=self.post_id,
                                           postname=u(self.postname))
         self.request.registry.notify(events.PostEdited(post))
-        invalidate_post(self.postname)
+        invalidate_post(self.post_id)
         return HTTPFound(location=location)
 
     @view_config(match_param="action=del", request_method="GET",
@@ -278,7 +277,7 @@ class Post_modifying_views(object):
             return HTTPFound(location=self.request.route_url('home'))
         self.request.registry.notify(events.PostDeleted(self.post))
         DBSession.delete(self.post)
-        invalidate_post(self.postname)
+        invalidate_post(self.post_id)
         return HTTPFound(location=self.request.route_url('home'))
 
 
