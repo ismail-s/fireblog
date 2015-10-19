@@ -31,3 +31,17 @@ class PostDeleted(_ModifyPost):
 
 class PostEdited(_ModifyPost):
     pass
+
+
+class _CommentModified(object):
+    def __init__(self, post, comment):
+        self.post = post
+        self.comment = comment
+
+
+class CommentAdded(_CommentModified):
+    pass
+
+
+class CommentDeleted(_CommentModified):
+    pass

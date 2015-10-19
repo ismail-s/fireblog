@@ -1,7 +1,7 @@
 import fireblog.utils as utils
-from fireblog.events import RenderingPost
+import fireblog.events as events
 from fireblog.utils import urlify as u
-from fireblog.views import invalidate_post
+from fireblog.views import invalidate_current_post
 import requests
 from pyramid.view import view_config
 from pyramid.httpexceptions import (
@@ -71,7 +71,7 @@ def comment_add(request):
     comment = Comments(comment=comment_text)
     comment.author = author
     post.comments.append(comment)
-    invalidate_post(post.name)
+    request.registry.notify(events.CommentAdded(post=post, comment=comment))
     return HTTPFound(location=request.route_url('view_post',
                                                 id=post_id,
                                                 postname=u(post.name)))
@@ -86,8 +86,8 @@ def comment_delete(request):
     comment = DBSession.query(Comments).filter_by(uuid=comment_uuid).first()
     if not comment:
         return HTTPNotFound()
+    request.registry.notify(events.CommentDeleted(post=comment.post, comment=comment))
     DBSession.delete(comment)
-    invalidate_post(comment.post.name)
     return HTTPFound(location=request.route_url('view_post',
                                                 id=post_id,
                                                 postname=u(comment.post.name)))
@@ -96,4 +96,6 @@ def comment_delete(request):
 def includeme(config):
     config.add_route('comment_add', '/add')
     config.add_route('comment_del', '/del')
-    config.add_subscriber(add_comment_section_below_posts, RenderingPost)
+    config.add_subscriber(add_comment_section_below_posts, events.RenderingPost)
+    config.add_subscriber(invalidate_current_post, events.CommentAdded)
+    config.add_subscriber(invalidate_current_post, events.CommentDeleted)
