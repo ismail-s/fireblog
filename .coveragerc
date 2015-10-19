@@ -1,4 +1,5 @@
 [run]
+branch = True
 omit =
-    fireblog/tests.py
+    fireblog/tests/*
     fireblog/scripts/*

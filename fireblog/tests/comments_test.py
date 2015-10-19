@@ -1,14 +1,13 @@
+import pytest
 import fireblog.comments
 import fireblog.utils
 from fireblog.events import RenderingPost
 from fireblog.models import DBSession, Post
-import datetime
-
+from pyramid.httpexceptions import HTTPNotFound
 try:
     import unittest.mock as mock
-    # unittest.mock was added in python3
 except ImportError:
-    import mock
+    import mock  # python3.2 support
 
 
 class Test_comment_view:
@@ -33,20 +32,18 @@ class Test_comment_view:
 class Test_comment_add:
 
     def test_anon_success(self, pyramid_config, pyramid_req):
-        comment = 'A test comment...'
-        pyramid_req.params['postname'] = 'Page2'
-        pyramid_req.params['comment'] = comment
-        pyramid_req.params['form.submitted'] = True
+        comment = 'test'
+        pyramid_req.params = {'post-id': 2,
+                              'comment': comment, 'form.submitted': True}
         with mock.patch('requests.post', autospec=True) as mock_requests_post:
-            mock_response = mock.Mock()
-            mock_response.json.return_value = {'success': True}
-            mock_requests_post.return_value = mock_response
+            mock_requests_post(url='fake').json.return_value = {
+                'success': True}
             res = fireblog.comments.comment_add(pyramid_req)
-        assert res.location == 'http://example.com/posts/Page2'
+        assert res.location == 'http://example.com/posts/2/Page2-1%2A2'
 
         pyramid_req.params = {}
         comments_list = Test_comment_view.get_comment_list(
-            'Page2', pyramid_req)
+            'Page2 1*2', pyramid_req)
         assert len(comments_list) == 1
         comment_res = comments_list[0]
         assert comment_res['author'] == 'anonymous'
@@ -54,19 +51,36 @@ class Test_comment_add:
         assert comment_res['uuid']
         # TODO-assert about when comment was created-use freezegun
 
+    def test_anon_recaptcha_fail(self, pyramid_config, pyramid_req):
+        pyramid_req.params = {'post-id': 2,
+                              'comment': 'test', 'form.submitted': True}
+        with mock.patch('requests.post', autospec=True) as mock_requests_post:
+            mock_requests_post(url='fake').json.return_value = {
+                'success': False}
+            res = fireblog.comments.comment_add(pyramid_req)
+        assert isinstance(res, HTTPNotFound)
+
+    def test_anon_recaptcha_fail_due_to_exc(self, pyramid_config, pyramid_req):
+        pyramid_req.params = {'post-id': 2,
+                              'comment': 'test', 'form.submitted': True}
+        with mock.patch('requests.post', autospec=True) as mock_requests_post:
+            mock_requests_post(url='fake').json.side_effect = Exception()
+            res = fireblog.comments.comment_add(pyramid_req)
+        assert isinstance(res, HTTPNotFound)
+
     def test_logged_in_success(self, pyramid_config, pyramid_req):
         comment = 'A test comment...'
-        pyramid_req.params['postname'] = 'Page2'
+        pyramid_req.params['post-id'] = 2
         pyramid_req.params['comment'] = comment
         pyramid_req.params['form.submitted'] = True
         pyramid_config.testing_securitypolicy(
             userid='id5489746@mockmyid.com', permissive=True)
         res = fireblog.comments.comment_add(pyramid_req)
-        assert res.location == 'http://example.com/posts/Page2'
+        assert res.location == 'http://example.com/posts/2/Page2-1%2A2'
 
         pyramid_req.params = {}
         comments_list = Test_comment_view.get_comment_list(
-            'Page2', pyramid_req)
+            'Page2 1*2', pyramid_req)
         assert len(comments_list) == 1
         comment_res = comments_list[0]
         assert comment_res['author'] == 'id5489746'
@@ -74,15 +88,38 @@ class Test_comment_add:
         assert comment_res['uuid']
         # TODO-assert about when comment was created...
 
+    @pytest.mark.parametrize('params', [
+        {'post-id': None, 'comment': 'test', 'form.submitted': True},
+        {'post-id': 2, 'comment': None, 'form.submitted': True}])
+    def test_logged_in_fail(self, params, pyramid_config, pyramid_req):
+        pyramid_req.params = params
+        pyramid_config.testing_securitypolicy(
+            userid='id5489746@mockmyid.com', permissive=True)
+        res = fireblog.comments.comment_add(pyramid_req)
+        assert isinstance(res, HTTPNotFound)
+
 
 class Test_comment_delete:
 
     def test_success(self, pyramid_config, pyramid_req):
         pyramid_req.params['comment-uuid'] = 'comment1-uuid'
-        pyramid_req.params['postname'] = 'Homepage'
+        pyramid_req.params['post-id'] = 1
         res = fireblog.comments.comment_delete(pyramid_req)
-        assert res.location == 'http://example.com/posts/Homepage'
+        assert res.location == 'http://example.com/posts/1/Homepage'
 
         comments_list = Test_comment_view.get_comment_list(
             'Homepage', pyramid_req)
         assert comments_list == []
+
+    @pytest.mark.parametrize('params', [
+        {'post-id': None, 'comment-uuid': 'test'},
+        {'post-id': 2, 'comment-uuid': None}])
+    def test_fail_missing_params(self, params, pyramid_config, pyramid_req):
+        pyramid_req.params = params
+        res = fireblog.comments.comment_delete(pyramid_req)
+        assert isinstance(res, HTTPNotFound)
+
+    def test_fail_wrong_comment_uuid(self, pyramid_config, pyramid_req):
+        pyramid_req.params = {'post-id': 2, 'comment-uuid': 'test'}
+        res = fireblog.comments.comment_delete(pyramid_req)
+        assert isinstance(res, HTTPNotFound)

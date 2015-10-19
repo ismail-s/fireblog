@@ -8,28 +8,9 @@ with open(os.path.join(here, 'README.rst')) as f:
 with open(os.path.join(here, 'CHANGES.txt')) as f:
     CHANGES = f.read()
 
-requires = [
-    'pyramid',
-    'pyramid_chameleon',
-    'pyramid_debugtoolbar',
-    'pyramid_tm',
-    'pyramid_persona',
-    'pyramid_dogpile_cache',
-    'SQLAlchemy',
-    'transaction',
-    'zope.sqlalchemy',
-    'waitress',
-    'markdown',
-    'arrow',
-    'shortuuid',
-    'webtest',
-    'pytest',
-    'pytest-cov',
-    'pytest-pep8',
-    'PyRSS2Gen',
-    'alembic',
-    'requests'
-]
+with open(os.path.join(here, 'requirements.txt')) as f:
+    requires = f.read().split('\n')
+
 
 if __name__ == '__main__':
     setup(name='fireblog',

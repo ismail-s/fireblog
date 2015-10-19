@@ -1,17 +1,32 @@
-Fireblog README
+Fireblog
 ==================
 .. image:: https://travis-ci.org/ismail-s/fireblog.svg?branch=develop
   :target: https://travis-ci.org/ismail-s/fireblog
-*Note: I have just recently put this repo onto github, so the below instructions aren't quite perfect just yet.*
+
+.. image:: https://coveralls.io/repos/ismail-s/fireblog/badge.svg?branch=develop&service=github
+  :target: https://coveralls.io/github/ismail-s/fireblog?branch=develop
+
+A simple blog, written in Python, using the `Pyramid web framework <https://www.github.com/pylons/pyramid>`_. For a live version, see `my blog <https://blog.ismail-s.com>`_.
 
 Getting Started
 ---------------
 
-- cd <directory containing this file>
+.. code:: bash
 
-- $VENV/bin/python setup.py develop
+  git clone https://github.com/ismail-s/fireblog.git
+  cd fireblog
+  python setup.py develop
+  initialize_fireblog_db development.ini
+  pserve development.ini
 
-- $VENV/bin/initialize_fireblog_db development.ini
+Do note when running those commands that:
 
-- $VENV/bin/pserve development.ini
+- you use a `virtualenv <https://virtualenv.pypa.io/en/latest/>`_
+- You don't use development.ini when running in production. This is because dvelopment.ini enables the debug toolbar, which allows arbitrary code execution. For a warning of what this could result in, see `this article <http://arstechnica.co.uk/security/2015/10/patreon-was-warned-of-serious-website-flaw-5-days-before-it-was-hacked/>`_.
+- If you want the server to run as a daemon, use the following command instead:
 
+.. code:: bash
+
+  pserve development.ini --daemon
+
+If you wish to customise stuff, eg use a database like postgres instead of sqlite (the default), then change the .ini file you pass to these commands.

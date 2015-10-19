@@ -37,7 +37,8 @@ def pyramid_req(theme):
     res = testing.DummyRequest()
     res.registry.settings.update({'fireblog.allViewPostLen': 1000,
                                   'dogpile_cache.backend': 'memory',
-                                  'fireblog.theme': theme})
+                                  'fireblog.theme': theme,
+                                  'fireblog.recaptcha-secret': 'secret...'})
     return res
 
 
@@ -50,16 +51,20 @@ def mydb(request, persona_test_admin_login):
         # TODO-add tags to this test data. Some tests may also need updating.
         tag1 = Tags(tag='tag1', uuid='uuid-tag111')
         tag2 = Tags(tag='tag2', uuid='uuid-tag222')
+        tag3 = Tags(tag='tag3', uuid='uuid-tag333')
         DBSession.add(tag1)
         DBSession.add(tag2)
-        post = Post(name='Homepage',
+        DBSession.add(tag3)
+        post = Post(id=1,
+                    name='Homepage',
                     markdown='This is the front page',
                     html='<p>This is the front page</p>',
                     created=datetime.datetime(2013, 1, 1),
                     uuid='uuid-post-homepage')
         post.tags.append(tag1)
         DBSession.add(post)
-        post2 = Post(name='Page2',
+        post2 = Post(id=2,
+                     name='Page2 1*2',  # Spaces and * test utils.urlify func.
                      markdown='This is page 2',
                      html='<p>This is page 2</p>',
                      created=datetime.datetime(2014, 1, 1),
@@ -112,7 +117,8 @@ def setup_testapp(mydb, theme, request):
                 'persona.secret': 'some_secret',
                 'dogpile_cache.backend': 'memory',
                 'fireblog.allViewPostLen': 1000,
-                'fireblog.theme': theme}
+                'fireblog.theme': theme,
+                'fireblog.recaptcha-secret': 'secret...'}
     app = fireblog.main({}, **settings)
     return webtest.TestApp(app)
 
