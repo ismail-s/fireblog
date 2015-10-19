@@ -86,7 +86,8 @@ def comment_delete(request):
     comment = DBSession.query(Comments).filter_by(uuid=comment_uuid).first()
     if not comment:
         return HTTPNotFound()
-    request.registry.notify(events.CommentDeleted(post=comment.post, comment=comment))
+    request.registry.notify(events.CommentDeleted(
+        post=comment.post, comment=comment))
     DBSession.delete(comment)
     return HTTPFound(location=request.route_url('view_post',
                                                 id=post_id,
@@ -96,6 +97,7 @@ def comment_delete(request):
 def includeme(config):
     config.add_route('comment_add', '/add')
     config.add_route('comment_del', '/del')
-    config.add_subscriber(add_comment_section_below_posts, events.RenderingPost)
+    config.add_subscriber(add_comment_section_below_posts,
+                          events.RenderingPost)
     config.add_subscriber(invalidate_current_post, events.CommentAdded)
     config.add_subscriber(invalidate_current_post, events.CommentDeleted)
