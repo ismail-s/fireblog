@@ -1,5 +1,6 @@
 from markdown import markdown
 from fireblog.models import DBSession, Tags, Users
+from fireblog.htmltruncate import truncate as truncate_html
 from pyramid_dogpile_cache import get_region
 import arrow
 import functools
@@ -159,7 +160,9 @@ def create_post_list_from_posts_obj(request, post_obj):
         to_append = {}
         to_append["id"] = post.id
         to_append["name"] = post.name
-        to_append["html"] = to_markdown(post.markdown[:l] + '\n\n...')
+        html = to_markdown(post.markdown)
+        html = truncate_html(html, l, ellipsis='...')
+        to_append["html"] = html
         to_append["date"] = format_datetime(post.created)
         res.append(to_append)
         if not code_styles and 'class="codehilite"' in to_append["html"]:

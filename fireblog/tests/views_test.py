@@ -123,7 +123,6 @@ class Test_view_all_posts:
         for post, actual_post in zip(posts, actual_posts):
             assert post["name"] == actual_post[0]
             assert actual_post[1] in post["html"]
-            # TODO-check that long posts are truncated correctly
 
     def test_success_with_pygments_code_css_included(self,
                                                      pyramid_config,
@@ -151,6 +150,32 @@ that is all.'''
         del pyramid_req.matchdict['postname']
         response = views.view_all_posts(pyramid_req)
         assert response["code_styles"]
+
+    @pytest.mark.parametrize('body, html', [
+        ('S' * 998 + 'a', "<p>" + "S" * 998 + 'a' + "</p>"),
+        ('S' * 999 + 'a', "<p>" + "S" * 999 + 'a' + "</p>"),
+        ('S' * 1000 + 'a', "<p>" + "S" * 1000 + '...' + "</p>")])
+    def test_long_posts_get_truncated(
+            self, body, html, mydb, pyramid_config, pyramid_req):
+        # Make the Homepage post really long
+        pyramid_req.matchdict = {'postname': 'Homepage', 'id': 1}
+        pyramid_req.params = {'form.submitted': True, 'tags': ''}
+        pyramid_req.params['body'] = body
+        Post_modifying_views(pyramid_req).edit_post_POST()
+        # Get rid of the only other post
+        pyramid_req.matchdict = {'postname': 'Page2', 'id': 2}
+        pyramid_req.params['form.submitted'] = True
+        response = Post_modifying_views(pyramid_req).del_post_POST()
+        mydb.flush()
+        pyramid_req.matchdict = {}
+        pyramid_req.params = {}
+        response = views.view_all_posts(pyramid_req)
+        posts = response["posts"]
+
+        expected_res = {"name": "Homepage", "html": html}
+
+        for e, v in expected_res.items():
+            assert posts[0][e] == v
 
 
 class Test_edit_post:
