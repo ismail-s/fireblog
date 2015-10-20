@@ -94,7 +94,14 @@ def include_all_components(config):
     config.include('fireblog.views')
 
 
-def get_secret_settings(secrets_file, *, defaults=None):
+def get_secret_settings(secrets_file: str, *, defaults: dict = None):
+    """Open secrets_file, which should be a filepath to an ini file, read in
+    the DEFAULT section of the ini file, and return this as a dict.
+
+    :param defaults: A dict of defaults to pass to
+        :py:func:`configparser.ConfigParser`.
+    :return: dict
+    """
     if not secrets_file:
         return {}
     secrets = ConfigParser(defaults=defaults)
@@ -103,7 +110,17 @@ def get_secret_settings(secrets_file, *, defaults=None):
 
 
 def main(global_config, **settings):
-    """ This function returns a Pyramid WSGI application.
+    """This is the main function that runs the whole blog. It should in
+    general not be called directly. Rather, run the command:
+
+    .. code:: bash
+
+        pserve development.ini
+
+    Or use Python Paste's
+    `loadapp <http://pythonpaste.org/deploy/#basic-usage>`_ function.
+
+    :return: WSGI app
     """
     # Get extra config settings from secrets file
     secrets_file = settings.get('secrets', None)
