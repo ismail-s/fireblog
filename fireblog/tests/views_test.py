@@ -173,9 +173,6 @@ that is all.'''
 
         for e, v in expected_res.items():
             assert posts[0][e] == v
-        # for post, actual_post in zip(posts, actual_posts):
-        #     assert post["name"] == actual_post[0]
-        #     assert actual_post[1] in post["html"]
 
 
 class Test_edit_post:
