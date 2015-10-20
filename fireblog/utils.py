@@ -1,4 +1,5 @@
 from markdown import markdown
+from bs4 import BeautifulSoup
 from fireblog.models import DBSession, Tags, Users
 from pyramid_dogpile_cache import get_region
 import arrow
@@ -92,6 +93,11 @@ def to_markdown(input_text):
     return res
 
 
+def truncate_html(html, length):
+    assert length > 0 and len(html)
+    return unicode(BeautifulSoup(html[:length], "html.parser"))
+
+
 def append_tags_from_string_to_tag_object(tag_string, tag_object):
     tags_on_tag_object = []  # This is to be a list of tags on the tag_object
     for tag in tag_object:
@@ -159,7 +165,10 @@ def create_post_list_from_posts_obj(request, post_obj):
         to_append = {}
         to_append["id"] = post.id
         to_append["name"] = post.name
-        to_append["html"] = to_markdown(post.markdown[:l] + '\n\n...')
+        html = to_markdown(post.markdown)
+        if len(html) > l:
+            html = truncate_html(html, l)
+        to_append["html"] = html
         to_append["date"] = format_datetime(post.created)
         res.append(to_append)
         if not code_styles and 'class="codehilite"' in to_append["html"]:
