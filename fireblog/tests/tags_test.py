@@ -1,5 +1,6 @@
 import pytest
 import fireblog.tags
+from fireblog.views import Post_modifying_views
 from pyramid.httpexceptions import HTTPNotFound
 
 
@@ -20,12 +21,26 @@ class Test_tag_view:
         for post, actual_post in zip(posts, actual_posts):
             assert post["name"] == actual_post[0]
             assert actual_post[1] in post["html"]
-            # TODO-check that long posts are truncated correctly
 
     def test_failure(self, pyramid_config, pyramid_req):
         pyramid_req.matchdict['tag_name'] = 'doesntexist'
         response = fireblog.tags.tag_view(pyramid_req)
         assert isinstance(response, HTTPNotFound)
+
+    @pytest.mark.parametrize('body, html', [('S' * 998 + 'a', "<p>" + "S" * 998 + 'a' + "</p>"), ('S' * 999 + 'a', "<p>" + "S" * 999 + 'a' + "</p>"),
+                            ('S' * 1000 + 'a', "<p>" + "S" * 1000 + '...' + "</p>")])
+    def test_long_posts_get_truncated(self, body, html, mydb, pyramid_config, pyramid_req):
+        # Make the Homepage post really long
+        pyramid_req.matchdict = {'postname': 'Page2', 'id': 2}
+        pyramid_req.params = {'form.submitted': True, 'tags': 'tag2'}
+        pyramid_req.params['body'] = body
+        Post_modifying_views(pyramid_req).edit_post_POST()
+        pyramid_req.params = {}
+        pyramid_req.matchdict = {'tag_name': 'tag2'}
+        response = fireblog.tags.tag_view(pyramid_req)
+        post = response["posts"][0]
+
+        assert post["html"] ==  html
 
 
 class Test_tag_manager:
