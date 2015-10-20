@@ -19,3 +19,4 @@ WebHelpers2
 pytest-cov
 flake8
 mock
+beautifulsoup4
