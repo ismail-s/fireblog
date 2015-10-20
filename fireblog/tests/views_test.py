@@ -151,9 +151,12 @@ that is all.'''
         response = views.view_all_posts(pyramid_req)
         assert response["code_styles"]
 
-    @pytest.mark.parametrize('body, html', [('S' * 998 + 'a', "<p>" + "S" * 998 + 'a' + "</p>"), ('S' * 999 + 'a', "<p>" + "S" * 999 + 'a' + "</p>"),
-                            ('S' * 1000 + 'a', "<p>" + "S" * 1000 + '...' + "</p>")])
-    def test_long_posts_get_truncated(self, body, html, mydb, pyramid_config, pyramid_req):
+    @pytest.mark.parametrize('body, html', [
+        ('S' * 998 + 'a', "<p>" + "S" * 998 + 'a' + "</p>"),
+        ('S' * 999 + 'a', "<p>" + "S" * 999 + 'a' + "</p>"),
+        ('S' * 1000 + 'a', "<p>" + "S" * 1000 + '...' + "</p>")])
+    def test_long_posts_get_truncated(
+            self, body, html, mydb, pyramid_config, pyramid_req):
         # Make the Homepage post really long
         pyramid_req.matchdict = {'postname': 'Homepage', 'id': 1}
         pyramid_req.params = {'form.submitted': True, 'tags': ''}
@@ -169,7 +172,7 @@ that is all.'''
         response = views.view_all_posts(pyramid_req)
         posts = response["posts"]
 
-        expected_res =  {"name": "Homepage", "html": html}
+        expected_res = {"name": "Homepage", "html": html}
 
         for e, v in expected_res.items():
             assert posts[0][e] == v

@@ -27,9 +27,12 @@ class Test_tag_view:
         response = fireblog.tags.tag_view(pyramid_req)
         assert isinstance(response, HTTPNotFound)
 
-    @pytest.mark.parametrize('body, html', [('S' * 998 + 'a', "<p>" + "S" * 998 + 'a' + "</p>"), ('S' * 999 + 'a', "<p>" + "S" * 999 + 'a' + "</p>"),
-                            ('S' * 1000 + 'a', "<p>" + "S" * 1000 + '...' + "</p>")])
-    def test_long_posts_get_truncated(self, body, html, mydb, pyramid_config, pyramid_req):
+    @pytest.mark.parametrize('body, html', [
+        ('S' * 998 + 'a', "<p>" + "S" * 998 + 'a' + "</p>"),
+        ('S' * 999 + 'a', "<p>" + "S" * 999 + 'a' + "</p>"),
+        ('S' * 1000 + 'a', "<p>" + "S" * 1000 + '...' + "</p>")])
+    def test_long_posts_get_truncated(
+            self, body, html, mydb, pyramid_config, pyramid_req):
         # Make the Homepage post really long
         pyramid_req.matchdict = {'postname': 'Page2', 'id': 2}
         pyramid_req.params = {'form.submitted': True, 'tags': 'tag2'}
@@ -40,7 +43,7 @@ class Test_tag_view:
         response = fireblog.tags.tag_view(pyramid_req)
         post = response["posts"][0]
 
-        assert post["html"] ==  html
+        assert post["html"] == html
 
 
 class Test_tag_manager:

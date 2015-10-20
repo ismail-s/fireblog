@@ -17,6 +17,7 @@ class RenderingPost(object):
 
 
 class _ModifyPost(object):
+
     def __init__(self, post):
         self.post = post
 
@@ -34,6 +35,7 @@ class PostEdited(_ModifyPost):
 
 
 class _CommentModified(object):
+
     def __init__(self, post, comment):
         self.post = post
         self.comment = comment
