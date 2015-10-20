@@ -1,5 +1,6 @@
 [run]
 branch = True
 omit =
+    fireblog/htmltruncate.py
     fireblog/tests/*
     fireblog/scripts/*
