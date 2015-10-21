@@ -1,3 +1,4 @@
+'SQLAlchemy Database models.'
 import datetime
 import random
 from shortuuid import uuid
@@ -22,7 +23,12 @@ from sqlalchemy.orm import (
 from zope.sqlalchemy import ZopeTransactionExtension
 
 
-def create_username(context):
+def create_username(context) -> str:
+    """Create a username given an email address. If an email address is not
+    supplied, an ``Exception`` is raised.
+    To generate a username, we first try to use the part before the '@' in the
+    email address. If this username already exists, we add random numbers to
+    the end until we get a unique username."""
     incorrectly_called_exc = ('create_username function called incorrectly. '
                               'Check calling code.')
     try:

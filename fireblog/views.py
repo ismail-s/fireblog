@@ -1,3 +1,5 @@
+'''Views for doing stuff with posts, generating RSS feeds and dealing with
+uuids.'''
 import fireblog.utils as utils
 import fireblog.events as events
 from fireblog.utils import use_template, TemplateResponseDict
@@ -22,6 +24,7 @@ from fireblog.models import (
 
 @view_config(route_name='rss')
 def render_rss_feed(request):
+    "Generate an RSS feed of all posts."
     posts = DBSession.query(Post).order_by(desc(Post.created)).all()
     items = []
     for post in posts[:10]:
@@ -57,6 +60,7 @@ def render_rss_feed(request):
 
 @view_config(route_name='home', decorator=use_template('post.mako'))
 def home(request):
+    """Call :py:func:`view_post` and display the most recent post."""
     # Get the most recent post.
     # We use the Core of sqlalchemy here for performance, and because
     # we don't need the power of the ORM here.
@@ -70,6 +74,9 @@ def home(request):
 
 @view_config(route_name='view_post', decorator=use_template('post.mako'))
 def view_post(request):
+    """Find the post in the db with an ``id == request.matchdict['id']`` and
+    display this post, along with associated comments, tags, and links to
+    previous, next and all posts."""
     post_id = request.matchdict['id']
     page = DBSession.query(Post).filter_by(id=post_id).first()
     if not page:
@@ -137,6 +144,7 @@ def _get_post_section_as_dict(request, page, post_id):
 
 
 def invalidate_post(post_id):
+    "Invalidate post entry in the cache based on the supplied post_id."
     # Make sure post_id is an int
     assert int(post_id)
     _get_post_section_as_dict.invalidate(None, None, post_id=post_id)
@@ -171,6 +179,8 @@ def invalidate_next_post(event):
 @view_config(route_name='view_all_posts',
              decorator=use_template('multiple_posts.mako'))
 def view_all_posts(request):
+    """Display a page containing all posts, with a sample of each post and
+    links to each post."""
     # We use sqlalchemy Core here for performance.
     query = sql.select([Post.id, Post.name, Post.markdown, Post.created]).\
         order_by(Post.created.desc())
@@ -186,6 +196,7 @@ def view_all_posts(request):
 
 @view_defaults(route_name='add_post', permission='add')
 class Add_Post(object):
+    """Views that deal with adding a new post."""
 
     def __init__(self, request):
         self.request = request
@@ -196,6 +207,7 @@ class Add_Post(object):
     @view_config(request_method="GET",
                  decorator=use_template('edit.mako'))
     def add_post(self):
+        "Disply the page that the user can use to add a new post."
         if self.matching_post:
             return HTTPFound(
                 location=self.request.route_url(
@@ -213,6 +225,7 @@ class Add_Post(object):
     @view_config(request_method="POST",
                  request_param='form.submitted')
     def add_post_POST(self):
+        "Handle a POST submission of a new post."
         if self.matching_post:
             return HTTPFound(
                 location=self.request.route_url(
@@ -234,6 +247,7 @@ class Add_Post(object):
 
 @view_defaults(route_name='change_post')
 class Post_modifying_views(object):
+    "Views that edit or delete posts."
 
     def __init__(self, request):
         self.request = request
@@ -247,6 +261,7 @@ class Post_modifying_views(object):
     @view_config(match_param="action=edit", request_method="GET",
                  decorator=use_template('edit.mako'), permission='edit')
     def edit_post(self):
+        "Display the page used to edit posts."
         if not self.post:
             return HTTPFound(location=self.request.route_url('home'))
 
@@ -268,6 +283,7 @@ class Post_modifying_views(object):
     @view_config(match_param="action=edit", request_method="POST",
                  request_param='form.submitted', permission='edit')
     def edit_post_POST(self):
+        "Handle a POST submission of an edited post."
         if not self.post:
             return HTTPFound(location=self.request.route_url('home'))
 
@@ -287,6 +303,7 @@ class Post_modifying_views(object):
     @view_config(match_param="action=del", request_method="GET",
                  decorator=use_template('del.mako'), permission='del')
     def del_post(self):
+        "Display a page with a button to delete the specified post."
         # TODO-maybe don't allow deletion of a post if it is the only one.
         if not self.post:
             return HTTPFound(location=self.request.route_url('home'))
@@ -301,6 +318,7 @@ class Post_modifying_views(object):
     @view_config(match_param="action=del", request_method="POST",
                  request_param='form.submitted', permission='del')
     def del_post_POST(self):
+        "Handle a POST submission to delete a post."
         # TODO-maybe don't allow deletion of a post if it is the only one.
         if not self.post:
             return HTTPFound(location=self.request.route_url('home'))
@@ -312,6 +330,13 @@ class Post_modifying_views(object):
 
 @view_config(route_name='uuid')
 def uuid(request):
+    """UUIDs are randomly generated strings associated with various objects.
+    They are virtually guaranteed to be unique (by probability), and are used
+    to provide permalinks to posts, posts with a certain tag, basically any
+    kind of object.
+
+    This function redirects the user to a page that is the one associated to
+    the supplied uuid (which is supplied as ``request.matchdict['uuid']``)."""
     uuid_to_find = request.matchdict['uuid']
 
     # Check for a matching post.
@@ -340,7 +365,9 @@ def uuid(request):
     return HTTPNotFound('No uuid matches.')
 
 
-def includeme(config):
+def includeme(config) -> None:
+    """Contains configuration to invalidate cached posts when they become
+    invalid in various situations."""
     # These config statements invalidate cached posts when they become invalid.
     config.add_subscriber(invalidate_current_post, events.PostCreated)
     config.add_subscriber(invalidate_previous_post, events.PostCreated)

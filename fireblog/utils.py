@@ -26,7 +26,7 @@ except KeyError:
     region = get_region('', backend='dogpile.cache.memory')
 
 
-def urlify(string):
+def urlify(string: str) -> str:
     """Replace spaces with dashes. We don't do anything else like urlencoding,
     as pyramid does that already for us."""
     return string.replace(' ', '-')
@@ -39,13 +39,18 @@ def format_datetime(datetime):
 
 class TemplateResponseDict(dict):
     '''Instances of this dict can be used as the return type of a view callable
-    that is using the use_template decorator. The use_template decorator will
-    notice that an instance of this type is being returned and render it to a
-    response.'''
+    that is using the use_template decorator. The :py:func:`use_template`
+    decorator will notice that an instance of this type is being returned and
+    render it to a response.
+
+    This class is used in tandem with
+    :py:func:`fireblog.template_response_adapter`'''
     pass
 
 
-def use_template(template=None):
+def use_template(template: str=None):
+    """This decorator allows a view to be rendered using whatever the current
+    active template aka theme is."""
     def wrapper(f, template=template):
         @functools.wraps(f)
         def inner(context, request):
@@ -70,7 +75,13 @@ def render_to_response(template, res, request):
     return renderers.render_to_response(template, res, request)
 
 
-def get_anonymous_userid():
+def get_anonymous_userid() -> str:
+    """Returns the userid of the unique anonymous id. This userid is used
+    whenever somneone wants to post a comment anonymously, as all comments
+    must be associated with some author.
+
+    If the anonymous user doesn't exist in the db, they are created on the
+    fly."""
     anon_email = 'anonymous@example.com'
     user = DBSession.query(Users.userid).filter_by(userid=anon_email).first()
     with transaction.manager:
@@ -83,10 +94,9 @@ def get_anonymous_userid():
 
 @region.cache_on_arguments()
 def to_markdown(input_text):
-    '''Basic wrapper around the markdown library.
-
-    Basically, it means that we state the extensions we
-    use only once-here.'''
+    '''Basic wrapper around the markdown library. This function accepts
+    markdown and returns html. It enables extensions that allow for code
+    highlighting and writing code using fenced code blocks.'''
     extensions = ['markdown.extensions.codehilite',
                   'markdown.extensions.fenced_code']
     res = markdown(input_text, extensions=extensions)
