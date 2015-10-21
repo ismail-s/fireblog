@@ -113,7 +113,7 @@ def include_all_components(config):
     config.include('fireblog.views')
 
 
-def get_secret_settings(secrets_file: str, *, defaults: dict = None):
+def get_secret_settings(secrets_file: str, *, defaults: dict=None):
     """Open secrets_file, which should be a filepath to an ini file, read in
     the DEFAULT section of the ini file, and return this as a dict.
 

@@ -48,7 +48,7 @@ class TemplateResponseDict(dict):
     pass
 
 
-def use_template(template: str = None):
+def use_template(template: str=None):
     """This decorator allows a view to be rendered using whatever the current
     active template aka theme is."""
     def wrapper(f, template=template):

@@ -1,4 +1,5 @@
-'Views for doing stuff with posts, generating RSS feeds and dealing with uuids.'
+'''Views for doing stuff with posts, generating RSS feeds and dealing with
+uuids.'''
 import fireblog.utils as utils
 import fireblog.events as events
 from fireblog.utils import use_template, TemplateResponseDict
