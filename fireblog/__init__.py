@@ -14,17 +14,28 @@ from fireblog.models import (
 from configparser import ConfigParser
 
 
-def template_response_adapter(s):
+def template_response_adapter(s: utils.TemplateResponseDict):
+    """This function works in tandem with
+    :py:class:`fireblog.utils.TemplateResponseDict`. This function assumes s
+    is an instance of :py:func:`fireblog.utils.TemplateResponseDict` and
+    returns a :py:class:`pyramid.response.Response` containing a string
+    representation of s."""
+    assert isinstance(s, utils.TemplateResponseDict)
     response = Response(repr(s))
     return response
 
 
-def get_bower_url(request, path_to_resource):
+def get_bower_url(request, path_to_resource: str) -> str:
+    """Generate a url which points to the supplied path_or_resource.
+    The path_or_resource must exist in the /bower_components folder which is
+    located ../../bower_components relative to the file this function is in."""
     asset = 'fireblog:../bower_components/' + path_to_resource
     return request.static_url(asset)
 
 
-def get_username(email_address):
+def get_username(email_address: str):
+    """Gets the username associated with the supplied email address from the
+    db."""
     user = DBSession.query(Users.userid, Users.username).filter_by(
         userid=email_address).first()
     if not user:
@@ -40,7 +51,10 @@ def add_urlify_function(event):
     event['urlify'] = utils.urlify
 
 
-def groupfinder(userid, request):
+def groupfinder(userid, request) -> list:
+    """Looks up and returns the groups the userid belongs to.
+    If the userid doesn't exist, they are created as a commenter, and the
+    group they belong to (g:commenter) is returned."""
     query = DBSession.query(Users). \
         filter(Users.userid == userid)
     try:
@@ -51,7 +65,11 @@ def groupfinder(userid, request):
         return [group]
 
 
-def create_commenter_and_return_group(userid):
+def create_commenter_and_return_group(userid) -> str:
+    """This function assumes userid doesn't exist in the db, and creates a new
+    user with this userid, as a commenter.
+
+    :return: group the user belongs to (g:commenter)"""
     group = 'g:commenter'
     new_user = Users(userid=userid, group=group)
     DBSession.add(new_user)
@@ -59,7 +77,8 @@ def create_commenter_and_return_group(userid):
 
 
 class Root(object):
-    """Simplest possible resource tree to map groups to permissions.
+    """Rresource tree to map groups to permissions. We allow admins to do
+    anything, and commenters to be able to comment only.
     """
     __acl__ = [
         (Allow, 'g:admin', ALL_PERMISSIONS),
@@ -99,7 +118,7 @@ def get_secret_settings(secrets_file: str, *, defaults: dict = None):
     the DEFAULT section of the ini file, and return this as a dict.
 
     :param defaults: A dict of defaults to pass to
-        :py:func:`configparser.ConfigParser`.
+        :py:class:`configparser.ConfigParser`.
     :return: dict
     """
     if not secrets_file:
