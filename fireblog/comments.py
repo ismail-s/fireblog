@@ -1,3 +1,4 @@
+'Functionality for adding, viewing and deleting comments.'
 import fireblog.utils as utils
 import fireblog.events as events
 from fireblog.utils import urlify as u

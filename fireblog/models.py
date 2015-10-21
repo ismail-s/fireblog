@@ -1,3 +1,4 @@
+'SQLAlchemy Database models.'
 import datetime
 import random
 from shortuuid import uuid

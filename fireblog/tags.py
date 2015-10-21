@@ -1,3 +1,4 @@
+'Views for managing tags, and viewing all posts with a particular tag.'
 from operator import attrgetter
 import fireblog.utils as utils
 from fireblog.utils import use_template, TemplateResponseDict
