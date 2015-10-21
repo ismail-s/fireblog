@@ -1,4 +1,4 @@
-pyramid
+pyramid>=1.6a2
 pyramid_chameleon
 pyramid_debugtoolbar
 pyramid_tm
