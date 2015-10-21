@@ -19,6 +19,22 @@ fireblog.comments module
     :undoc-members:
     :show-inheritance:
 
+fireblog.events module
+----------------------
+
+.. automodule:: fireblog.events
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+fireblog.htmltruncate module
+----------------------------
+
+.. automodule:: fireblog.htmltruncate
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 fireblog.models module
 ----------------------
 
