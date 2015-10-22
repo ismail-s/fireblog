@@ -177,6 +177,28 @@ that is all.'''
         for e, v in expected_res.items():
             assert posts[0][e] == v
 
+    def test_pager_success_first_page(self, mydb, pyramid_config, pyramid_req):
+        for e in range(500):
+            Test_add_post.submit_add_post(
+                pyramid_req,
+                postname='Post ' + str(e),
+                body='Some test body.',
+                tags='')
+        mydb.flush()
+        res = views.view_all_posts(pyramid_req)
+        posts = res['posts']
+        expected_pager = (
+            '1 <a href="http://example.com/all_posts?p=2">2</a> '
+            '<a href="http://example.com/all_posts?p=3">3</a> .. '
+            '<a href="http://example.com/all_posts?p=26">26</a>')
+        assert res['pager'] == expected_pager
+        assert len(posts) == 20
+        expected_posts = [{'html': '<p>Some test body.</p>', 'id': str(
+            e + 3), 'name': 'Post ' + str(e)} for e in range(480, 500, -1)]
+        for post, expected_post in zip(posts, expected_posts):
+            for k, v in expected_post.items():
+                assert post[k] == v
+
 
 class Test_edit_post:
 
