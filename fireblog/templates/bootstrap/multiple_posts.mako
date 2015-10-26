@@ -18,6 +18,8 @@ ${extra_styles}
 </style>
 % endif
 
+<div class="center">${pager|n}</div>
+
 % for post in posts:
 <div class = "panel panel-default">
     <div class = "panel-heading all-posts-header">
@@ -33,6 +35,8 @@ ${extra_styles}
 </div>
 </a>
 % endfor
+
+<div class="center">${pager|n}</div>
 
 
 % if uuid:

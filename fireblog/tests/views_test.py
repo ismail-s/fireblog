@@ -5,6 +5,7 @@ import re
 from pyramid.httpexceptions import HTTPNotFound
 
 import fireblog.views as views
+import fireblog.tags
 from fireblog.views import Post_modifying_views, Add_Post
 
 
@@ -176,6 +177,88 @@ that is all.'''
 
         for e, v in expected_res.items():
             assert posts[0][e] == v
+
+
+class Test_view_multiple_posts_pager:
+    "Test the pager functionality on both view_all_posts and tag_view views"
+
+    @pytest.fixture
+    def create_500_posts(self, mydb, pyramid_config, pyramid_req):
+        for e in range(500):
+            Test_add_post.submit_add_post(
+                pyramid_req,
+                postname='Post ' + str(e),
+                body='Some test body.',
+                tags='ddd')
+        mydb.flush()
+        self.pyramid_req = pyramid_req
+
+    def test_all_posts_success_first_page(self, create_500_posts, pyramid_req):
+        res = views.view_all_posts(pyramid_req)
+        posts = res['posts']
+        expected_pager = (
+            '1 <a href="http://example.com/all_posts?p=2">2</a> '
+            '<a href="http://example.com/all_posts?p=3">3</a> .. '
+            '<a href="http://example.com/all_posts?p=26">26</a>')
+        assert res['pager'] == expected_pager
+        assert len(posts) == 20
+        expected_posts = [{'html': '<p>Some test body.</p>', 'id': str(
+            e + 3), 'name': 'Post ' + str(e)} for e in range(480, 500, -1)]
+        for post, expected_post in zip(posts, expected_posts):
+            for k, v in expected_post.items():
+                assert post[k] == v
+
+    def test_all_posts_success_second_page(
+            self, create_500_posts, pyramid_req):
+        pyramid_req.params['p'] = 2
+        res = views.view_all_posts(pyramid_req)
+        posts = res['posts']
+        expected_pager = (
+            '<a href="http://example.com/all_posts?p=1">1</a> 2 '
+            '<a href="http://example.com/all_posts?p=3">3</a> '
+            '<a href="http://example.com/all_posts?p=4">4</a> .. '
+            '<a href="http://example.com/all_posts?p=26">26</a>')
+        assert res['pager'] == expected_pager
+        assert len(posts) == 20
+        expected_posts = [{'html': '<p>Some test body.</p>', 'id': str(
+            e + 3), 'name': 'Post ' + str(e)} for e in range(460, 483, -1)]
+        for post, expected_post in zip(posts, expected_posts):
+            for k, v in expected_post.items():
+                assert post[k] == v
+
+    def test_tag_view_success_first_page(self, create_500_posts, pyramid_req):
+        pyramid_req.matchdict['tag_name'] = 'ddd'
+        res = fireblog.tags.tag_view(pyramid_req)
+        posts = res['posts']
+        expected_pager = (
+            '1 <a href="http://example.com/tags/ddd?p=2">2</a> '
+            '<a href="http://example.com/tags/ddd?p=3">3</a> .. '
+            '<a href="http://example.com/tags/ddd?p=25">25</a>')
+        assert res['pager'] == expected_pager
+        assert len(posts) == 20
+        expected_posts = [{'html': '<p>Some test body.</p>', 'id': str(
+            e + 3), 'name': 'Post ' + str(e)} for e in range(480, 500, -1)]
+        for post, expected_post in zip(posts, expected_posts):
+            for k, v in expected_post.items():
+                assert post[k] == v
+
+    def test_tag_view_success_second_page(self, create_500_posts, pyramid_req):
+        pyramid_req.matchdict['tag_name'] = 'ddd'
+        pyramid_req.params['p'] = 2
+        res = fireblog.tags.tag_view(pyramid_req)
+        posts = res['posts']
+        expected_pager = (
+            '<a href="http://example.com/tags/ddd?p=1">1</a> 2 '
+            '<a href="http://example.com/tags/ddd?p=3">3</a> '
+            '<a href="http://example.com/tags/ddd?p=4">4</a> .. '
+            '<a href="http://example.com/tags/ddd?p=25">25</a>')
+        assert res['pager'] == expected_pager
+        assert len(posts) == 20
+        expected_posts = [{'html': '<p>Some test body.</p>', 'id': str(
+            e + 3), 'name': 'Post ' + str(e)} for e in range(460, 483, -1)]
+        for post, expected_post in zip(posts, expected_posts):
+            for k, v in expected_post.items():
+                assert post[k] == v
 
 
 class Test_edit_post:

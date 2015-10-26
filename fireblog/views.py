@@ -5,6 +5,7 @@ import fireblog.events as events
 from fireblog.utils import use_template, TemplateResponseDict
 from fireblog.utils import urlify as u
 import PyRSS2Gen
+import paginate_sqlalchemy
 import dogpile.cache.util
 import datetime
 from pyramid.view import view_config, view_defaults
@@ -182,13 +183,21 @@ def view_all_posts(request):
     """Display a page containing all posts, with a sample of each post and
     links to each post."""
     # We use sqlalchemy Core here for performance.
-    query = sql.select([Post.id, Post.name, Post.markdown, Post.created]).\
+    page_num = request.params.get('p', None) or 1
+    query = DBSession.query(Post.id, Post.name, Post.markdown, Post.created).\
         order_by(Post.created.desc())
-    posts = DBSession.execute(query).fetchall()
+    page = paginate_sqlalchemy.SqlalchemyOrmPage(
+        query, page=page_num, items_per_page=20)
+    posts = page.items
+    pager = page.pager(
+        url=request.route_url(
+            'view_all_posts',
+            _query='p=$page'))
     # TODO-log a critical error here maybe if all posts are deleted
     res, code_styles = utils.create_post_list_from_posts_obj(request, posts)
 
     return TemplateResponseDict(title='All posts',
+                                pager=pager,
                                 posts=res,
                                 uuid=None,
                                 code_styles=code_styles)
