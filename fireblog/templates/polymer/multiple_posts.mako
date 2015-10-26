@@ -18,6 +18,8 @@ ${extra_styles}
 </style>
 % endif
 
+<div class="center">${pager|n}</div>
+
 % for post in posts:
 <paper-material class="card">
     <a href = "${request.route_url('view_post', id=post["id"], postname = urlify(post["name"]))}">
@@ -32,6 +34,7 @@ ${extra_styles}
 </a>
 % endfor
 
+<div class="center">${pager|n}</div>
 
 % if uuid:
 <p style="text-align: center"><small>
