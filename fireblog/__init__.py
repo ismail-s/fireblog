@@ -146,8 +146,8 @@ def main(global_config, **settings):
     secrets_dict = get_secret_settings(secrets_file, defaults=global_config)
     settings.update(secrets_dict)
 
-    allViewPostLen = int(settings.get('fireblog.allViewPostLen', 1000))
-    settings['fireblog.allViewPostLen'] = allViewPostLen
+    allViewPostLen = int(settings.get('fireblog.all_view_post_len', 1000))
+    settings['fireblog.all_view_post_len'] = allViewPostLen
     engine = engine_from_config(settings, 'sqlalchemy.')
     DBSession.configure(bind=engine)
     Base.metadata.bind = engine
