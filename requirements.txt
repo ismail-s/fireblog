@@ -19,4 +19,5 @@ WebHelpers2
 pytest-cov
 flake8
 mock
+paginate
 paginate_sqlalchemy
