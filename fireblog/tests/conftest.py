@@ -40,7 +40,8 @@ def persona_test_admin_login():
 @pytest.fixture
 def pyramid_req(theme):
     res = testing.DummyRequest()
-    res.registry.settings.update({'fireblog.allViewPostLen': 1000,
+    res.registry.settings.update({'fireblog.max_rss_items': 100,
+                                  'fireblog.allViewPostLen': 1000,
                                   'dogpile_cache.backend': 'memory',
                                   'fireblog.theme': theme,
                                   'fireblog.recaptcha-secret': 'secret...'})
@@ -124,6 +125,7 @@ def setup_testapp(mydb, theme, request):
                 'persona.secret': 'some_secret',
                 'dogpile_cache.backend': 'memory',
                 'fireblog.allViewPostLen': 1000,
+                'fireblog.max_rss_items': 100,
                 'fireblog.theme': theme,
                 'fireblog.recaptcha-secret': 'secret...'}
     app = fireblog.main({}, **settings)

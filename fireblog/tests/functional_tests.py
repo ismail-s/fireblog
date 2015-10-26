@@ -186,3 +186,9 @@ class Test_functional_tests:
 
         assert unauthenticated_homepage == unauthenticated_homepage_2
         assert authenticated_homepage != unauthenticated_homepage
+
+    def test_can_access_rss_feed_without_logging_in(self, testapp):
+        res = testapp.get('/rss')
+        assert res.status == '200 OK'
+        # The RSS feed content is tested already by
+        # :py:func:`fireblog.tests.views_test.Test_rss`.
