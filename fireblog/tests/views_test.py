@@ -208,7 +208,8 @@ class Test_view_multiple_posts_pager:
             for k, v in expected_post.items():
                 assert post[k] == v
 
-    def test_all_posts_success_second_page(self, create_500_posts, pyramid_req):
+    def test_all_posts_success_second_page(
+            self, create_500_posts, pyramid_req):
         pyramid_req.params['p'] = 2
         res = views.view_all_posts(pyramid_req)
         posts = res['posts']
