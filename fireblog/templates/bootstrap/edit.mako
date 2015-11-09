@@ -1,5 +1,11 @@
 <%inherit file="navbar.mako"/>
 
+<%block name="head">
+${parent.head()}
+<link rel="stylesheet" href="${request.get_bower_url('simplemde/dist/simplemde.min.css')}">
+<script src="${request.get_bower_url('simplemde/dist/simplemde.min.js')}"></script>
+</%block>
+
 <%block name="header">${title}</%block>
 
 <%block name="content">

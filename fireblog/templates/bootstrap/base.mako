@@ -9,7 +9,7 @@
 
 
     <title>Not the answer--a blog</title>
-
+  <%block name = "head">
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="${request.get_bower_url('simplemde/dist/simplemde.min.css')}">
@@ -18,7 +18,6 @@
     <!-- Custom styles for this template -->
     <style>
         <%include file="fireblog:static/custom-theme.css"/>
-        ## <%include file="fireblog:static/bootstrap-cleaned.css"/>
     </style>
 
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -27,6 +26,7 @@
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
     <script src='https://www.google.com/recaptcha/api.js'></script>
+    </%block>
   </head>
   <body>
 
