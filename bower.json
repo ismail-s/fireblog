@@ -30,6 +30,7 @@
     "paper-fab": "PolymerElements/paper-fab#1.0.0",
     "paper-dialog": "PolymerElements/paper-dialog#1.0.0",
     "paper-checkbox": "PolymerElements/paper-checkbox#1.0.0",
-    "paper-behaviors": "PolymerElements/paper-behaviors#~1.0.3"
+    "paper-behaviors": "PolymerElements/paper-behaviors#~1.0.3",
+    "simplemde": "~1.8.1"
   }
 }
