@@ -3,10 +3,11 @@
 <%block name="header">${title}</%block>
 
 <%block name="content">
+
 <form id = "edit-post" action = "${save_url}" method = "post">
     <div class="form-group">
         <label for="main-post">Post content</label>
-        <textarea name = "body" autofocus = "true"
+        <textarea name = "body" id="post-content" autofocus = "true"
                 cols = "80" rows = "10"
                 placeholder = "enter text here"
                 id="main-post"
@@ -25,5 +26,9 @@
             value = "Submit" class = "form-control"/>
     </div>
 </form>
+
+<script>
+new SimpleMDE({ element: document.getElementById("post-content") });
+</script>
 
 </%block>
