@@ -40,6 +40,8 @@ def persona_test_admin_login():
 @pytest.fixture
 def pyramid_req(theme):
     res = testing.DummyRequest()
+    # max_rss_items is set as a str to test that the rss view converts
+    # it to an int
     res.registry.settings.update({'fireblog.max_rss_items': '100',
                                   'fireblog.all_view_post_len': 1000,
                                   'dogpile_cache.backend': 'memory',
@@ -125,6 +127,8 @@ def setup_testapp(mydb, theme, request):
                 'persona.secret': 'some_secret',
                 'dogpile_cache.backend': 'memory',
                 'fireblog.all_view_post_len': 1000,
+                # max_rss_items is set as a str to test that
+                # the rss view converts it to an int
                 'fireblog.max_rss_items': '100',
                 'fireblog.theme': theme,
                 'fireblog.recaptcha-secret': 'secret...'}
