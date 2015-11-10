@@ -1,5 +1,5 @@
 from collections.abc import MutableMapping
-
+from fireblog.utils import region
 from fireblog.models import DBSession, Settings
 
 
@@ -14,6 +14,7 @@ class _settings(MutableMapping):
             raise KeyError(msg.format(key))
         return res
 
+    @region.cache_on_arguments()
     def __getitem__(self, key):
         res = self._get_item_from_db(key)
         return res.value
@@ -26,11 +27,14 @@ class _settings(MutableMapping):
             new_entry = Settings(name=key, value=value)
             DBSession.add(new_entry)
             DBSession.flush()
+        finally:
+            self.__getitem__.set(value, self, key)
 
     def __delitem__(self, key):
         res = self._get_item_from_db(key)
         DBSession.delete(res)
         DBSession.flush()
+        self.__getitem__.invalidate(self, key)
 
     def __iter__(self):
         names = DBSession.query(Settings.name).all()
