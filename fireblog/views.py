@@ -30,7 +30,7 @@ def render_rss_feed(request):
     max_rss_items = request.registry.settings['fireblog.max_rss_items']
     try:
         max_rss_items = int(max_rss_items)
-    except TypeError:
+    except Exception:
         return HTTPInternalServerError()
     posts = DBSession.query(Post).order_by(desc(Post.created)).all()
     items = []
