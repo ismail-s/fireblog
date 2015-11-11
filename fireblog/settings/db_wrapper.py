@@ -3,7 +3,7 @@ from fireblog.utils import region
 from fireblog.models import DBSession, Settings
 
 
-class _settings(MutableMapping):
+class _settings_dict(MutableMapping):
     @staticmethod
     def _get_item_from_db(key):
         '''Try and get 'key' from the settings table in the db, else raise a
@@ -45,4 +45,4 @@ class _settings(MutableMapping):
 
 # Technically, everyone could use their own instance of _settings, but it is
 # easier to not have to keep instantiating it.
-settings = _settings()
+settings_dict = _settings_dict()
