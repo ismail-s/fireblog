@@ -58,7 +58,9 @@ def use_template(template: str=None):
             # Deal with eg HTTPFound or HTTPNotFound by just returning them.
             if isinstance(res, HTTPException):
                 return res
-            to_render = eval(res.text)
+            # Pull out the custom dict object set by
+            # :py:func:`fireblog.template_response_adapter`
+            to_render = res._fireblog_custom_response
             if not isinstance(to_render, dict):
                 raise Exception(  # pragma: no cover
                     "The use_template decorator is being used "
