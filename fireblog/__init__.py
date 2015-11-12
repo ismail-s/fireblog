@@ -21,7 +21,13 @@ def template_response_adapter(s: utils.TemplateResponseDict):
     returns a :py:class:`pyramid.response.Response` containing a string
     representation of s."""
     assert isinstance(s, utils.TemplateResponseDict)
-    response = Response(repr(s))
+    # We need to return a Response() object, as per the Pyramid specs. But we
+    # want to not store a string in the Response yet, but an arbitrary dict
+    # as after this function returns, :py:func:`use_template` will do further
+    # processing on this arbitrary dict. So we set a custom field on this
+    # Respnse object, which we can retrieve in :py:func:`use_template`.
+    response = Response()
+    response._fireblog_custom_response = s
     return response
 
 
