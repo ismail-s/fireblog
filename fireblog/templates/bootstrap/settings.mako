@@ -3,7 +3,7 @@
 <%block name="header">Settings</%block>
 
 <%block name="content">
-<form>
+<form id = "change-settings" action = "${save_url}" method = "post">
 
 % for entry in mapping:
 
