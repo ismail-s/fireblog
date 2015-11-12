@@ -42,3 +42,6 @@ mapping = (
         str,
         validators.sitename_validator)
 )
+
+# This is a convenient way of accessing all registry names
+registry_names = (entry.registry_name for entry in mapping)
