@@ -25,6 +25,11 @@ class Settings:
             if not value:
                 # Only a malformed request should hit this
                 return HTTPInternalServerError()
+            try:
+                value = entry.type(value)
+            except Exception:
+                errors.append(invalid_value_str.format(entry.display_name))
+                continue
             if not entry.validator(value):
                 errors.append(invalid_value_str.format(entry.display_name))
                 continue
@@ -35,11 +40,6 @@ class Settings:
             if entry.max and entry.max < value:
                 error_str = '{} is too large (it should be smaller than {})'
                 errors.append(error_str.format(entry.display_name, entry.max))
-                continue
-            try:
-                value = entry.type(value)
-            except Exception:
-                errors.append(invalid_value_str.format(entry.display_name))
                 continue
             # Settings will only be changed if all settings on the page were
             # valid.
