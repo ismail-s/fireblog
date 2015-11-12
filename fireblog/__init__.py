@@ -109,6 +109,7 @@ def add_routes(config):
 
 def include_all_components(config):
     add_routes(config)
+    config.include('fireblog.settings')
     config.include('fireblog.comments', route_prefix='/comment')
     config.include('fireblog.views')
 
