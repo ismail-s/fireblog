@@ -13,6 +13,7 @@ from pyramid.response import Response
 from pyramid.httpexceptions import (
     HTTPFound,
     HTTPNotFound,
+    HTTPInternalServerError
 )
 import sqlalchemy.sql as sql
 from sqlalchemy import desc
@@ -25,8 +26,12 @@ from fireblog.models import (
 
 @view_config(route_name='rss')
 def render_rss_feed(request):
-    max_rss_items = request.registry.settings['fireblog.max_rss_items']
     "Generate an RSS feed of all posts."
+    max_rss_items = request.registry.settings['fireblog.max_rss_items']
+    try:
+        max_rss_items = int(max_rss_items)
+    except Exception:
+        return HTTPInternalServerError()
     posts = DBSession.query(Post).order_by(desc(Post.created)).all()
     items = []
     for post in posts[:max_rss_items]:

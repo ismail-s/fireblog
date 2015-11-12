@@ -2,7 +2,7 @@ import pytest
 import re
 
 
-from pyramid.httpexceptions import HTTPNotFound
+from pyramid.httpexceptions import HTTPNotFound, HTTPInternalServerError
 
 import fireblog.views as views
 import fireblog.tags
@@ -393,6 +393,13 @@ class Test_rss:
         response = views.render_rss_feed(pyramid_req)
         assert self.rss_success_text_1 in response.text
         assert self.rss_success_text_2 in response.text
+
+    @pytest.mark.parametrize('invalid', ['invalid', None])
+    def test_get_http500_when_max_rss_items_setting_is_invalid(
+            self, invalid, pyramid_config, pyramid_req):
+        pyramid_req.registry.settings['fireblog.max_rss_items'] = invalid
+        res = views.render_rss_feed(pyramid_req)
+        assert isinstance(res, HTTPInternalServerError)
 
 
 class Test_uuid:
