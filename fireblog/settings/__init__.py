@@ -1,5 +1,6 @@
-from .db_wrapper import settings_dict
-from .mapping import mapping
+# Imports here make it easier to use this package elsewhere
+from .db_wrapper import settings_dict  # noqa
+from .mapping import mapping  # noqa
 
 
 def includeme(config):
