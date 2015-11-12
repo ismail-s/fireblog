@@ -8,7 +8,12 @@ Entry = namedtuple('Entry', [
     'type',  # eg int, str...
     # Validator is a function that takes a value and returns a bool
     # indicating if it is a valid entry
-    'validator'])
+    'validator',
+    'min',  # If type is a number, then this can be set to the min allowed num
+    'max'  # Max allowed num (if type is a number)
+])
+
+Entry.__new__.__defaults__ = (None, None, None, None, object, lambda x: True, None, None)
 
 mapping = (
     Entry(
