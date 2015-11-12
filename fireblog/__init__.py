@@ -77,7 +77,7 @@ def create_commenter_and_return_group(userid) -> str:
 
 
 class Root(object):
-    """Rresource tree to map groups to permissions. We allow admins to do
+    """Resource tree to map groups to permissions. We allow admins to do
     anything, and commenters to be able to comment only.
     """
     __acl__ = [
