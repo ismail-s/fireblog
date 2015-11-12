@@ -22,14 +22,16 @@ mapping = (
         'The maximum number of items to show in the RSS feed. '
         'The latest posts are shown in the RSS feed.',
         int,
-        validators.max_rss_item_validator),
+        min=1,
+        max=99999),
     Entry(
         'fireblog.all_view_post_len',
         'Max length of post preview',
         'Some webpages show previews of several posts. '
         'Here, you can set how long those previews can be.',
         int,
-        validators.post_preview_len_validator),
+        min=1,
+        max=99999),
     Entry(
         'persona.siteName',
         'Site name',
