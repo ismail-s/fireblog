@@ -2,9 +2,9 @@ from collections import namedtuple
 from . import validators
 
 Entry = namedtuple('Entry', [
-    'reg_name',  # Registry name
-    'displ_name',  # Display name
-    'descr',  # Description
+    'registry_name',  # Registry name
+    'display_name',  # Display name
+    'description',  # Description
     'type',  # eg int, str...
     # Validator is a function that takes a value and returns a bool
     # indicating if it is a valid entry
