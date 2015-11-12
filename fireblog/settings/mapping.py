@@ -13,7 +13,8 @@ Entry = namedtuple('Entry', [
     'max'  # Max allowed num (if type is a number)
 ])
 
-Entry.__new__.__defaults__ = (None, None, None, None, object, lambda x: True, None, None)
+entry_defaults = (None, None, None, None, object, lambda x: True, None, None)
+Entry.__new__.__defaults__ = entry_defaults
 
 mapping = (
     Entry(
