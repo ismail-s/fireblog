@@ -1,6 +1,7 @@
 from collections.abc import MutableMapping
 from fireblog.utils import region
 from fireblog.models import DBSession, Settings
+from .mapping import mapping
 
 
 class _settings_dict(MutableMapping):
@@ -17,6 +18,13 @@ class _settings_dict(MutableMapping):
     @region.cache_on_arguments()
     def __getitem__(self, key):
         res = self._get_item_from_db(key)
+        # Cast the value
+        for entry in mapping:
+            if entry.registry_name == key:
+                return entry.type(res.value)
+        # If there is no corresponding registry entry, we just return rather
+        # than crashing things.
+        # TODO-log an error here
         return res.value
 
     def __setitem__(self, key, value):
