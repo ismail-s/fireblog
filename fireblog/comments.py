@@ -3,6 +3,7 @@ import fireblog.utils as utils
 import fireblog.events as events
 from fireblog.utils import urlify as u
 from fireblog.views import invalidate_current_post
+from fireblog.settings import settings_dict
 import requests
 from pyramid.view import view_config
 from pyramid.httpexceptions import (
