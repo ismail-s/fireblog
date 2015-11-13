@@ -49,5 +49,6 @@ class Settings:
             for reg_name, value in to_set:
                 settings_dict[reg_name] = value
         else:
-            (self.request.session.flash(e) for e in errors)
+            for e in errors:
+                self.request.session.flash(e)
         return HTTPFound(location=self.request.route_url('settings'))
