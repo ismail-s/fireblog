@@ -1,7 +1,8 @@
-from fireblog.settings import mapping, registry_names, settings_dict
+from fireblog.settings import mapping, settings_dict
 from fireblog.utils import use_template, TemplateResponseDict
 from pyramid.view import view_config, view_defaults
-from pyramid.httpexceptions import HTTPFound, HTTPInternalServerError
+from pyramid.httpexceptions import HTTPFound
+
 
 @view_defaults(route_name='settings', permission=None)
 class Settings:
