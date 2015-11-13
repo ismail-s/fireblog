@@ -24,6 +24,7 @@
             id="${entry.registry_name}"
             name="${entry.registry_name}"
             placeholder="${entry.display_name}"
+            value="${entry.value}"
             required>
     </div>
 

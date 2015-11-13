@@ -1,4 +1,5 @@
 from fireblog.settings import mapping, settings_dict
+from fireblog.settings.mapping import Entry
 from fireblog.utils import use_template, TemplateResponseDict
 from pyramid.view import view_config, view_defaults
 from pyramid.httpexceptions import HTTPFound
@@ -11,9 +12,10 @@ class Settings:
 
     @view_config(decorator=use_template('settings.mako'), request_method="GET")
     def settings(self):
-        # TODO-get the current values
+        new_mapping = (e._replace(value=settings_dict[e.registry_name]) for e in mapping)
+        new_mapping = tuple(new_mapping)
         save_url = self.request.route_url('settings')
-        return TemplateResponseDict(mapping=mapping, save_url=save_url)
+        return TemplateResponseDict(mapping=new_mapping, save_url=save_url)
 
     @view_config(request_method="POST")
     def settings_post(self):
