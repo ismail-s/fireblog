@@ -41,7 +41,14 @@ mapping = (
         'restarted at some point in order to update the display of the '
         'sitename in the login screen.',
         str,
-        validators.sitename_validator)
+        validators.sitename_validator),
+    Entry(
+        'fireblog.recaptcha-secret',
+        'Recaptcha secret',
+        'The Recaptcha secret used for server-side validation to combat spam. '
+        'See https://www.google.com/recaptcha for more details.',
+        str,
+        validators.recaptcha_secret_validator)
 )
 
 # This is a convenient way of accessing all registry names
