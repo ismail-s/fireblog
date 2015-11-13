@@ -26,8 +26,8 @@ class _settings_dict(MutableMapping):
         except KeyError:
             new_entry = Settings(name=key, value=value)
             DBSession.add(new_entry)
-            DBSession.flush()
         finally:
+            DBSession.flush()
             self.__getitem__.set(value, self, key)
 
     def __delitem__(self, key):
