@@ -10,10 +10,11 @@ Entry = namedtuple('Entry', [
     # indicating if it is a valid entry
     'validator',
     'min',  # If type is a number, then this can be set to the min allowed num
-    'max'  # Max allowed num (if type is a number)
+    'max',  # Max allowed num (if type is a number)
+    'value'  # If we know the value of this, then we set this to it.
 ])
 
-entry_defaults = (None, None, None, None, object, lambda x: True, None, None)
+entry_defaults = (None,) * 3 + (object, lambda x: True) + (None,) * 3
 Entry.__new__.__defaults__ = entry_defaults
 
 mapping = (
