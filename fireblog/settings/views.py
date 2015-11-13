@@ -23,8 +23,9 @@ class Settings:
         for entry in mapping:
             value = params.get(entry.registry_name, None)
             if not value:
-                # Only a malformed request should hit this
-                return HTTPInternalServerError()
+                error_str = '"{}" setting was not provided, and is required.'
+                errors.append(error_str.format(entry.display_name))
+                continue
             try:
                 value = entry.type(value)
             except Exception:
