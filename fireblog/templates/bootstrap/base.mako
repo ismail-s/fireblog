@@ -32,6 +32,14 @@
 
 <%block name = "navbar"/>
 
+% for error in request.session.pop_flash():
+<div class="alert alert-danger alert-dismissible" role="alert">
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+  ${error}
+</div>
+% endfor
+
+</div>
 <div class="page-header">
   <h1>Not the Answer <small>A personal blog</small> ${request.persona_button}</h1>
 </div>
