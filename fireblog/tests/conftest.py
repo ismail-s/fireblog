@@ -7,7 +7,9 @@ import webtest
 from pyramid import testing
 from fireblog import include_all_components
 from sqlalchemy import create_engine
-from fireblog.models import DBSession, Base, Post, Users, Tags, Comments
+from fireblog.models import (
+    DBSession, Base, Post, Users, Tags, Comments, Settings
+)
 from fireblog.utils import region
 import fireblog
 
@@ -96,6 +98,16 @@ def mydb(request, persona_test_admin_login):
         comment1.post = post
         comment1.author = me
         DBSession.add(comment1)
+    with transaction.manager:
+        settings_map = (
+            ('fireblog.max_rss_items', '100'),
+            ('fireblog.all_view_post_len', '1000'),
+            ('persona.siteName', 'sitename'),
+            ('fireblog.recaptcha-secret',
+             'secretsecretsecretsecretsecretsecretsecr'))
+        settings = [Settings(name=x, value=y) for x, y in settings_map]
+        for e in settings:
+            DBSession.add(e)
 
     def fin():
         DBSession.remove()
