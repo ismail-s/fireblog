@@ -5,7 +5,7 @@ Entry = namedtuple('Entry', [
     'registry_name',  # Registry name
     'display_name',  # Display name
     'description',  # Description
-    'type',  # eg int, str...
+    'type',  # eg int, str... A func that returns an obj of the right type.
     # Validator is a function that takes a value and returns a bool
     # indicating if it is a valid entry
     'validator',
@@ -14,7 +14,7 @@ Entry = namedtuple('Entry', [
     'value'  # If we know the value of this, then we set this to it.
 ])
 
-entry_defaults = (None,) * 3 + (object, lambda x: True) + (None,) * 3
+entry_defaults = (None,) * 3 + (lambda x: x, lambda x: True) + (None,) * 3
 Entry.__new__.__defaults__ = entry_defaults
 
 mapping = (
