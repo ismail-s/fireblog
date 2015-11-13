@@ -13,8 +13,7 @@ from pyramid.view import view_config, view_defaults
 from pyramid.response import Response
 from pyramid.httpexceptions import (
     HTTPFound,
-    HTTPNotFound,
-    HTTPInternalServerError
+    HTTPNotFound
 )
 import sqlalchemy.sql as sql
 from sqlalchemy import desc
