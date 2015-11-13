@@ -119,6 +119,7 @@ def mydb(request, persona_test_admin_login):
 def pyramid_config(mydb, request):
     config = testing.setUp()
     config.include('pyramid_mako')
+    mydb.rollback()
     include_all_components(config)
     mydb.rollback()
     mydb.begin(subtransactions=True)
@@ -144,6 +145,7 @@ def setup_testapp(mydb, theme, request):
                 'fireblog.max_rss_items': '100',
                 'fireblog.theme': theme,
                 'fireblog.recaptcha-secret': 'secret...'}
+    mydb.rollback()
     app = fireblog.main({}, **settings)
     return webtest.TestApp(app)
 
