@@ -50,4 +50,3 @@ def validate_value(entry, value):
 
 def includeme(config):
     config.add_route('settings', '/settings')
-    make_sure_all_settings_exist_and_are_valid()

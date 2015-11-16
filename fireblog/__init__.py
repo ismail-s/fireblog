@@ -6,6 +6,10 @@ from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.events import BeforeRender
 from pyramid.response import Response
 import fireblog.utils as utils
+from fireblog.settings import (
+    settings_dict,
+    make_sure_all_settings_exist_and_are_valid
+)
 from fireblog.models import (
     DBSession,
     Base,
@@ -156,6 +160,14 @@ def main(global_config, **settings):
     engine = engine_from_config(settings, 'sqlalchemy.')
     DBSession.configure(bind=engine)
     Base.metadata.bind = engine
+
+    make_sure_all_settings_exist_and_are_valid()
+    # Add all settings from db that are needed for plugins (eg pyramid_persona)
+    # so that the plugins can access these settings.
+    for name, value in settings_dict.items():
+        if not name.startswith('fireblog'):
+            settings[name] = value
+
     config = Configurator(settings=settings, root_factory=Root)
     config.include('pyramid_mako')
     config.include("pyramid_persona")
