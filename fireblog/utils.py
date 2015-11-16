@@ -56,7 +56,7 @@ def use_template(template: str=None):
 
 
 def render_to_response(template, res, request):
-    theme = request.registry.settings['fireblog.theme']
+    theme = settings_dict['fireblog.theme']
     template = 'fireblog:templates/' + theme + '/' + template
     return renderers.render_to_response(template, res, request)
 
