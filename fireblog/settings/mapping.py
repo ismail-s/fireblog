@@ -48,7 +48,13 @@ mapping = (
         'The Recaptcha secret used for server-side validation to combat spam. '
         'See https://www.google.com/recaptcha for more details.',
         str,
-        validators.recaptcha_secret_validator)
+        validators.recaptcha_secret_validator),
+    Entry(
+        'fireblog.theme',
+        'Blog theme',
+        'The theme for this blog.',
+        str,
+        validators.theme_validator)
 )
 
 # This is a convenient way of accessing all registry names
