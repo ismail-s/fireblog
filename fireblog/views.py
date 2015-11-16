@@ -4,6 +4,7 @@ import fireblog.utils as utils
 import fireblog.events as events
 from fireblog.utils import use_template, TemplateResponseDict
 from fireblog.utils import urlify as u
+from fireblog.dogpile_region import region
 from fireblog.settings import settings_dict
 import PyRSS2Gen
 import paginate_sqlalchemy
@@ -105,7 +106,7 @@ def post_key_generator(*args, **kwargs):
     return new_key_generator
 
 
-@utils.region.cache_on_arguments(function_key_generator=post_key_generator)
+@region.cache_on_arguments(function_key_generator=post_key_generator)
 def _get_post_section_as_dict(request, page, post_id):
     post_id = int(post_id)
     assert page.id == post_id

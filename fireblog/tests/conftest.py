@@ -10,7 +10,7 @@ from sqlalchemy import create_engine
 from fireblog.models import (
     DBSession, Base, Post, Users, Tags, Comments, Settings
 )
-from fireblog.utils import region
+from fireblog.dogpile_region import region
 import fireblog
 
 # Get all available themes

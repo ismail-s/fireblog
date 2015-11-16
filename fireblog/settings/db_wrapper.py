@@ -1,5 +1,5 @@
 from collections.abc import MutableMapping
-from fireblog.utils import region
+from fireblog.dogpile_region import region
 from fireblog.models import DBSession, Settings
 from .mapping import mapping
 
