@@ -57,6 +57,10 @@ paper-dialog {
   padding: 0px 5px;
 }
 
+paper-toast {
+  z-index: 1;
+}
+
 .starter-template {
   padding: 40px 15px;
   text-align: center;
