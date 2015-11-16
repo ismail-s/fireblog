@@ -43,6 +43,20 @@ mapping = (
         str,
         validators.sitename_validator),
     Entry(
+        'persona.secret',
+        'Persona secret',
+        'This is a secret required by Mozilla Persona, the authentication '
+        'mechanism used on this blog. This should basically be some random '
+        'string.',
+        str),
+    Entry(
+        'persona.audiences',
+        'Persona audiences',
+        'This should be a list of domains this blog is served on. This is '
+        'required by the Persona authentication mechanism. If a domain is '
+        'not on this list, then logins won\'t work from that domain.',
+        str),
+    Entry(
         'fireblog.recaptcha-secret',
         'Recaptcha secret',
         'The Recaptcha secret used for server-side validation to combat spam. '
