@@ -1,4 +1,4 @@
-from fireblog.settings import mapping, settings_dict
+from fireblog.settings import mapping, settings_dict, validate_value
 from fireblog.utils import use_template, TemplateResponseDict
 from pyramid.view import view_config, view_defaults
 from pyramid.httpexceptions import HTTPFound
