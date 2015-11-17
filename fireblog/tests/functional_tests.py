@@ -209,4 +209,5 @@ class Test_functional_tests:
             res = testapp.get('/settings')
             text = str(res)
             for elem in settings_map:
-                assert elem in text
+                for e in elem:
+                    assert e in text
