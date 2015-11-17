@@ -40,20 +40,19 @@ def persona_test_admin_login():
 
 
 @pytest.fixture
-def pyramid_req(theme):
+def pyramid_req():
     res = testing.DummyRequest()
     # max_rss_items is set as a str to test that the rss view converts
     # it to an int
     res.registry.settings.update({'fireblog.max_rss_items': '100',
                                   'fireblog.all_view_post_len': 1000,
                                   'dogpile_cache.backend': 'memory',
-                                  'fireblog.theme': theme,
                                   'fireblog.recaptcha-secret': 'secret...'})
     return res
 
 
 @pytest.fixture(scope='session')
-def mydb(request, persona_test_admin_login):
+def mydb(request, persona_test_admin_login, theme):
     engine = create_engine('sqlite://')
     DBSession.configure(bind=engine)
     Base.metadata.create_all(engine)
@@ -104,7 +103,8 @@ def mydb(request, persona_test_admin_login):
             ('fireblog.all_view_post_len', '1000'),
             ('persona.siteName', 'sitename'),
             ('fireblog.recaptcha-secret',
-             'secretsecretsecretsecretsecretsecretsecr'))
+             'secretsecretsecretsecretsecretsecretsecr'),
+             ('fireblog.theme', theme))
         settings = [Settings(name=x, value=y) for x, y in settings_map]
         for e in settings:
             DBSession.add(e)
@@ -134,7 +134,7 @@ def pyramid_config(mydb, request):
 
 
 @pytest.fixture(scope='session')
-def setup_testapp(mydb, theme, request):
+def setup_testapp(mydb, request):
     settings = {'sqlalchemy.url': 'sqlite://',
                 'persona.audiences': 'http://localhost',
                 'persona.secret': 'some_secret',
@@ -143,7 +143,6 @@ def setup_testapp(mydb, theme, request):
                 # max_rss_items is set as a str to test that
                 # the rss view converts it to an int
                 'fireblog.max_rss_items': '100',
-                'fireblog.theme': theme,
                 'fireblog.recaptcha-secret': 'secret...'}
     mydb.rollback()
     app = fireblog.main({}, **settings)
