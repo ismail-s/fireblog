@@ -110,7 +110,8 @@ class Test_functional_tests:
     @pytest.mark.parametrize('url', ['/posts/2/Page2/edit',
                                      '/posts/2/Page2/del',
                                      '/add_post/some new page',
-                                     '/tags'])
+                                     '/tags',
+                                     '/settings'])
     def test_cant_access_admin_pages_with_no_login(self, testapp, url):
         with pytest.raises(AppError) as exc_info:
             testapp.get(url)
