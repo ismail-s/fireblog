@@ -102,6 +102,8 @@ def mydb(request, persona_test_admin_login, theme):
             ('fireblog.max_rss_items', '100'),
             ('fireblog.all_view_post_len', '1000'),
             ('persona.siteName', 'sitename'),
+            ('persona.secret', 'seekret'),
+            ('persona.audiences', 'http://localhost'),
             ('fireblog.recaptcha-secret',
              'secretsecretsecretsecretsecretsecretsecr'),
              ('fireblog.theme', theme))
