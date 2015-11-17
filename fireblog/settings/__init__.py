@@ -1,5 +1,5 @@
 from .db_wrapper import settings_dict  # noqa
-from .mapping import mapping, registry_names  # noqa
+from .mapping import mapping  # noqa
 import transaction
 
 
