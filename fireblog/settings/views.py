@@ -4,7 +4,7 @@ from pyramid.view import view_config, view_defaults
 from pyramid.httpexceptions import HTTPFound
 
 
-@view_defaults(route_name='settings', permission=None)
+@view_defaults(route_name='settings', permission='change-settings')
 class Settings:
 
     def __init__(self, request):
