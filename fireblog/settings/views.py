@@ -20,7 +20,6 @@ class Settings:
 
     @view_config(request_method="POST")
     def settings_post(self):
-        invalid_value_str = '{} is invalid.'
         params = self.request.params
         errors = []
         to_set = []
@@ -30,10 +29,10 @@ class Settings:
             if not valid:
                 errors.append(error_str)
                 continue
-            # Settings will only be changed if all settings on the page were
-            # valid.
             to_set.append((entry.registry_name, value))
         if not errors:
+            # Settings will only be changed if all settings on the page were
+            # valid.
             for reg_name, value in to_set:
                 settings_dict[reg_name] = value
         else:
