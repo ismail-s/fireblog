@@ -1,9 +1,6 @@
 import pytest
 import re
-
-
-from pyramid.httpexceptions import HTTPNotFound, HTTPInternalServerError
-
+from pyramid.httpexceptions import HTTPNotFound
 import fireblog.views as views
 import fireblog.tags
 from fireblog.views import Post_modifying_views, Add_Post

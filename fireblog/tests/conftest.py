@@ -106,7 +106,7 @@ def mydb(request, persona_test_admin_login, theme):
             ('persona.audiences', 'http://localhost'),
             ('fireblog.recaptcha-secret',
              'secretsecretsecretsecretsecretsecretsecr'),
-             ('fireblog.theme', theme))
+            ('fireblog.theme', theme))
         settings = [Settings(name=x, value=y) for x, y in settings_map]
         for e in settings:
             DBSession.add(e)
