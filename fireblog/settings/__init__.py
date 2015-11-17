@@ -1,5 +1,5 @@
 from .db_wrapper import settings_dict  # noqa
-from .mapping import mapping  # noqa
+from .mapping import mapping, Entry  # noqa
 import transaction
 
 
@@ -16,7 +16,7 @@ def make_sure_all_settings_exist_and_are_valid():
             for entry in mapping:
                 try:
                     value = settings_dict[entry.registry_name]
-                    valid, value = validate_value(entry, value)
+                    valid, value, _ = validate_value(entry, value)
                     if valid:
                         continue
                 except KeyError:
@@ -25,27 +25,39 @@ def make_sure_all_settings_exist_and_are_valid():
                     # Get value from user
                     input_str = 'Please provide a value for the setting "{}": '
                     user_val = input(input_str.format(entry.display_name))
-                    valid, value = validate_value(entry, user_val)
+                    valid, value, _ = validate_value(entry, user_val)
                     if valid:
                         break
                     print('That value is invalid.')
                 settings_dict[entry.registry_name] = value
 
 
-def validate_value(entry, value):
+def validate_value(entry: Entry, value):
+    '''Validate value against entry. If value is invalid, return a tuple made
+    up of: valid_or_not, value_if_valid (as correct type), error_str (if there
+    were any errors).'''
+    invalid_value_str = '{} is invalid.'
     if not value:
-        return False, None
+        error_str = '"{}" setting was not provided, and is required.'
+        error_str = error_str.format(entry.display_name)
+        return False, None, error_str
     try:
         value = entry.type(value)
     except Exception:
-        return False, None
+        error_str = invalid_value_str.format(entry.display_name)
+        return False, None, error_str
     if not entry.validator(value):
-        return False, None
+        error_str = invalid_value_str.format(entry.display_name)
+        return False, None, error_str
     if entry.min and entry.min > value:
-        return False, None
+        error_str = '{} is too small (it should be bigger than {})'
+        error_str = error_str.format(entry.display_name, entry.min)
+        return False, None, error_str
     if entry.max and entry.max < value:
-        return False, None
-    return True, value
+        error_str = '{} is too large (it should be smaller than {})'
+        error_str = error_str.format(entry.display_name, entry.max)
+        return False, None, error_str
+    return True, value, ''
 
 
 def includeme(config):

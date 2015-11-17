@@ -26,25 +26,9 @@ class Settings:
         to_set = []
         for entry in mapping:
             value = params.get(entry.registry_name, None)
-            if not value:
-                error_str = '"{}" setting was not provided, and is required.'
-                errors.append(error_str.format(entry.display_name))
-                continue
-            try:
-                value = entry.type(value)
-            except Exception:
-                errors.append(invalid_value_str.format(entry.display_name))
-                continue
-            if not entry.validator(value):
-                errors.append(invalid_value_str.format(entry.display_name))
-                continue
-            if entry.min and entry.min > value:
-                error_str = '{} is too small (it should be bigger than {})'
-                errors.append(error_str.format(entry.display_name, entry.min))
-                continue
-            if entry.max and entry.max < value:
-                error_str = '{} is too large (it should be smaller than {})'
-                errors.append(error_str.format(entry.display_name, entry.max))
+            valid, value, error_str = validate_value(entry, value)
+            if not valid:
+                errors.append(error_str)
                 continue
             # Settings will only be changed if all settings on the page were
             # valid.
