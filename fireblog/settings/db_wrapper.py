@@ -1,4 +1,7 @@
-from collections.abc import MutableMapping
+try:
+    from collections.abc import MutableMapping
+except ImportError:  # pragma: no cover
+    from collections import MutableMapping
 from fireblog.dogpile_region import region
 from fireblog.models import DBSession, Settings
 from .mapping import mapping
