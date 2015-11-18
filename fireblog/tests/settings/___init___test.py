@@ -44,11 +44,12 @@ class Test_get_settings_during_startup:
 
 
 class Test_validate_value:
+
     @given(st.none())
     def test_validate_value_with_no_value(self, n):
         valid, val, error_str = validate_value(Entry(), n)
         assert not valid
-        assert val == None
+        assert val is None
         assert len(error_str)
 
     @given(st.one_of(st.text(), st.integers()))
@@ -58,7 +59,7 @@ class Test_validate_value:
         entry = Entry(type=raise_exception)
         valid, val, error_str = validate_value(entry, n)
         assert not valid
-        assert val == None
+        assert val is None
         assert len(error_str)
 
     @given(st.one_of(st.text(), st.integers()))
@@ -68,7 +69,7 @@ class Test_validate_value:
         entry = Entry(validator=validator_func)
         valid, val, error_str = validate_value(entry, n)
         assert not valid
-        assert val == None
+        assert val is None
         assert len(error_str)
 
     @given(st.integers(max_value=32))
@@ -76,7 +77,7 @@ class Test_validate_value:
         entry = Entry(min=33)
         valid, val, error_str = validate_value(entry, n)
         assert not valid
-        assert val == None
+        assert val is None
         assert len(error_str)
 
     @given(st.integers(min_value=34))
@@ -84,7 +85,7 @@ class Test_validate_value:
         entry = Entry(max=33)
         valid, val, error_str = validate_value(entry, n)
         assert not valid
-        assert val == None
+        assert val is None
         assert len(error_str)
 
     def test_validate_value_which_is_just_big_enough(self):
