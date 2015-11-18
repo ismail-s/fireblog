@@ -2,6 +2,9 @@ import pytest
 from fireblog.settings import settings_dict
 
 
+pytestmark = pytest.mark.usefixtures("test_with_one_theme")
+
+
 def test_can_set_an_item_and_then_get_the_same_item(pyramid_config):
     assert not settings_dict.get('test', None)
     settings_dict['test'] = 'test_str'

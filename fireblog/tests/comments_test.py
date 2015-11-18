@@ -10,6 +10,9 @@ except ImportError:
     import mock  # python3.2 support
 
 
+pytestmark = pytest.mark.usefixtures("test_with_one_theme")
+
+
 class Test_comment_view:
 
     @staticmethod

@@ -2,6 +2,10 @@ from fireblog.settings.views import Settings
 from fireblog.settings import mapping, settings_dict
 from pyramid.httpexceptions import HTTPFound
 import transaction
+import pytest
+
+
+pytestmark = pytest.mark.usefixtures("test_with_one_theme")
 
 
 def test_GET_settings(pyramid_config, pyramid_req, theme):

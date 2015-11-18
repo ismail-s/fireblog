@@ -1,6 +1,8 @@
 import pytest
 import fireblog
 
+pytestmark = pytest.mark.usefixtures("test_with_one_theme")
+
 
 class Test_groupfinder:
 

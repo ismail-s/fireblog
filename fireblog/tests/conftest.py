@@ -28,6 +28,12 @@ def theme(request):
 
 
 @pytest.fixture(scope='session')
+def test_with_one_theme(theme):
+    if theme != 'bootstrap':
+        pytest.skip("This test doesn't need to be run against all themes.")
+
+
+@pytest.fixture(scope='session')
 def persona_test_admin_login():
     data = requests.get(
         'http://personatestuser.org/email_with_assertion/'

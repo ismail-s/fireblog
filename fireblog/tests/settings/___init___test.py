@@ -7,6 +7,10 @@ from fireblog.settings.mapping import Entry
 from hypothesis import given
 import hypothesis.strategies as st
 import transaction
+import pytest
+
+
+pytestmark = pytest.mark.usefixtures("test_with_one_theme")
 
 
 class Test_get_settings_during_startup:
