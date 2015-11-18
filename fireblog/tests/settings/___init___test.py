@@ -1,7 +1,46 @@
-from fireblog.settings import validate_value
+from fireblog.settings import (
+    validate_value,
+    make_sure_all_settings_exist_and_are_valid,
+    settings_dict
+)
 from fireblog.settings.mapping import Entry
 from hypothesis import given
 import hypothesis.strategies as st
+import transaction
+
+
+class Test_get_settings_during_startup:
+
+    def test_gets_and_stores_all_settings_from_command_line(
+            self, pyramid_config, clear_settings_dict, monkeypatch, capsys):
+        with transaction.manager:
+            settings_dict['persona.secret'] = 'somesecret'
+        # Setup inputs to be fed in via input func
+        inputs = [
+            '0', '50', '999999', '500', '', 'sitename', 'http://localhost',
+            'x' * 39, 'x' * 40, 'wrong-theme', 'bootstrap']
+        input_gen = (i for i in inputs)
+        monkeypatch.setattr('builtins.input', lambda prompt: next(input_gen))
+        make_sure_all_settings_exist_and_are_valid()
+        expected_settings_dict = {
+            'fireblog.max_rss_items': 50,
+            'fireblog.all_view_post_len': 500,
+            'persona.siteName': 'sitename',
+            'persona.secret': 'somesecret',
+            'persona.audiences': 'http://localhost',
+            'fireblog.recaptcha-secret': 'x' * 40,
+            'fireblog.theme': 'bootstrap'}
+        # Check that settings_dict is all correct
+        for key, value in expected_settings_dict.items():
+            assert settings_dict[key] == value
+        # Check that messages were printed to stdout for each invalid value
+        out, err = capsys.readouterr()
+        assert not err
+        out = [x for x in out.split('\n') if x]
+        # 5 Invalid values were supplied
+        assert len(out) == 5
+        # Check the same message was printed each time.
+        assert all((x == out[0] for x in out))
 
 
 class Test_validate_value:
