@@ -33,7 +33,8 @@ class Test_add_post:
         del request.matchdict['postname']
         return res
 
-    def test_GET_success(self, pyramid_config, pyramid_req, test_with_one_theme):
+    def test_GET_success(self, pyramid_config, pyramid_req,
+                         test_with_one_theme):
         pyramid_req.matchdict['postname'] = 'somenewpage'
         response = Add_Post(pyramid_req).add_post()
         assert 'somenewpage' in response['title']
@@ -41,7 +42,8 @@ class Test_add_post:
         assert response[
             'save_url'] == 'http://example.com/add_post/somenewpage'
 
-    def test_GET_failure(self, pyramid_config, pyramid_req, test_with_one_theme):
+    def test_GET_failure(self, pyramid_config, pyramid_req,
+                         test_with_one_theme):
         pyramid_req.matchdict['postname'] = 'Homepage'
         response = Add_Post(pyramid_req).add_post()
         assert response.location == 'http://example.com/posts/1/Homepage/edit'
@@ -76,7 +78,8 @@ class Test_add_post:
         assert response[
             'next_page'] == 'http://example.com/posts/3/' + postname
 
-    def test_POST_failure(self, pyramid_config, pyramid_req, test_with_one_theme):
+    def test_POST_failure(self, pyramid_config,
+                          pyramid_req, test_with_one_theme):
         response = self.submit_add_post(pyramid_req, postname='Homepage',
                                         body='Some test body.',
                                         tags='tag2')
@@ -262,7 +265,8 @@ class Test_view_multiple_posts_pager:
 
 class Test_edit_post:
 
-    def test_GET_success(self, pyramid_config, pyramid_req, test_with_one_theme):
+    def test_GET_success(self, pyramid_config, pyramid_req,
+                         test_with_one_theme):
         pyramid_req.matchdict['postname'] = 'Homepage'
         pyramid_req.matchdict['id'] = 1
         response = Post_modifying_views(pyramid_req).edit_post()
@@ -271,7 +275,8 @@ class Test_edit_post:
         assert response['save_url'] == ('http://example.com/'
                                         'posts/1/Homepage/edit')
 
-    def test_GET_failure(self, pyramid_config, pyramid_req, test_with_one_theme):
+    def test_GET_failure(self, pyramid_config, pyramid_req,
+                         test_with_one_theme):
         # Only the id should be being checked, not the postname
         pyramid_req.matchdict['postname'] = 'Homepage'
         pyramid_req.matchdict['id'] = 3
@@ -298,7 +303,8 @@ class Test_edit_post:
         assert 'test1' in response['tags']
         assert 'test2' in response['tags']
 
-    def test_POST_failure(self, pyramid_config, pyramid_req, test_with_one_theme):
+    def test_POST_failure(self, pyramid_config,
+                          pyramid_req, test_with_one_theme):
         # Only the id should be being checked, not the postname
         pyramid_req.matchdict['postname'] = 'Homepage'
         pyramid_req.matchdict['id'] = 3
@@ -308,7 +314,8 @@ class Test_edit_post:
 
 class Test_del_post:
 
-    def test_GET_success(self, pyramid_config, pyramid_req, test_with_one_theme):
+    def test_GET_success(self, pyramid_config, pyramid_req,
+                         test_with_one_theme):
         pyramid_req.matchdict['postname'] = 'Homepage'
         pyramid_req.matchdict['id'] = 1
         response = Post_modifying_views(pyramid_req).del_post()
@@ -316,7 +323,8 @@ class Test_del_post:
         assert response['save_url'] == ('http://example.com/'
                                         'posts/1/Homepage/del')
 
-    def test_GET_failure(self, pyramid_config, pyramid_req, test_with_one_theme):
+    def test_GET_failure(self, pyramid_config, pyramid_req,
+                         test_with_one_theme):
         # Here, we use the same postname as an existing post, but use a
         # different id.
         pyramid_req.matchdict['postname'] = 'Homepage'
@@ -360,7 +368,8 @@ class Test_del_post:
         assert response[
             'next_page'] == 'http://example.com/posts/3/somenewpost'
 
-    def test_POST_failure(self, pyramid_config, pyramid_req, test_with_one_theme):
+    def test_POST_failure(self, pyramid_config,
+                          pyramid_req, test_with_one_theme):
         pyramid_req.matchdict['postname'] = 'Homepage'
         pyramid_req.matchdict['id'] = 3
         response = Post_modifying_views(pyramid_req).del_post_POST()
