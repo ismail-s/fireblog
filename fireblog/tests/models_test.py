@@ -6,6 +6,9 @@ except ImportError:
     import mock  # python3.2 support
 
 
+pytestmark = pytest.mark.usefixtures("test_with_one_theme")
+
+
 class Test_create_username:
 
     def test_func_called_with_bad_context(self):

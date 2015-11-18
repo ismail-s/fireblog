@@ -4,6 +4,9 @@ from fireblog.views import Post_modifying_views
 from pyramid.httpexceptions import HTTPNotFound
 
 
+pytestmark = pytest.mark.usefixtures("test_with_one_theme")
+
+
 class Test_tag_view:
 
     @pytest.mark.parametrize("tag, actual_posts", [
