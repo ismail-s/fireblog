@@ -1,29 +1,13 @@
 from markdown import markdown
 from fireblog.models import DBSession, Tags, Users
 from fireblog.htmltruncate import truncate as truncate_html
-from pyramid_dogpile_cache import get_region
+from fireblog.settings import settings_dict
+from fireblog.dogpile_region import region
 import arrow
 import functools
 import transaction
 from pyramid import renderers
 from pyramid.httpexceptions import HTTPException
-
-# This is the dogpile_cache cache region.
-try:
-    region = get_region('')
-except KeyError:
-    # KeyError occurs when this module is directly imported before
-    # fireblog:main is called. Basically, in the fireblog:main function,
-    # pyramid_dogpile_cache plugin sets up dogpile.cache using settings
-    # from the usual ini files. However, if this module is imported first,
-    # then this setup doesn't happen. As a result, as a fallback in these
-    # cases (atm only when tests are run, which is when we actually want
-    # to check that the cache is correctly managed by the website) we use
-    # the memory cache backend.
-    # Note: as the tests use the memory backend, I have made it so that
-    # the cache gets wiped after each test run. But this has meant the tests
-    # now rely on being run against the memory backend.
-    region = get_region('', backend='dogpile.cache.memory')
 
 
 def urlify(string: str) -> str:
@@ -72,7 +56,7 @@ def use_template(template: str=None):
 
 
 def render_to_response(template, res, request):
-    theme = request.registry.settings['fireblog.theme']
+    theme = settings_dict['fireblog.theme']
     template = 'fireblog:templates/' + theme + '/' + template
     return renderers.render_to_response(template, res, request)
 
@@ -161,8 +145,7 @@ def turn_tag_object_into_html_string_for_display(request, tag_object):
 
 
 def create_post_list_from_posts_obj(request, post_obj):
-    settings = request.registry.settings
-    LENGTH_OF_EACH_POST_TO_INCLUDE_IN_ALL_POST_VIEW = settings[
+    LENGTH_OF_EACH_POST_TO_INCLUDE_IN_ALL_POST_VIEW = settings_dict[
         'fireblog.all_view_post_len']
     l = LENGTH_OF_EACH_POST_TO_INCLUDE_IN_ALL_POST_VIEW
     res = []

@@ -110,7 +110,8 @@ class Test_functional_tests:
     @pytest.mark.parametrize('url', ['/posts/2/Page2/edit',
                                      '/posts/2/Page2/del',
                                      '/add_post/some new page',
-                                     '/tags'])
+                                     '/tags',
+                                     '/settings'])
     def test_cant_access_admin_pages_with_no_login(self, testapp, url):
         with pytest.raises(AppError) as exc_info:
             testapp.get(url)
@@ -192,3 +193,21 @@ class Test_functional_tests:
         assert res.status == '200 OK'
         # The RSS feed content is tested already by
         # :py:func:`fireblog.tests.views_test.Test_rss`.
+
+    def test_settings_page_includes_all_settings(
+            self, testapp, theme, persona_test_admin_login):
+        settings_map = (
+            ('fireblog.max_rss_items', '100'),
+            ('fireblog.all_view_post_len', '1000'),
+            ('persona.siteName', 'sitename'),
+            ('persona.secret', 'seekret'),
+            ('persona.audiences', 'http://localhost'),
+            ('fireblog.recaptcha-secret',
+             'secretsecretsecretsecretsecretsecretsecr'),
+            ('fireblog.theme', theme))
+        with self.logged_in(testapp, persona_test_admin_login):
+            res = testapp.get('/settings')
+            text = str(res)
+            for elem in settings_map:
+                for e in elem:
+                    assert e in text

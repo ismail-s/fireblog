@@ -52,7 +52,7 @@ def upgrade():
 
     DBSession.configure(bind=op.get_bind())
     for user in DBSession.query(Users):
-        if not user.username or post.username == '':
+        if not user.username:
             # We set the username to be the first part of the email address by
             # default.
             user.username = user.userid[:user.userid.find('@')]

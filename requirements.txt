@@ -21,3 +21,4 @@ flake8
 mock
 paginate
 paginate_sqlalchemy
+hypothesis

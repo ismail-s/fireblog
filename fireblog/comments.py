@@ -3,6 +3,7 @@ import fireblog.utils as utils
 import fireblog.events as events
 from fireblog.utils import urlify as u
 from fireblog.views import invalidate_current_post
+from fireblog.settings import settings_dict
 import requests
 from pyramid.view import view_config
 from pyramid.httpexceptions import (
@@ -63,8 +64,7 @@ def comment_add(request):
     comment_text = request.params.get('comment', None)
     if not request.authenticated_userid:
         recaptcha = request.params.get('g-recaptcha-response', '')
-        settings = request.registry.settings
-        recaptcha_site_secret = settings['fireblog.recaptcha-secret']
+        recaptcha_site_secret = settings_dict['fireblog.recaptcha-secret']
         payload = dict(secret=recaptcha_site_secret,
                        response=recaptcha)
         result = requests.post(

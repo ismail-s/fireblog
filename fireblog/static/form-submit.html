@@ -9,7 +9,8 @@
 </dom-module>
 
 <script>
-var MyElement =  Polymer({
+/*global Polymer*/
+Polymer({
 
     is: "form-submit-button",
     listeners: {
@@ -24,7 +25,12 @@ var MyElement =  Polymer({
                 value: this.value,
                 }).appendTo(form);
             });
-        form.submit();
+        $('<input>').attr({
+                type: 'submit',
+                name: 'submitButton',
+                style: 'display:none',
+                }).appendTo(form).click();
+        $('input[name=submitButton]').remove();
         }
   });
 </script>

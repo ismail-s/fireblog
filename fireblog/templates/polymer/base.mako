@@ -21,6 +21,7 @@
     <link rel="import" href="${request.get_bower_url('paper-toolbar/paper-toolbar.html')}">
     <link rel="import" href="${request.get_bower_url('paper-scroll-header-panel/paper-scroll-header-panel.html')}">
     <link rel="import" href="${request.get_bower_url('paper-material/paper-material.html')}">
+    <link rel="import" href="${request.get_bower_url('paper-toast/paper-toast.html')}">
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
       <script src="//oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
@@ -30,6 +31,27 @@
     </%block>
   </head>
   <body>
+
+  % for error in request.session.pop_flash():
+    <paper-toast class="toast-alert" duration=2000>${error}</paper-toast>
+  % endfor
+  <script>
+  var showToasts = function(event) {
+    // Get all the toast elements.
+    var elems = Array.prototype.slice.call(document.getElementsByClassName('toast-alert'));
+    var showElem = function(array){
+      // Show toast.
+      array[0].show();
+      if (array.length > 1) {
+        // Show the next toast once the first one has disappeared.
+        setTimeout(showElem, 2000, array.slice(1));
+    }};
+    showElem(elems);
+  }
+  window.addEventListener('load', showToasts, false);
+  </script>
+
+
   <%block name="main_body">
     <paper-scroll-header-panel>
         <paper-toolbar class="header">

@@ -4,6 +4,8 @@ import fireblog.utils as utils
 import fireblog.events as events
 from fireblog.utils import use_template, TemplateResponseDict
 from fireblog.utils import urlify as u
+from fireblog.dogpile_region import region
+from fireblog.settings import settings_dict
 import PyRSS2Gen
 import paginate_sqlalchemy
 import dogpile.cache.util
@@ -12,8 +14,7 @@ from pyramid.view import view_config, view_defaults
 from pyramid.response import Response
 from pyramid.httpexceptions import (
     HTTPFound,
-    HTTPNotFound,
-    HTTPInternalServerError
+    HTTPNotFound
 )
 import sqlalchemy.sql as sql
 from sqlalchemy import desc
@@ -27,11 +28,7 @@ from fireblog.models import (
 @view_config(route_name='rss')
 def render_rss_feed(request):
     "Generate an RSS feed of all posts."
-    max_rss_items = request.registry.settings['fireblog.max_rss_items']
-    try:
-        max_rss_items = int(max_rss_items)
-    except Exception:
-        return HTTPInternalServerError()
+    max_rss_items = settings_dict['fireblog.max_rss_items']
     posts = DBSession.query(Post).order_by(desc(Post.created)).all()
     items = []
     for post in posts[:max_rss_items]:
@@ -109,7 +106,7 @@ def post_key_generator(*args, **kwargs):
     return new_key_generator
 
 
-@utils.region.cache_on_arguments(function_key_generator=post_key_generator)
+@region.cache_on_arguments(function_key_generator=post_key_generator)
 def _get_post_section_as_dict(request, page, post_id):
     post_id = int(post_id)
     assert page.id == post_id

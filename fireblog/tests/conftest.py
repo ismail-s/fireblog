@@ -7,8 +7,10 @@ import webtest
 from pyramid import testing
 from fireblog import include_all_components
 from sqlalchemy import create_engine
-from fireblog.models import DBSession, Base, Post, Users, Tags, Comments
-from fireblog.utils import region
+from fireblog.models import (
+    DBSession, Base, Post, Users, Tags, Comments, Settings
+)
+from fireblog.dogpile_region import region
 import fireblog
 
 # Get all available themes
@@ -38,20 +40,19 @@ def persona_test_admin_login():
 
 
 @pytest.fixture
-def pyramid_req(theme):
+def pyramid_req():
     res = testing.DummyRequest()
     # max_rss_items is set as a str to test that the rss view converts
     # it to an int
     res.registry.settings.update({'fireblog.max_rss_items': '100',
                                   'fireblog.all_view_post_len': 1000,
                                   'dogpile_cache.backend': 'memory',
-                                  'fireblog.theme': theme,
                                   'fireblog.recaptcha-secret': 'secret...'})
     return res
 
 
 @pytest.fixture(scope='session')
-def mydb(request, persona_test_admin_login):
+def mydb(request, persona_test_admin_login, theme):
     engine = create_engine('sqlite://')
     DBSession.configure(bind=engine)
     Base.metadata.create_all(engine)
@@ -96,6 +97,19 @@ def mydb(request, persona_test_admin_login):
         comment1.post = post
         comment1.author = me
         DBSession.add(comment1)
+    with transaction.manager:
+        settings_map = (
+            ('fireblog.max_rss_items', '100'),
+            ('fireblog.all_view_post_len', '1000'),
+            ('persona.siteName', 'sitename'),
+            ('persona.secret', 'seekret'),
+            ('persona.audiences', 'http://localhost'),
+            ('fireblog.recaptcha-secret',
+             'secretsecretsecretsecretsecretsecretsecr'),
+            ('fireblog.theme', theme))
+        settings = [Settings(name=x, value=y) for x, y in settings_map]
+        for e in settings:
+            DBSession.add(e)
 
     def fin():
         DBSession.remove()
@@ -107,6 +121,7 @@ def mydb(request, persona_test_admin_login):
 def pyramid_config(mydb, request):
     config = testing.setUp()
     config.include('pyramid_mako')
+    mydb.rollback()
     include_all_components(config)
     mydb.rollback()
     mydb.begin(subtransactions=True)
@@ -121,7 +136,7 @@ def pyramid_config(mydb, request):
 
 
 @pytest.fixture(scope='session')
-def setup_testapp(mydb, theme, request):
+def setup_testapp(mydb, request):
     settings = {'sqlalchemy.url': 'sqlite://',
                 'persona.audiences': 'http://localhost',
                 'persona.secret': 'some_secret',
@@ -130,8 +145,8 @@ def setup_testapp(mydb, theme, request):
                 # max_rss_items is set as a str to test that
                 # the rss view converts it to an int
                 'fireblog.max_rss_items': '100',
-                'fireblog.theme': theme,
                 'fireblog.recaptcha-secret': 'secret...'}
+    mydb.rollback()
     app = fireblog.main({}, **settings)
     return webtest.TestApp(app)
 

@@ -94,3 +94,10 @@ class Comments(Base):
         'comments', order_by=desc(created)))
     author = relationship("Users", backref=backref(
         'comments', order_by=desc(created)))
+
+
+class Settings(Base):
+    __tablename__ = 'settings'
+    id = Column(Integer, primary_key=True, nullable=False)
+    name = Column(Text, unique=True, nullable=False)
+    value = Column(Text)

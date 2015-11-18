@@ -6,6 +6,10 @@ from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.events import BeforeRender
 from pyramid.response import Response
 import fireblog.utils as utils
+from fireblog.settings import (
+    settings_dict,
+    make_sure_all_settings_exist_and_are_valid
+)
 from fireblog.models import (
     DBSession,
     Base,
@@ -83,7 +87,7 @@ def create_commenter_and_return_group(userid) -> str:
 
 
 class Root(object):
-    """Rresource tree to map groups to permissions. We allow admins to do
+    """Resource tree to map groups to permissions. We allow admins to do
     anything, and commenters to be able to comment only.
     """
     __acl__ = [
@@ -115,6 +119,7 @@ def add_routes(config):
 
 def include_all_components(config):
     add_routes(config)
+    config.include('fireblog.settings')
     config.include('fireblog.comments', route_prefix='/comment')
     config.include('fireblog.views')
 
@@ -152,11 +157,17 @@ def main(global_config, **settings):
     secrets_dict = get_secret_settings(secrets_file, defaults=global_config)
     settings.update(secrets_dict)
 
-    allViewPostLen = int(settings.get('fireblog.all_view_post_len', 1000))
-    settings['fireblog.all_view_post_len'] = allViewPostLen
     engine = engine_from_config(settings, 'sqlalchemy.')
     DBSession.configure(bind=engine)
     Base.metadata.bind = engine
+
+    make_sure_all_settings_exist_and_are_valid()
+    # Add all settings from db that are needed for plugins (eg pyramid_persona)
+    # so that the plugins can access these settings.
+    for name, value in settings_dict.items():
+        if not name.startswith('fireblog'):
+            settings[name] = value
+
     config = Configurator(settings=settings, root_factory=Root)
     config.include('pyramid_mako')
     config.include("pyramid_persona")
