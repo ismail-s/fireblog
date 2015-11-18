@@ -2,21 +2,6 @@ import pytest
 from fireblog.settings import settings_dict
 
 
-@pytest.yield_fixture
-def clear_settings_dict():
-    '''
-    Sets the settings_dict to be empty for the duration of the test,
-    then repopulates it as it was before the test.'''
-    cached_dict = {}
-    for key, val in settings_dict.items():
-        cached_dict[key] = val
-    for key in cached_dict.keys():
-        del settings_dict[key]
-    yield
-    for key, val in cached_dict.items():
-        settings_dict[key] = val
-
-
 def test_can_set_an_item_and_then_get_the_same_item(pyramid_config):
     assert not settings_dict.get('test', None)
     settings_dict['test'] = 'test_str'
