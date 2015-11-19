@@ -41,6 +41,7 @@
             <li><a href="${request.route_url('tag_manager')}">Manage tags</a></li>
             <li><a href="#">Manage users</a></li>
             <li><a href="#">Manage comments</a></li>
+            <li><a href="${request.route_url('settings')}">Settings</a></li>
           </ul>
         </li>
 % endif
