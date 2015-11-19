@@ -8,7 +8,7 @@
     <meta name="author" content="">
 
 
-    <title>Not the answer--a blog</title>
+    <title>${settings_dict['persona.siteName']}</title>
   <%block name = "head">
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
@@ -41,7 +41,7 @@
 
 </div>
 <div class="page-header">
-  <h1>Not the Answer <small>A personal blog</small> ${request.persona_button}</h1>
+  <h1>${settings_dict['persona.siteName']} ${request.persona_button}</h1>
 </div>
     <div class="container">
         <h1><%block name = "header"/></h1>
