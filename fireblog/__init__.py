@@ -61,6 +61,10 @@ def add_urlify_function(event):
     event['urlify'] = utils.urlify
 
 
+def add_settings_dict_to_templates(event):
+    event['settings_dict'] = settings_dict
+
+
 def groupfinder(userid, request) -> list:
     """Looks up and returns the groups the userid belongs to.
     If the userid doesn't exist, they are created as a commenter, and the
@@ -115,6 +119,7 @@ def add_routes(config):
 
     config.add_subscriber(add_username_function, BeforeRender)
     config.add_subscriber(add_urlify_function, BeforeRender)
+    config.add_subscriber(add_settings_dict_to_templates, BeforeRender)
 
 
 def include_all_components(config):
