@@ -15,7 +15,10 @@ __pycache__/
 env/
 build/
 develop-eggs/
-dist/
+# Leading slash added here so that
+# dist folders in bower_components
+# folder aren't ignored
+/dist/
 downloads/
 eggs/
 lib/
