@@ -10,6 +10,7 @@ import PyRSS2Gen
 import paginate_sqlalchemy
 import dogpile.cache.util
 import datetime
+import logging
 from pyramid.view import view_config, view_defaults
 from pyramid.response import Response
 from pyramid.httpexceptions import (
@@ -25,9 +26,13 @@ from fireblog.models import (
 )
 
 
+log = logging.getLogger(__name__)
+
+
 @view_config(route_name='rss')
 def render_rss_feed(request):
     "Generate an RSS feed of all posts."
+    log.info('Generating RSS feed...')
     max_rss_items = settings_dict['fireblog.max_rss_items']
     posts = DBSession.query(Post).order_by(desc(Post.created)).all()
     items = []
@@ -59,6 +64,7 @@ def render_rss_feed(request):
         items=items)
     # maybe write the file into the static folder and remake it whenever
     # a post is modified...
+    log.info('Generated RSS feed')
     return Response(rss.to_xml(), content_type='application/xml')
 
 
@@ -84,11 +90,13 @@ def view_post(request):
     post_id = request.matchdict['id']
     page = DBSession.query(Post).filter_by(id=post_id).first()
     if not page:
+        log.debug('Page not found with id: {}'.format(post_id))
         return HTTPNotFound('no such page exists')
     post_dict = _get_post_section_as_dict(request, page, post_id=post_id)
 
     # Fire off an event that lets any plugins or whatever add content below the
     # post. Currently this is used just to add comments below the post.
+    log.debug('Firing RenderingPost event')
     event = events.RenderingPost(post=page, request=request)
     request.registry.notify(event)
 
@@ -151,6 +159,7 @@ def invalidate_post(post_id):
     "Invalidate post entry in the cache based on the supplied post_id."
     # Make sure post_id is an int
     assert int(post_id)
+    log.debug('Invalidating post: {}'.format(post_id))
     _get_post_section_as_dict.invalidate(None, None, post_id=post_id)
 
 
@@ -185,7 +194,6 @@ def invalidate_next_post(event):
 def view_all_posts(request):
     """Display a page containing all posts, with a sample of each post and
     links to each post."""
-    # We use sqlalchemy Core here for performance.
     page_num = request.params.get('p', None) or 1
     query = DBSession.query(Post.id, Post.name, Post.markdown, Post.created).\
         order_by(Post.created.desc())
@@ -252,7 +260,9 @@ class Add_Post(object):
         tags = self.request.params['tags']
         utils.append_tags_from_string_to_tag_object(tags, post.tags)
         DBSession.add(post)
+        log.info('New post added with name: {}'.format(self.postname))
         DBSession.flush()
+        log.debug('Firing PostCreated event')
         self.request.registry.notify(events.PostCreated(post))
         return HTTPFound(location=self.request.route_url('home'))
 
@@ -305,9 +315,11 @@ class Post_modifying_views(object):
         tags = self.request.params['tags']
         utils.append_tags_from_string_to_tag_object(tags, post.tags)
         DBSession.add(post)
+        log.info('Post with id {} has been edited'.format(self.post_id))
         location = self.request.route_url('view_post',
                                           id=self.post_id,
                                           postname=u(self.postname))
+        log.debug('Firing PostEdited event')
         self.request.registry.notify(events.PostEdited(post))
         invalidate_post(self.post_id)
         return HTTPFound(location=location)
@@ -334,8 +346,10 @@ class Post_modifying_views(object):
         # TODO-maybe don't allow deletion of a post if it is the only one.
         if not self.post:
             return HTTPFound(location=self.request.route_url('home'))
+        log.debug('Firing PostDeleted event')
         self.request.registry.notify(events.PostDeleted(self.post))
         DBSession.delete(self.post)
+        log.info('Post with id {} has been deleted'.format(self.post_id))
         invalidate_post(self.post_id)
         return HTTPFound(location=self.request.route_url('home'))
 
@@ -374,6 +388,7 @@ def uuid(request):
     if tags:  # Here we check if there was just one post.
         return HTTPFound(location=request.route_url('tag_view',
                                                     tag_name=tags[0].tag))
+    log.debug('No uuid match for {}'.format(uuid_to_find))
     return HTTPNotFound('No uuid matches.')
 
 

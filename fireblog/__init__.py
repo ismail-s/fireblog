@@ -16,6 +16,10 @@ from fireblog.models import (
     Users
 )
 from configparser import ConfigParser
+import logging
+
+
+log = logging.getLogger(__name__)
 
 
 def template_response_adapter(s: utils.TemplateResponseDict):
@@ -49,6 +53,7 @@ def get_username(email_address: str):
     user = DBSession.query(Users.userid, Users.username).filter_by(
         userid=email_address).first()
     if not user:
+        log.info('Did not get username for email {}'.format(email_address))
         return ''
     return user.username
 
@@ -83,6 +88,7 @@ def create_commenter_and_return_group(userid) -> str:
     group = 'g:commenter'
     new_user = Users(userid=userid, group=group)
     DBSession.add(new_user)
+    log.info('New commenter {} has been created'.format(userid))
     return group
 
 
@@ -154,6 +160,7 @@ def main(global_config, **settings):
     """
     # Get extra config settings from secrets file
     secrets_file = settings.get('secrets', None)
+    log.debug('Found secrets file {}'.format(secrets_file))
     secrets_dict = get_secret_settings(secrets_file, defaults=global_config)
     settings.update(secrets_dict)
 

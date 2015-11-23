@@ -2,6 +2,10 @@ from fireblog.settings import mapping, settings_dict, validate_value
 from fireblog.utils import use_template, TemplateResponseDict
 from pyramid.view import view_config, view_defaults
 from pyramid.httpexceptions import HTTPFound
+import logging
+
+
+log = logging.getLogger(__name__)
 
 
 @view_defaults(route_name='settings', permission='change-settings')
@@ -34,8 +38,11 @@ class Settings:
             # Settings will only be changed if all settings on the page were
             # valid.
             for reg_name, value in to_set:
+                log.info('Changing {} setting to {}'.format(reg_name, value))
                 settings_dict[reg_name] = value
         else:
+            log.info('Invalid changes to settings attempted:')
             for e in errors:
+                log.info(e)
                 self.request.session.flash(e)
         return HTTPFound(location=self.request.route_url('settings'))
