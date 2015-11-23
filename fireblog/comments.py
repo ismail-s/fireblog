@@ -136,6 +136,6 @@ def includeme(config):
     config.add_subscriber(add_comment_section_below_posts,
                           events.RenderingPost)
     log.debug('Subscribing to comment add/delete events to invalidate '
-            'corresponding post')
+              'corresponding post')
     config.add_subscriber(invalidate_current_post, events.CommentAdded)
     config.add_subscriber(invalidate_current_post, events.CommentDeleted)

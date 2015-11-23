@@ -12,6 +12,7 @@ log = logging.getLogger(__name__)
 
 
 class _settings_dict(MutableMapping):
+
     @staticmethod
     def _get_item_from_db(key):
         '''Try and get 'key' from the settings table in the db, else raise a
@@ -33,14 +34,16 @@ class _settings_dict(MutableMapping):
         # If there is no corresponding registry entry, we just return rather
         # than crashing things.
         log.error('The settings value {} was attempted to be obtained, '
-            'despite it not being an official settings entry in '
-            'the mapping'.format(key))
+                  'despite it not being an official settings entry in '
+                  'the mapping'.format(key))
         return res.value
 
     def __setitem__(self, key, value):
         try:
             res = self._get_item_from_db(key)
-            log.info('Settings item {} has been changed from {} to {}.'.format(key, res.value, value))
+            log.info(
+                'Settings item {} has been changed from {} to {}.'.format(
+                    key, res.value, value))
             res.value = value
         except KeyError:
             new_entry = Settings(name=key, value=value)

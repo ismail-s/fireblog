@@ -69,7 +69,7 @@ def tag_manager(request):
                 if tag.tag != new_tag_name:
                     # Change the tag name in the db
                     log.info('Changing tag from {} to {}'.format(tag.tag,
-                                                                new_tag_name))
+                                                                 new_tag_name))
                     tag.tag = new_tag_name
         return HTTPFound(location=request.route_url('tag_manager'))
     tags = [(tag.tag, len(tag.posts)) for tag in tags]
