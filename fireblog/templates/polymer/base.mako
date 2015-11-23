@@ -8,7 +8,7 @@
     <meta name="author" content="">
 
 
-    <title>Not the answer--a blog</title>
+    <title>${settings_dict['persona.siteName']}</title>
 
     <%block name="head">
     <script src="${request.get_bower_url('webcomponentsjs/webcomponents-lite.min.js')}">
@@ -56,7 +56,7 @@
     <paper-scroll-header-panel>
         <paper-toolbar class="header">
             <%block name = "header_toolbar">
-            <div class="title-text flex-1"><h1>Not the Answer - <small>A personal blog</small></h1></div>
+            <div class="title-text flex-1"><h1>${settings_dict['persona.siteName']}</h1></div>
             <div><h1>${request.persona_button}</h1></div>
             </%block>
         </paper-toolbar>
