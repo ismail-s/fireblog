@@ -8,6 +8,10 @@ import functools
 import transaction
 from pyramid import renderers
 from pyramid.httpexceptions import HTTPException
+import logging
+
+
+log = logging.getLogger(__name__)
 
 
 def urlify(string: str) -> str:
@@ -58,6 +62,7 @@ def use_template(template: str=None):
 def render_to_response(template, res, request):
     theme = settings_dict['fireblog.theme']
     template = 'fireblog:templates/' + theme + '/' + template
+    log.debug('Rendering template {}'.format(template))
     return renderers.render_to_response(template, res, request)
 
 

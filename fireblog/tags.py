@@ -1,5 +1,6 @@
 'Views for managing tags, and viewing all posts with a particular tag.'
 from operator import attrgetter
+import logging
 import fireblog.utils as utils
 from fireblog.utils import use_template, TemplateResponseDict
 from pyramid.view import view_config
@@ -15,6 +16,9 @@ from fireblog.models import (
 )
 
 
+log = logging.getLogger(__name__)
+
+
 @view_config(route_name='tag_view',
              decorator=use_template('multiple_posts.mako'))
 def tag_view(request):
@@ -27,6 +31,7 @@ def tag_view(request):
     try:
         tag_obj = DBSession.query(Tags).filter_by(tag=tag).one()
     except NoResultFound:
+        log.debug('No tag found for tag name: {}'.format(tag))
         return HTTPNotFound('no such tag exists.')
     posts_obj = tag_obj.posts
     posts_obj = sorted(posts_obj, key=attrgetter("created"))
@@ -56,12 +61,15 @@ def tag_manager(request):
             keep_tag = request.params.get('check-' + tag.tag)
             if not keep_tag:
                 # Delete the tag
+                log.info('Deleting tag: {}'.format(tag.tag))
                 DBSession.delete(tag)
             # 2. Else, if the name has been changed, update the name
             else:
                 new_tag_name = request.params.get('text-' + tag.tag)
                 if tag.tag != new_tag_name:
                     # Change the tag name in the db
+                    log.info('Changing tag from {} to {}'.format(tag.tag,
+                                                                 new_tag_name))
                     tag.tag = new_tag_name
         return HTTPFound(location=request.route_url('tag_manager'))
     tags = [(tag.tag, len(tag.posts)) for tag in tags]

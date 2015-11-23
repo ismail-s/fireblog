@@ -5,6 +5,7 @@ from fireblog.utils import urlify as u
 from fireblog.views import invalidate_current_post
 from fireblog.settings import settings_dict
 import requests
+import logging
 from pyramid.view import view_config
 from pyramid.httpexceptions import (
     HTTPFound,
@@ -16,6 +17,9 @@ from fireblog.models import (
     Comments,
     Users,
 )
+
+
+log = logging.getLogger(__name__)
 
 
 def add_comment_section_below_posts(event) -> None:
@@ -72,17 +76,26 @@ def comment_add(request):
             data=payload)
         try:
             if not result.json()['success']:
+                log.info('Failed recaptcha: {}'.format(recaptcha))
                 return HTTPNotFound()
         except Exception:
+            log.warn('Malformed response from Google recaptcha')
+            log.warn(result)
             return HTTPNotFound()
     author = request.authenticated_userid or utils.get_anonymous_userid()
     if not all((post_id, comment_text, author)):
+        log.info('Some required params for adding a comment are missing:')
+        log.info('Post id: '.format(post_id))
+        log.info('Comment text: '.format(comment_text))
+        log.info('Author: '.format(author))
         return HTTPNotFound()
     post = DBSession.query(Post).filter_by(id=post_id).one()
     author = DBSession.query(Users).filter_by(userid=author).one()
     comment = Comments(comment=comment_text)
     comment.author = author
     post.comments.append(comment)
+    log.info('Added new comment written by {}'.format(author))
+    log.debug('Firing CommentAdded event')
     request.registry.notify(events.CommentAdded(post=post, comment=comment))
     return HTTPFound(location=request.route_url('view_post',
                                                 id=post_id,
@@ -96,13 +109,19 @@ def comment_delete(request):
     comment_uuid = request.params.get('comment-uuid', None)
     post_id = request.params.get('post-id', None)
     if not all((comment_uuid, post_id)):
+        log.info('Some required params for deleting a comment are missing:')
+        log.info('Post id: '.format(post_id))
+        log.info('Comment uuid: '.format(comment_uuid))
         return HTTPNotFound()
     comment = DBSession.query(Comments).filter_by(uuid=comment_uuid).first()
     if not comment:
+        log.debug('No comment found for comment uuid: {}'.format(comment_uuid))
         return HTTPNotFound()
+    log.debug('Firing CommentDeleted event')
     request.registry.notify(events.CommentDeleted(
         post=comment.post, comment=comment))
     DBSession.delete(comment)
+    log.info('Comment with uuid {} deleted'.format(comment_uuid))
     return HTTPFound(location=request.route_url('view_post',
                                                 id=post_id,
                                                 postname=u(comment.post.name)))
@@ -111,9 +130,12 @@ def comment_delete(request):
 def includeme(config):
     """Add views for adding and deleting comments. Also, invalidate a cached
     post when we add or delete a comment on it."""
+    log.debug('Including comment routes, views.')
     config.add_route('comment_add', '/add')
     config.add_route('comment_del', '/del')
     config.add_subscriber(add_comment_section_below_posts,
                           events.RenderingPost)
+    log.debug('Subscribing to comment add/delete events to invalidate '
+              'corresponding post')
     config.add_subscriber(invalidate_current_post, events.CommentAdded)
     config.add_subscriber(invalidate_current_post, events.CommentDeleted)

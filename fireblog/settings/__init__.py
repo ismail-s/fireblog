@@ -1,6 +1,10 @@
 from .db_wrapper import settings_dict  # noqa
 from .mapping import mapping, Entry  # noqa
 import transaction
+import logging
+
+
+log = logging.getLogger(__name__)
 
 
 def make_sure_all_settings_exist_and_are_valid():
@@ -61,4 +65,5 @@ def validate_value(entry: Entry, value):
 
 
 def includeme(config):
+    log.debug('Including settings routes/views')
     config.add_route('settings', '/settings')
