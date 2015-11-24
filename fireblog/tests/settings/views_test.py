@@ -17,6 +17,8 @@ def test_GET_settings(pyramid_config, pyramid_req, theme):
         ('persona.audiences', 'http://localhost'),
         ('fireblog.recaptcha_secret',
          'secretsecretsecretsecretsecretsecretsecr'),
+        ('fireblog.recaptcha_site_key',
+         'secretsecretsecretsecretsecretsecretsecr'),
         ('fireblog.theme', theme)))
     expected_mapping = []
     for entry in mapping:
@@ -37,6 +39,8 @@ def test_POST_settings_no_errors(pyramid_config, pyramid_req):
         ('persona.audiences', 'http://localhost'),
         ('fireblog.recaptcha_secret',
             'ssssssssssssssssssssssssssssssssssssssss'),
+        ('fireblog.recaptcha_site_key',
+            'ssssssssssssssssssssssssssssssssssssssst'),
         ('fireblog.theme', 'polymer')]
     pyramid_req.params.update(correct_params)
     with transaction.manager:
@@ -56,6 +60,8 @@ def test_POST_settings_some_errors(pyramid_config, pyramid_req, monkeypatch):
         ('persona.audiences', 'http://localhost'),
         ('fireblog.recaptcha_secret',
             'ssssssssssssssssssssssssssssssssssssssss'),
+        ('fireblog.recaptcha_site_key',
+            'sssssssssssssssssssssssssssssssssssssssq'),
         ('fireblog.theme', 'polymer')]
     pyramid_req.params.update(params_with_some_errors)
     mock_settings_dict = {}
@@ -95,6 +101,7 @@ def test_POST_settings_all_errors(pyramid_config, pyramid_req, monkeypatch):
         '"Persona secret" setting was not provided, and is required.',
         '"Persona audiences" setting was not provided, and is required.',
         'Recaptcha secret is invalid.',
+        '"Recaptcha site key" setting was not provided, and is required.',
         'Blog theme is invalid.']
     assert pyramid_req.session.peek_flash() == expected_errors
     assert mock_settings_dict == {}
