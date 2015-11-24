@@ -62,7 +62,14 @@ mapping = (
         'The Recaptcha secret used for server-side validation to combat spam. '
         'See https://www.google.com/recaptcha for more details.',
         str,
-        validators.recaptcha_secret_validator),
+        validators.recaptcha_validator),
+    Entry(
+        'fireblog.recaptcha_site_key'
+        'Recaptcha site key'
+        'The Recaptcha site key that is included in the html Recaptcha widget.'
+        ' See https://www.google.com/recaptcha for more details.',
+        str,
+        validators.recaptcha_validator),
     Entry(
         'fireblog.theme',
         'Blog theme',
