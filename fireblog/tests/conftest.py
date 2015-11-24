@@ -48,7 +48,7 @@ def persona_test_admin_login():
 @pytest.fixture
 def pyramid_req():
     res = testing.DummyRequest()
-    res.registry.settings.update({'dogpile_cache.backend': 'memory',})
+    res.registry.settings.update({'dogpile_cache.backend': 'memory'})
     return res
 
 
