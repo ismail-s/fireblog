@@ -106,6 +106,8 @@ def mydb(request, persona_test_admin_login, theme):
             ('persona.audiences', 'http://localhost'),
             ('fireblog.recaptcha_secret',
              'secretsecretsecretsecretsecretsecretsecr'),
+            ('fireblog.recaptcha_site_key',
+             'secretsecretsecretsecretsecretsecretsecr'),
             ('fireblog.theme', theme))
         settings = [Settings(name=x, value=y) for x, y in settings_map]
         for e in settings:
@@ -145,7 +147,8 @@ def setup_testapp(mydb, request):
                 # max_rss_items is set as a str to test that
                 # the rss view converts it to an int
                 'fireblog.max_rss_items': '100',
-                'fireblog.recaptcha_secret': 'secret...'}
+                'fireblog.recaptcha_secret': 's' * 40,
+                'fireblog.recaptcha_site_key': 's' * 40}
     mydb.rollback()
     app = fireblog.main({}, **settings)
     return webtest.TestApp(app)
