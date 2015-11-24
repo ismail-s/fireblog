@@ -53,7 +53,7 @@ def pyramid_req():
     res.registry.settings.update({'fireblog.max_rss_items': '100',
                                   'fireblog.all_view_post_len': 1000,
                                   'dogpile_cache.backend': 'memory',
-                                  'fireblog.recaptcha-secret': 'secret...'})
+                                  'fireblog.recaptcha_secret': 'secret...'})
     return res
 
 
@@ -110,7 +110,7 @@ def mydb(request, persona_test_admin_login, theme):
             ('persona.siteName', 'sitename'),
             ('persona.secret', 'seekret'),
             ('persona.audiences', 'http://localhost'),
-            ('fireblog.recaptcha-secret',
+            ('fireblog.recaptcha_secret',
              'secretsecretsecretsecretsecretsecretsecr'),
             ('fireblog.theme', theme))
         settings = [Settings(name=x, value=y) for x, y in settings_map]
@@ -151,7 +151,7 @@ def setup_testapp(mydb, request):
                 # max_rss_items is set as a str to test that
                 # the rss view converts it to an int
                 'fireblog.max_rss_items': '100',
-                'fireblog.recaptcha-secret': 'secret...'}
+                'fireblog.recaptcha_secret': 'secret...'}
     mydb.rollback()
     app = fireblog.main({}, **settings)
     return webtest.TestApp(app)

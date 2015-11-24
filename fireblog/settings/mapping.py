@@ -57,7 +57,7 @@ mapping = (
         'not on this list, then logins won\'t work from that domain.',
         str),
     Entry(
-        'fireblog.recaptcha-secret',
+        'fireblog.recaptcha_secret',
         'Recaptcha secret',
         'The Recaptcha secret used for server-side validation to combat spam. '
         'See https://www.google.com/recaptcha for more details.',

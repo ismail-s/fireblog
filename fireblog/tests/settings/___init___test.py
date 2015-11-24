@@ -32,7 +32,7 @@ class Test_get_settings_during_startup:
             'persona.siteName': 'sitename',
             'persona.secret': 'somesecret',
             'persona.audiences': 'http://localhost',
-            'fireblog.recaptcha-secret': 'x' * 40,
+            'fireblog.recaptcha_secret': 'x' * 40,
             'fireblog.theme': 'bootstrap'}
         # Check that settings_dict is all correct
         for key, value in expected_settings_dict.items():

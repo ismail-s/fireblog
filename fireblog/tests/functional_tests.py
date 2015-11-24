@@ -202,7 +202,7 @@ class Test_functional_tests:
             ('persona.siteName', 'sitename'),
             ('persona.secret', 'seekret'),
             ('persona.audiences', 'http://localhost'),
-            ('fireblog.recaptcha-secret',
+            ('fireblog.recaptcha_secret',
              'secretsecretsecretsecretsecretsecretsecr'),
             ('fireblog.theme', theme))
         with self.logged_in(testapp, persona_test_admin_login):

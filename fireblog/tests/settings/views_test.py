@@ -15,7 +15,7 @@ def test_GET_settings(pyramid_config, pyramid_req, theme):
         ('persona.siteName', 'sitename'),
         ('persona.secret', 'seekret'),
         ('persona.audiences', 'http://localhost'),
-        ('fireblog.recaptcha-secret',
+        ('fireblog.recaptcha_secret',
          'secretsecretsecretsecretsecretsecretsecr'),
         ('fireblog.theme', theme)))
     expected_mapping = []
@@ -35,7 +35,7 @@ def test_POST_settings_no_errors(pyramid_config, pyramid_req):
         ('persona.siteName', 'sitename'),
         ('persona.secret', 'seekret'),
         ('persona.audiences', 'http://localhost'),
-        ('fireblog.recaptcha-secret',
+        ('fireblog.recaptcha_secret',
             'ssssssssssssssssssssssssssssssssssssssss'),
         ('fireblog.theme', 'polymer')]
     pyramid_req.params.update(correct_params)
@@ -54,7 +54,7 @@ def test_POST_settings_some_errors(pyramid_config, pyramid_req, monkeypatch):
         ('persona.siteName', ''),
         ('persona.secret', 'seekret'),
         ('persona.audiences', 'http://localhost'),
-        ('fireblog.recaptcha-secret',
+        ('fireblog.recaptcha_secret',
             'ssssssssssssssssssssssssssssssssssssssss'),
         ('fireblog.theme', 'polymer')]
     pyramid_req.params.update(params_with_some_errors)
@@ -78,7 +78,7 @@ def test_POST_settings_all_errors(pyramid_config, pyramid_req, monkeypatch):
         ('persona.siteName', ''),
         ('persona.secret', ''),
         ('persona.audiences', ''),
-        ('fireblog.recaptcha-secret',
+        ('fireblog.recaptcha_secret',
             'sssssssssssssssssssssssssssssssssssssssss'),
         ('fireblog.theme', 'Polymer')]
     pyramid_req.params.update(params_with_all_errors)
