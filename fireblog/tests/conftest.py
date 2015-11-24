@@ -63,7 +63,6 @@ def mydb(request, persona_test_admin_login, theme):
     DBSession.configure(bind=engine)
     Base.metadata.create_all(engine)
     with transaction.manager:
-        # TODO-add tags to this test data. Some tests may also need updating.
         tag1 = Tags(tag='tag1', uuid='uuid-tag111')
         tag2 = Tags(tag='tag2', uuid='uuid-tag222')
         tag3 = Tags(tag='tag3', uuid='uuid-tag333')
