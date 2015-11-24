@@ -48,12 +48,7 @@ def persona_test_admin_login():
 @pytest.fixture
 def pyramid_req():
     res = testing.DummyRequest()
-    # max_rss_items is set as a str to test that the rss view converts
-    # it to an int
-    res.registry.settings.update({'fireblog.max_rss_items': '100',
-                                  'fireblog.all_view_post_len': 1000,
-                                  'dogpile_cache.backend': 'memory',
-                                  'fireblog.recaptcha-secret': 'secret...'})
+    res.registry.settings.update({'dogpile_cache.backend': 'memory'})
     return res
 
 
@@ -63,7 +58,6 @@ def mydb(request, persona_test_admin_login, theme):
     DBSession.configure(bind=engine)
     Base.metadata.create_all(engine)
     with transaction.manager:
-        # TODO-add tags to this test data. Some tests may also need updating.
         tag1 = Tags(tag='tag1', uuid='uuid-tag111')
         tag2 = Tags(tag='tag2', uuid='uuid-tag222')
         tag3 = Tags(tag='tag3', uuid='uuid-tag333')
@@ -110,7 +104,9 @@ def mydb(request, persona_test_admin_login, theme):
             ('persona.siteName', 'sitename'),
             ('persona.secret', 'seekret'),
             ('persona.audiences', 'http://localhost'),
-            ('fireblog.recaptcha-secret',
+            ('fireblog.recaptcha_secret',
+             'secretsecretsecretsecretsecretsecretsecr'),
+            ('fireblog.recaptcha_site_key',
              'secretsecretsecretsecretsecretsecretsecr'),
             ('fireblog.theme', theme))
         settings = [Settings(name=x, value=y) for x, y in settings_map]
@@ -151,7 +147,8 @@ def setup_testapp(mydb, request):
                 # max_rss_items is set as a str to test that
                 # the rss view converts it to an int
                 'fireblog.max_rss_items': '100',
-                'fireblog.recaptcha-secret': 'secret...'}
+                'fireblog.recaptcha_secret': 's' * 40,
+                'fireblog.recaptcha_site_key': 's' * 40}
     mydb.rollback()
     app = fireblog.main({}, **settings)
     return webtest.TestApp(app)

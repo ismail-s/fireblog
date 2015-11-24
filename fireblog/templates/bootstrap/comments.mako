@@ -54,7 +54,7 @@ If you want to keep track of your comments, and have\
         </div>
         <input type="hidden" name="post-id" value="${post_id}">
         <div class="form-group">
-            <div class="g-recaptcha" data-sitekey="6LdPugUTAAAAAFJMGiJpfvFjXwPTqVk0mIV9EnrD"></div>
+            <div class="g-recaptcha" data-sitekey="${settings_dict['fireblog.recaptcha_site_key']}"></div>
         </div>
         <div class="form-group">
             <input type = "submit" name = "form.submitted"

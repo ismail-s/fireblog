@@ -15,12 +15,12 @@ def test_sitename_validator_fail(s):
 
 @given(st.text(min_size=40, max_size=40))
 def test_recaptcha_validator_success(s):
-    assert v.recaptcha_secret_validator(s)
+    assert v.recaptcha_validator(s)
 
 
 @given(st.one_of(st.text(min_size=41), st.text(max_size=39)))
 def test_recaptcha_validator_fail(s):
-    assert not v.recaptcha_secret_validator(s)
+    assert not v.recaptcha_validator(s)
 
 
 @given(st.sampled_from(('bootstrap', 'polymer')))

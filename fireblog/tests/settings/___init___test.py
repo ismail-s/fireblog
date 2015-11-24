@@ -22,7 +22,7 @@ class Test_get_settings_during_startup:
         # Setup inputs to be fed in via input func
         inputs = [
             '0', '50', '999999', '500', '', 'sitename', 'http://localhost',
-            'x' * 39, 'x' * 40, 'wrong-theme', 'bootstrap']
+            'x' * 39, 'x' * 40, 's' * 41, 's' * 40, 'wrong-theme', 'bootstrap']
         input_gen = (i for i in inputs)
         monkeypatch.setattr('builtins.input', lambda prompt: next(input_gen))
         make_sure_all_settings_exist_and_are_valid()
@@ -32,7 +32,7 @@ class Test_get_settings_during_startup:
             'persona.siteName': 'sitename',
             'persona.secret': 'somesecret',
             'persona.audiences': 'http://localhost',
-            'fireblog.recaptcha-secret': 'x' * 40,
+            'fireblog.recaptcha_secret': 'x' * 40,
             'fireblog.theme': 'bootstrap'}
         # Check that settings_dict is all correct
         for key, value in expected_settings_dict.items():
@@ -42,7 +42,7 @@ class Test_get_settings_during_startup:
         assert not err
         out = [x for x in out.split('\n') if x]
         # 5 Invalid values were supplied
-        assert len(out) == 5
+        assert len(out) == 6
         # Check the same message was printed each time.
         assert all((x == out[0] for x in out))
 
