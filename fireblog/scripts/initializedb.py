@@ -1,4 +1,8 @@
 import os
+try:
+    from pathlib import Path
+except ImportError:
+    from pathlib2 import Path
 import sys
 import transaction
 
@@ -8,7 +12,8 @@ from pyramid.paster import (
     get_appsettings,
     setup_logging,
 )
-
+from alembic.config import Config
+from alembic import command
 from pyramid.scripts.common import parse_vars
 
 from ..models import (
@@ -33,8 +38,16 @@ delete posts and manage tags. I plan to add more functionality in the coming
 months.
 
 For more information about this blog, see the
-[github page](www.github.com/ismail-s/fireblog) Any issues, report them there.
+[github page](https://www.github.com/ismail-s/fireblog).
+Any issues, report them there.
 """
+
+
+def run_alembic_migrations():
+    current_dir = Path(__file__).parent
+    alembic_cfg_file = current_dir/'..'/'..'/'alembic.ini'
+    alembic_cfg = Config(str(alembic_cfg_file.resolve()))
+    command.upgrade(alembic_cfg, "head")
 
 
 def usage(argv):
@@ -51,6 +64,7 @@ def main(argv=sys.argv):
     options = parse_vars(argv[2:])
     setup_logging(config_uri)
     settings = get_appsettings(config_uri, options=options)
+    run_alembic_migrations()
     engine = engine_from_config(settings, 'sqlalchemy.')
     DBSession.configure(bind=engine)
     Base.metadata.create_all(engine)
