@@ -35,7 +35,8 @@ delete posts and manage tags. I plan to add more functionality in the coming
 months.
 
 For more information about this blog, see the
-[github page](www.github.com/ismail-s/fireblog) Any issues, report them there.
+[github page](https://www.github.com/ismail-s/fireblog).
+Any issues, report them there.
 """
 
 
