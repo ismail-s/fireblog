@@ -1,5 +1,8 @@
 import os
-from pathlib import Path
+try:
+    from pathlib import Path
+except importError:
+    from pathlib2 import Path
 import sys
 import transaction
 
