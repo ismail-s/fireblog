@@ -23,3 +23,6 @@ paginate
 paginate_sqlalchemy
 hypothesis
 pathlib2
+uwsgi
+pastescript
+pastedeploy
