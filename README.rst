@@ -22,7 +22,7 @@ Getting Started
 Do note when running those commands that:
 
 - you use a `virtualenv <https://virtualenv.pypa.io/en/latest/>`_
-- You don't use development.ini when running in production. This is because dvelopment.ini enables the debug toolbar, which allows arbitrary code execution. For a warning of what this could result in, see `this article <http://arstechnica.co.uk/security/2015/10/patreon-was-warned-of-serious-website-flaw-5-days-before-it-was-hacked/>`_.
+- You don't use development.ini when running in production. This is because development.ini enables the debug toolbar, which allows arbitrary code execution. For a warning of what this could result in, see `this article <http://arstechnica.co.uk/security/2015/10/patreon-was-warned-of-serious-website-flaw-5-days-before-it-was-hacked/>`_.
 - If you want the server to run as a daemon, use the following command instead:
 
 .. code:: bash
