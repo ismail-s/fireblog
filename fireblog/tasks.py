@@ -22,7 +22,7 @@ def reload_uwsgi(args):
     # this function to be called won't be deleted, which will result in endless
     # reloads...
     # Note this function gets run in the spooler directory.
-    spooler_dir = Path('.').resolve()
+    spooler_dir = Path(args.get('spooler_dir', '.')).resolve()
     for file in spooler_dir.iterdir():
         if file.is_file():
             file.unlink()
