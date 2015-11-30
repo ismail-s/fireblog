@@ -6,6 +6,7 @@ from fireblog.utils import use_template, TemplateResponseDict
 from fireblog.utils import urlify as u
 from fireblog.dogpile_region import region
 from fireblog.settings import settings_dict
+from fireblog.tasks import reload_uwsgi
 import PyRSS2Gen
 import paginate_sqlalchemy
 import dogpile.cache.util
@@ -390,6 +391,14 @@ def uuid(request):
                                                     tag_name=tags[0].tag))
     log.debug('No uuid match for {}'.format(uuid_to_find))
     return HTTPNotFound('No uuid matches.')
+
+
+@view_config(route_name='reload_fireblog', permission=None,
+             decorator=use_template('reload.mako'))
+def reload_fireblog(request):
+    "Reload (aka restart) the blog. This is done by telling uwsgi to reload."
+    reload_uwsgi.spool()
+    return TemplateResponseDict()
 
 
 def includeme(config) -> None:

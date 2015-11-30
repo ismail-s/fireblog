@@ -115,6 +115,7 @@ def add_routes(config):
     config.add_route('uuid', '/uuid/{uuid}')
     config.add_route('rss', '/rss')
     config.add_route('view_all_posts', '/all_posts')
+    config.add_route('reload_fireblog', '/reload')
 
     config.add_route('add_post', '/add_post/{postname}')
     config.add_route('view_post', '/posts/{id}/{postname}')
