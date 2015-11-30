@@ -21,6 +21,21 @@ def test_reload_func_removes_all_files_in_spooler_dir(_, __, tmpdir):
 
 @mock.patch('fireblog.tasks.uwsgi')
 @mock.patch('time.sleep')
+def test_reload_func_doesnt_remove_folders_in_spooler_dir(_, __, tmpdir):
+    tmpdir = Path(str(tmpdir))
+    for file in ['test1', 'test2', 'test3']:
+        (tmpdir/file).touch()
+    # Create a directory with a file in it
+    test_dir = tmpdir/'test_dir'
+    test_dir.mkdir()
+    (test_dir/'test4').touch()
+    reload_uwsgi(dict(spooler_dir=str(tmpdir)))
+    # Only the directory should remain, all the files should have been deleted.
+    assert [x for x in tmpdir.iterdir()] == [test_dir]
+
+
+@mock.patch('fireblog.tasks.uwsgi')
+@mock.patch('time.sleep')
 def test_reload_func_sleeps_for_one_second(sleep_mock, __, tmpdir):
     reload_uwsgi(dict(spooler_dir=str(tmpdir)))
     sleep_mock.assert_called_once_with(1)
