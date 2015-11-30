@@ -1,16 +1,16 @@
 'Tasks that can be run under the uwsgi spooler.'
 # uwsgi python module is added dynamically when the blog is run under uwsgi.
 # As a result, this module won't be available for importing during test runs.
-try:
+try:  # pragma: no cover
     from uwsgidecorators import spool
     import uwsgi
-except ImportError:
+except ImportError:  # pragma: no cover
     uwsgi = {}
     spool = lambda x: x
 import time
-try:
+try:  # pragma: no cover
     from pathlib import Path
-except ImportError:
+except ImportError:  # pragma: no cover
     from pathlib2 import Path
 
 
