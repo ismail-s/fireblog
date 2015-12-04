@@ -7,6 +7,7 @@ try:  # pragma: no cover
 except ImportError:  # pragma: no cover
     uwsgi = lambda: None
     setattr(uwsgi, 'reload', lambda: None)
+
     def _mock_spool(func):
         setattr(func, 'spool', lambda *args, **kwargs: None)
         return func
