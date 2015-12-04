@@ -2,7 +2,7 @@
 from operator import attrgetter
 import logging
 import fireblog.utils as utils
-from fireblog.utils import use_template, TemplateResponseDict
+from fireblog.theme import use_template, TemplateResponseDict
 from pyramid.view import view_config
 from pyramid.httpexceptions import (
     HTTPFound,

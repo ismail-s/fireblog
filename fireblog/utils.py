@@ -4,14 +4,7 @@ from fireblog.htmltruncate import truncate as truncate_html
 from fireblog.settings import settings_dict
 from fireblog.dogpile_region import region
 import arrow
-import functools
 import transaction
-from pyramid import renderers
-from pyramid.httpexceptions import HTTPException
-import logging
-
-
-log = logging.getLogger(__name__)
 
 
 def urlify(string: str) -> str:
@@ -23,47 +16,6 @@ def urlify(string: str) -> str:
 def format_datetime(datetime):
     '''Return a string representing the datetime object. eg \'20 Jan 2014\''''
     return arrow.get(datetime).format('DD MMM YYYY')
-
-
-class TemplateResponseDict(dict):
-    '''Instances of this dict can be used as the return type of a view callable
-    that is using the use_template decorator. The :py:func:`use_template`
-    decorator will notice that an instance of this type is being returned and
-    render it to a response.
-
-    This class is used in tandem with
-    :py:func:`fireblog.template_response_adapter`'''
-    pass
-
-
-def use_template(template: str=None):
-    """This decorator allows a view to be rendered using whatever the current
-    active template aka theme is."""
-    def wrapper(f, template=template):
-        @functools.wraps(f)
-        def inner(context, request):
-            res = f(context, request)
-            # Deal with eg HTTPFound or HTTPNotFound by just returning them.
-            if isinstance(res, HTTPException):
-                return res
-            # Pull out the custom dict object set by
-            # :py:func:`fireblog.template_response_adapter`
-            to_render = res._fireblog_custom_response
-            if not isinstance(to_render, dict):
-                raise Exception(  # pragma: no cover
-                    "The use_template decorator is being used "
-                    "incorrectly: the decorated view callable must return a "
-                    "dict.")
-            return render_to_response(template, to_render, request)
-        return inner
-    return wrapper
-
-
-def render_to_response(template, res, request):
-    theme = settings_dict['fireblog.theme']
-    template = 'fireblog:templates/' + theme + '/' + template
-    log.debug('Rendering template {}'.format(template))
-    return renderers.render_to_response(template, res, request)
 
 
 def get_anonymous_userid() -> str:
