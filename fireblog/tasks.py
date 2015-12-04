@@ -5,8 +5,12 @@ try:  # pragma: no cover
     from uwsgidecorators import spool
     import uwsgi
 except ImportError:  # pragma: no cover
-    uwsgi = {}
-    spool = lambda x: x
+    uwsgi = lambda: None
+    setattr(uwsgi, 'reload', lambda: None)
+    def _mock_spool(func):
+        setattr(func, 'spool', lambda *args, **kwargs: None)
+        return func
+    spool = _mock_spool
 import time
 try:  # pragma: no cover
     from pathlib import Path
