@@ -15,4 +15,5 @@ class Test_getusername:
         assert renderer_globals.get_username(email) == username
 
     def test_failure(self, pyramid_config):
-        assert renderer_globals.get_username('nonexistentemail@example.com') == ''
+        assert renderer_globals.get_username(
+            'nonexistentemail@example.com') == ''
