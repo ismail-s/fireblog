@@ -393,7 +393,7 @@ def uuid(request):
     return HTTPNotFound('No uuid matches.')
 
 
-@view_config(route_name='reload_fireblog', permission=None,
+@view_config(route_name='reload_fireblog', permission='reload',
              decorator=use_template('reload.mako'))
 def reload_fireblog(request):
     "Reload (aka restart) the blog. This is done by telling uwsgi to reload."
