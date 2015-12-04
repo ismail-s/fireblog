@@ -111,7 +111,8 @@ class Test_functional_tests:
                                      '/posts/2/Page2/del',
                                      '/add_post/some new page',
                                      '/tags',
-                                     '/settings'])
+                                     '/settings',
+                                     '/reload'])
     def test_cant_access_admin_pages_with_no_login(self, testapp, url):
         with pytest.raises(AppError) as exc_info:
             testapp.get(url)
