@@ -5,6 +5,7 @@ from fireblog.models import (
     DBSession,
     Users
 )
+import functools
 import logging
 
 
@@ -34,7 +35,7 @@ def add_renderer_globals(event):
     event['settings_dict'] = settings_dict
     event['urlify'] = utils.urlify
     event['get_username'] = get_username
-    event['get_bower_url'] = get_bower_url
+    event['get_bower_url'] = functools.partial(get_bower_url, event['request'])
 
 
 def includeme(config):
