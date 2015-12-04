@@ -1,7 +1,5 @@
 from pyramid.config import Configurator
 from sqlalchemy import engine_from_config
-from pyramid.response import Response
-import fireblog.utils as utils
 from fireblog.settings import (
     settings_dict,
     make_sure_all_settings_exist_and_are_valid
@@ -15,23 +13,6 @@ import logging
 
 
 log = logging.getLogger(__name__)
-
-
-def template_response_adapter(s: utils.TemplateResponseDict):
-    """This function works in tandem with
-    :py:class:`fireblog.utils.TemplateResponseDict`. This function assumes s
-    is an instance of :py:func:`fireblog.utils.TemplateResponseDict` and
-    returns a :py:class:`pyramid.response.Response` containing a string
-    representation of s."""
-    assert isinstance(s, utils.TemplateResponseDict)
-    # We need to return a Response() object, as per the Pyramid specs. But we
-    # want to not store a string in the Response yet, but an arbitrary dict
-    # as after this function returns, :py:func:`use_template` will do further
-    # processing on this arbitrary dict. So we set a custom field on this
-    # Respnse object, which we can retrieve in :py:func:`use_template`.
-    response = Response()
-    response._fireblog_custom_response = s
-    return response
 
 
 def add_routes(config):
@@ -52,6 +33,7 @@ def add_routes(config):
 
 def include_all_components(config):
     add_routes(config)
+    config.include('fireblog.theme')
     config.include('fireblog.renderer_globals')
     config.include('fireblog.settings')
     config.include('fireblog.comments', route_prefix='/comment')
@@ -107,8 +89,6 @@ def main(global_config, **settings):
     config.include('pyramid_mako')
     config.include('fireblog.login')
     config.add_static_view(name='bower', path='fireblog:../bower_components')
-    config.add_response_adapter(
-        template_response_adapter, utils.TemplateResponseDict)
     include_all_components(config)
     config.scan()
     return config.make_wsgi_app()
