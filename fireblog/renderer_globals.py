@@ -30,20 +30,12 @@ def get_username(email_address: str):
     return user.username
 
 
-def add_username_function(event):
-    event['get_username'] = get_username
-
-
-def add_urlify_function(event):
-    event['urlify'] = utils.urlify
-
-
-def add_settings_dict_to_templates(event):
+def add_renderer_globals(event):
     event['settings_dict'] = settings_dict
+    event['urlify'] = utils.urlify
+    event['get_username'] = get_username
 
 
 def includeme(config):
     config.add_request_method(get_bower_url)
-    config.add_subscriber(add_username_function, BeforeRender)
-    config.add_subscriber(add_urlify_function, BeforeRender)
-    config.add_subscriber(add_settings_dict_to_templates, BeforeRender)
+    config.add_subscriber(add_renderer_globals, BeforeRender)
