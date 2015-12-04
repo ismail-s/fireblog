@@ -34,8 +34,8 @@ def add_renderer_globals(event):
     event['settings_dict'] = settings_dict
     event['urlify'] = utils.urlify
     event['get_username'] = get_username
+    event['get_bower_url'] = get_bower_url
 
 
 def includeme(config):
-    config.add_request_method(get_bower_url)
     config.add_subscriber(add_renderer_globals, BeforeRender)

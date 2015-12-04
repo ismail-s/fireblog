@@ -3,7 +3,7 @@
 <%block name="head">
 ${parent.head()}
 <link rel="import" href="${request.static_url('fireblog:static/form-submit.html')}">
-<link rel="import" href="${request.get_bower_url('paper-input/paper-input.html')}">
+<link rel="import" href="${get_bower_url('paper-input/paper-input.html')}">
 </%block>
 
 <%block name="header">Settings</%block>

@@ -1,11 +1,11 @@
 <%inherit file="base.mako"/>
 <%block name="head">
 ${parent.head()}
-<link rel="import" href="${request.get_bower_url('paper-icon-button/paper-icon-button.html')}">
-<link rel="import" href="${request.get_bower_url('iron-icons/iron-icons.html')}">
-<link rel="import" href="${request.get_bower_url('paper-fab/paper-fab.html')}">
-<link rel="import" href="${request.get_bower_url('paper-input/paper-input.html')}">
-<link rel="import" href="${request.get_bower_url('paper-dialog/paper-dialog.html')}">
+<link rel="import" href="${get_bower_url('paper-icon-button/paper-icon-button.html')}">
+<link rel="import" href="${get_bower_url('iron-icons/iron-icons.html')}">
+<link rel="import" href="${get_bower_url('paper-fab/paper-fab.html')}">
+<link rel="import" href="${get_bower_url('paper-input/paper-input.html')}">
+<link rel="import" href="${get_bower_url('paper-dialog/paper-dialog.html')}">
 </%block>
 
 <%block name="header_toolbar">

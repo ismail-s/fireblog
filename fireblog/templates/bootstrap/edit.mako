@@ -2,8 +2,8 @@
 
 <%block name="head">
 ${parent.head()}
-<link rel="stylesheet" href="${request.get_bower_url('simplemde/dist/simplemde.min.css')}">
-<script src="${request.get_bower_url('simplemde/dist/simplemde.min.js')}"></script>
+<link rel="stylesheet" href="${get_bower_url('simplemde/dist/simplemde.min.css')}">
+<script src="${get_bower_url('simplemde/dist/simplemde.min.js')}"></script>
 </%block>
 
 <%block name="header">${title}</%block>
