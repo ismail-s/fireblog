@@ -28,6 +28,7 @@ ${parent.header_toolbar()}
     % if 'g:admin' in request.effective_principals:
             <div><a href="${request.route_url('tag_manager')}"><paper-icon-button icon="label"></paper-icon-button></a></div>
             <div><a href="${request.route_url('settings')}"><paper-icon-button icon="settings"></paper-icon-button></a></div>
+            <div><a href="${request.route_url('reload_fireblog')}"><paper-icon-button icon="autorenew"></paper-icon-button></a></div>
     % endif
 % else:
 ${parent.header_toolbar()}
