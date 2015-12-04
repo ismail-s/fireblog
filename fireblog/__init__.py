@@ -1,6 +1,5 @@
 from pyramid.config import Configurator
 from sqlalchemy import engine_from_config
-from pyramid.events import BeforeRender
 from pyramid.response import Response
 import fireblog.utils as utils
 from fireblog.settings import (
@@ -10,7 +9,6 @@ from fireblog.settings import (
 from fireblog.models import (
     DBSession,
     Base,
-    Users
 )
 from configparser import ConfigParser
 import logging
@@ -36,37 +34,6 @@ def template_response_adapter(s: utils.TemplateResponseDict):
     return response
 
 
-def get_bower_url(request, path_to_resource: str) -> str:
-    """Generate a url which points to the supplied path_or_resource.
-    The path_or_resource must exist in the /bower_components folder which is
-    located ../../bower_components relative to the file this function is in."""
-    asset = 'fireblog:../bower_components/' + path_to_resource
-    return request.static_url(asset)
-
-
-def get_username(email_address: str):
-    """Gets the username associated with the supplied email address from the
-    db."""
-    user = DBSession.query(Users.userid, Users.username).filter_by(
-        userid=email_address).first()
-    if not user:
-        log.info('Did not get username for email {}'.format(email_address))
-        return ''
-    return user.username
-
-
-def add_username_function(event):
-    event['get_username'] = get_username
-
-
-def add_urlify_function(event):
-    event['urlify'] = utils.urlify
-
-
-def add_settings_dict_to_templates(event):
-    event['settings_dict'] = settings_dict
-
-
 def add_routes(config):
     config.add_static_view('static', 'static', cache_max_age=3600)
     config.add_route('home', '/')
@@ -82,13 +49,10 @@ def add_routes(config):
     config.add_route('tag_view', '/tags/{tag_name}')
     config.add_route('tag_manager', '/tags')
 
-    config.add_subscriber(add_username_function, BeforeRender)
-    config.add_subscriber(add_urlify_function, BeforeRender)
-    config.add_subscriber(add_settings_dict_to_templates, BeforeRender)
-
 
 def include_all_components(config):
     add_routes(config)
+    config.include('fireblog.renderer_globals')
     config.include('fireblog.settings')
     config.include('fireblog.comments', route_prefix='/comment')
     config.include('fireblog.views')
@@ -143,7 +107,6 @@ def main(global_config, **settings):
     config.include('pyramid_mako')
     config.include('fireblog.login')
     config.add_static_view(name='bower', path='fireblog:../bower_components')
-    config.add_request_method(get_bower_url)
     config.add_response_adapter(
         template_response_adapter, utils.TemplateResponseDict)
     include_all_components(config)
