@@ -158,6 +158,7 @@ def testapp(request, mydb, setup_testapp):
     testapp = setup_testapp
     mydb.begin(subtransactions=True)
     clear_dogpile_region()
+
     def fin():
         mydb.rollback()
         clear_dogpile_region()
