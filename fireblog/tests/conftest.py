@@ -52,7 +52,7 @@ def pyramid_req():
     return res
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture
 def mydb(request, persona_test_admin_login, theme):
     engine = create_engine('sqlite://')
     DBSession.configure(bind=engine)
@@ -123,7 +123,6 @@ def mydb(request, persona_test_admin_login, theme):
 def pyramid_config(mydb, request):
     config = testing.setUp()
     config.include('pyramid_mako')
-    mydb.rollback()
     include_all_components(config)
     mydb.rollback()
     mydb.begin(subtransactions=True)
@@ -137,7 +136,7 @@ def pyramid_config(mydb, request):
     return config
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture
 def setup_testapp(mydb, request):
     settings = {'sqlalchemy.url': 'sqlite://',
                 'persona.audiences': 'http://localhost',
@@ -157,7 +156,6 @@ def setup_testapp(mydb, request):
 @pytest.fixture
 def testapp(request, mydb, setup_testapp):
     testapp = setup_testapp
-    mydb.rollback()
     mydb.begin(subtransactions=True)
     clear_dogpile_region()
 

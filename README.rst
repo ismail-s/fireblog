@@ -13,6 +13,9 @@ version, see `my blog <https://blog.ismail-s.com>`_.
 Getting Started
 ---------------
 
+First make sure there is a running local instance of `redis <http://redis.io>`_.
+Then run the following commands:
+
 .. code:: bash
 
   git clone https://github.com/ismail-s/fireblog.git
