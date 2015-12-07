@@ -13,7 +13,7 @@ from alembic.config import Config
 from alembic import command
 from pyramid.scripts.common import parse_vars
 
-from ..models import (
+from fireblog.models import (
     DBSession,
     Post,
     Users,
