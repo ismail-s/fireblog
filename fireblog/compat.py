@@ -1,3 +1,4 @@
+# flake8: noqa
 try:
     from pathlib import Path
 except ImportError:  # pragma: no cover
