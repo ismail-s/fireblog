@@ -1,8 +1,5 @@
 import os
-try:
-    from pathlib import Path
-except ImportError:
-    from pathlib2 import Path
+from fireblog.compat import Path
 import sys
 import transaction
 
@@ -16,7 +13,7 @@ from alembic.config import Config
 from alembic import command
 from pyramid.scripts.common import parse_vars
 
-from ..models import (
+from fireblog.models import (
     DBSession,
     Post,
     Users,
