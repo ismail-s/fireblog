@@ -13,10 +13,7 @@ except ImportError:  # pragma: no cover
         return func
     spool = _mock_spool
 import time
-try:  # pragma: no cover
-    from pathlib import Path
-except ImportError:  # pragma: no cover
-    from pathlib2 import Path
+from fireblog.compat import Path
 
 
 @spool

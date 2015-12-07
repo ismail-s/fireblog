@@ -1,12 +1,6 @@
 from fireblog.tasks import reload_uwsgi
-try:
-    from pathlib import Path
-except ImportError:
-    from pathlib2 import Path
-try:
-    import unittest.mock as mock
-except ImportError:
-    import mock  # python3.2 support
+from fireblog.compat import Path
+from fireblog.compat import mock
 
 
 @mock.patch('fireblog.tasks.uwsgi')

@@ -1,9 +1,6 @@
 import pytest
 import fireblog.models as models
-try:
-    import unittest.mock as mock
-except ImportError:
-    import mock  # python3.2 support
+from fireblog.compat import mock
 
 
 pytestmark = pytest.mark.usefixtures("test_with_one_theme")

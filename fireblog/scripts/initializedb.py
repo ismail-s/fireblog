@@ -1,8 +1,5 @@
 import os
-try:
-    from pathlib import Path
-except ImportError:
-    from pathlib2 import Path
+from fireblog.compat import Path
 import sys
 import transaction
 
