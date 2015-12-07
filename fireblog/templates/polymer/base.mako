@@ -11,17 +11,17 @@
     <title>${settings_dict['persona.siteName']}</title>
 
     <%block name="head">
-    <script src="${request.get_bower_url('webcomponentsjs/webcomponents-lite.min.js')}">
+    <script src="${get_bower_url('webcomponentsjs/webcomponents-lite.min.js')}">
     </script>
     <link href='//fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
     <!-- Custom styles for this template -->
     <style is="custom-style">
         <%include file="polymer-custom-theme.css.mako"/>
     </style>
-    <link rel="import" href="${request.get_bower_url('paper-toolbar/paper-toolbar.html')}">
-    <link rel="import" href="${request.get_bower_url('paper-scroll-header-panel/paper-scroll-header-panel.html')}">
-    <link rel="import" href="${request.get_bower_url('paper-material/paper-material.html')}">
-    <link rel="import" href="${request.get_bower_url('paper-toast/paper-toast.html')}">
+    <link rel="import" href="${get_bower_url('paper-toolbar/paper-toolbar.html')}">
+    <link rel="import" href="${get_bower_url('paper-scroll-header-panel/paper-scroll-header-panel.html')}">
+    <link rel="import" href="${get_bower_url('paper-material/paper-material.html')}">
+    <link rel="import" href="${get_bower_url('paper-toast/paper-toast.html')}">
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
       <script src="//oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>

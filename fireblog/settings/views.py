@@ -1,5 +1,5 @@
 from fireblog.settings import mapping, settings_dict, validate_value
-from fireblog.utils import use_template, TemplateResponseDict
+from fireblog.theme import use_template, TemplateResponseDict
 from pyramid.view import view_config, view_defaults
 from pyramid.httpexceptions import HTTPFound
 import logging

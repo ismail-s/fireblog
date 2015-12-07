@@ -3,10 +3,10 @@
 <%block name="head">
 ${parent.head()}
 <link rel="import" href="${request.static_url('fireblog:static/form-submit.html')}">
-<link rel="import" href="${request.get_bower_url('paper-item/paper-item.html')}">
-<link rel="import" href="${request.get_bower_url('paper-item/paper-item-body.html')}">
-<link rel="import" href="${request.get_bower_url('paper-input/paper-textarea.html')}">
-<link rel="import" href="${request.get_bower_url('paper-button/paper-button.html')}">
+<link rel="import" href="${get_bower_url('paper-item/paper-item.html')}">
+<link rel="import" href="${get_bower_url('paper-item/paper-item-body.html')}">
+<link rel="import" href="${get_bower_url('paper-input/paper-textarea.html')}">
+<link rel="import" href="${get_bower_url('paper-button/paper-button.html')}">
 </%block>
 
 <%block name="content">

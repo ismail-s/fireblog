@@ -12,8 +12,8 @@
   <%block name = "head">
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
-    <link rel="stylesheet" href="${request.get_bower_url('simplemde/dist/simplemde.min.css')}">
-    <script src="${request.get_bower_url('simplemde/dist/simplemde.min.js')}"></script>
+    <link rel="stylesheet" href="${get_bower_url('simplemde/dist/simplemde.min.css')}">
+    <script src="${get_bower_url('simplemde/dist/simplemde.min.js')}"></script>
 
     <!-- Custom styles for this template -->
     <style>

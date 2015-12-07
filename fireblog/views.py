@@ -2,7 +2,7 @@
 uuids.'''
 import fireblog.utils as utils
 import fireblog.events as events
-from fireblog.utils import use_template, TemplateResponseDict
+from fireblog.theme import use_template, TemplateResponseDict
 from fireblog.utils import urlify as u
 from fireblog.dogpile_region import region
 from fireblog.settings import settings_dict

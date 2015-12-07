@@ -7,6 +7,8 @@ Subpackages
 .. toctree::
 
     fireblog.scripts
+    fireblog.settings
+    fireblog.tests
 
 Submodules
 ----------
@@ -15,6 +17,14 @@ fireblog.comments module
 ------------------------
 
 .. automodule:: fireblog.comments
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+fireblog.dogpile_region module
+------------------------------
+
+.. automodule:: fireblog.dogpile_region
     :members:
     :undoc-members:
     :show-inheritance:
@@ -35,6 +45,14 @@ fireblog.htmltruncate module
     :undoc-members:
     :show-inheritance:
 
+fireblog.login module
+---------------------
+
+.. automodule:: fireblog.login
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 fireblog.models module
 ----------------------
 
@@ -43,10 +61,34 @@ fireblog.models module
     :undoc-members:
     :show-inheritance:
 
+fireblog.renderer_globals module
+--------------------------------
+
+.. automodule:: fireblog.renderer_globals
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 fireblog.tags module
 --------------------
 
 .. automodule:: fireblog.tags
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+fireblog.tasks module
+---------------------
+
+.. automodule:: fireblog.tasks
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+fireblog.theme module
+---------------------
+
+.. automodule:: fireblog.theme
     :members:
     :undoc-members:
     :show-inheritance:

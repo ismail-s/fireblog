@@ -23,6 +23,9 @@ sys.path.insert(0, os.path.abspath('..'))
 
 # -- General configuration ------------------------------------------------
 
+# Show warnings about any invalid references when building docs
+nitpicky = True
+
 # If your documentation needs a minimal Sphinx version, state it here.
 #needs_sphinx = '1.0'
 

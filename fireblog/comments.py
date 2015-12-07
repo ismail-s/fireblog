@@ -4,6 +4,7 @@ import fireblog.events as events
 from fireblog.utils import urlify as u
 from fireblog.views import invalidate_current_post
 from fireblog.settings import settings_dict
+from fireblog.theme import render_to_response
 import requests
 import logging
 from pyramid.view import view_config
@@ -28,12 +29,12 @@ def add_comment_section_below_posts(event) -> None:
     the event parameter."""
     comments_list = render_comments_list_from_event(event)
     comment_add_url = event.request.route_url('comment_add')
-    html = utils.render_to_response('comments.mako',
-                                    {'comments': comments_list,
-                                     'comment_add_url': comment_add_url,
-                                     'post_title': event.post.name,
-                                     'post_id': event.post.id},
-                                    event.request).text
+    html = render_to_response('comments.mako',
+                              {'comments': comments_list,
+                               'comment_add_url': comment_add_url,
+                               'post_title': event.post.name,
+                               'post_id': event.post.id},
+                              event.request).text
     event.sections.append(html)
 
 
