@@ -1,9 +1,5 @@
 from pyramid.config import Configurator
 from sqlalchemy import engine_from_config
-from fireblog.settings import (
-    settings_dict,
-    make_sure_all_settings_exist_and_are_valid
-)
 from fireblog.models import (
     DBSession,
     Base,
@@ -68,25 +64,31 @@ def main(global_config, **settings):
 
     :return: WSGI app
     """
+    config = Configurator(settings=settings)
+    # A lot of stuff, such as settings_dict, relies on the cache being setup,
+    # so we set it up as soon as possible.
     config.include('pyramid_dogpile_cache')
     # Get extra config settings from secrets file
     secrets_file = settings.get('secrets', None)
     log.debug('Found secrets file {}'.format(secrets_file))
     secrets_dict = get_secret_settings(secrets_file, defaults=global_config)
-    settings.update(secrets_dict)
+    config.add_settings(secrets_dict)
 
     engine = engine_from_config(settings, 'sqlalchemy.')
     DBSession.configure(bind=engine)
     Base.metadata.bind = engine
-
+    # We have to import the settings module after setting up the cache, which
+    # is done at the beginnning of this function.
+    from fireblog.settings import (
+      settings_dict,
+       make_sure_all_settings_exist_and_are_valid
+    )
     make_sure_all_settings_exist_and_are_valid()
     # Add all settings from db that are needed for plugins (eg pyramid_persona)
     # so that the plugins can access these settings.
     for name, value in settings_dict.items():
         if not name.startswith('fireblog'):
-            settings[name] = value
-
-    config = Configurator(settings=settings)
+            config.add_settings({name: value})
     config.include('pyramid_tm')
     config.include('pyramid_persona')
     config.include('pyramid_mako')
