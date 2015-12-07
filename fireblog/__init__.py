@@ -68,6 +68,7 @@ def main(global_config, **settings):
 
     :return: WSGI app
     """
+    config.include('pyramid_dogpile_cache')
     # Get extra config settings from secrets file
     secrets_file = settings.get('secrets', None)
     log.debug('Found secrets file {}'.format(secrets_file))
@@ -86,6 +87,8 @@ def main(global_config, **settings):
             settings[name] = value
 
     config = Configurator(settings=settings)
+    config.include('pyramid_tm')
+    config.include('pyramid_persona')
     config.include('pyramid_mako')
     config.include('fireblog.login')
     config.add_static_view(name='bower', path='fireblog:../bower_components')
