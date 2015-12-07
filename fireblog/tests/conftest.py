@@ -52,7 +52,7 @@ def pyramid_req():
     return res
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture
 def mydb(request, persona_test_admin_login, theme):
     engine = create_engine('sqlite://')
     DBSession.configure(bind=engine)
@@ -137,7 +137,7 @@ def pyramid_config(mydb, request):
     return config
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture
 def setup_testapp(mydb, request):
     settings = {'sqlalchemy.url': 'sqlite://',
                 'persona.audiences': 'http://localhost',
