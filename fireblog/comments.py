@@ -30,11 +30,11 @@ def add_comment_section_below_posts(event) -> None:
     comments_list = render_comments_list_from_event(event)
     comment_add_url = event.request.route_url('comment_add')
     html = render_to_response('comments.mako',
-                                    {'comments': comments_list,
-                                     'comment_add_url': comment_add_url,
-                                     'post_title': event.post.name,
-                                     'post_id': event.post.id},
-                                    event.request).text
+                              {'comments': comments_list,
+                               'comment_add_url': comment_add_url,
+                               'post_title': event.post.name,
+                               'post_id': event.post.id},
+                              event.request).text
     event.sections.append(html)
 
 

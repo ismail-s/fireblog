@@ -2,7 +2,6 @@
 Code that allows for changing the template files used at runtime. This
 provides support for themes, which are just folders containing template files.
 '''
-import fireblog.utils as utils
 from fireblog.settings import settings_dict
 from pyramid.response import Response
 from pyramid.httpexceptions import HTTPException
