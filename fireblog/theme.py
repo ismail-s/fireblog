@@ -21,7 +21,7 @@ class TemplateResponseDict(dict):
     render it to a response.
 
     This class is used in tandem with
-    :py:func:`fireblog.template_response_adapter`'''
+    :py:func:`template_response_adapter`'''
     pass
 
 
@@ -57,8 +57,8 @@ def render_to_response(template, res, request):
 
 def template_response_adapter(s: TemplateResponseDict):
     """This function works in tandem with
-    :py:class:`fireblog.utils.TemplateResponseDict`. This function assumes s
-    is an instance of :py:func:`fireblog.utils.TemplateResponseDict` and
+    :py:class:`TemplateResponseDict`. This function assumes s
+    is an instance of :py:func:`TemplateResponseDict` and
     returns a :py:class:`pyramid.response.Response` containing a string
     representation of s."""
     assert isinstance(s, TemplateResponseDict)
