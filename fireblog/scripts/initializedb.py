@@ -61,10 +61,9 @@ def setup_first_post(DBSession,script_name):
         DBSession.add(me)
 
 
-
 def run_alembic_migrations():
     current_dir = Path(__file__).parent
-    alembic_cfg_file = current_dir/'..'/'..'/'alembic.ini'
+    alembic_cfg_file = current_dir / '..' / '..' / 'alembic.ini'
     alembic_cfg = Config(str(alembic_cfg_file.resolve()))
     command.upgrade(alembic_cfg, "head")
 
