@@ -39,8 +39,15 @@ For more information about this blog, see the
 Any issues, report them there.
 """
 
-def setup_first_post(DBSession):
-    post_markdown = first_post.format(script_name=os.path.basename(argv[0]))
+
+def setup_first_post(DBSession,script_name):
+    # Don't setup first post if posts already exist. This may be the case
+    # if the script is run on an existing db.
+    if DBSession.query(Post).count() > 0:
+        print('Skipping setting up an initial post as there already exist '
+              'posts in the db')
+        return
+    post_markdown = first_post.format(script_name=script_name)
     email_address = input('Please provide an admin email address: ')
     print('Creating the database for you...')
     with transaction.manager:
@@ -80,7 +87,7 @@ def main(argv=sys.argv):
     engine = engine_from_config(settings, 'sqlalchemy.')
     DBSession.configure(bind=engine)
     Base.metadata.create_all(engine)
-    setup_first_post(DBSession)
+    setup_first_post(DBSession, script_name=os.path.basename(argv[0]))
     print('The database has now been setup.')
     print('Run "pserve {ini_file}" to start the blog'.format(
         ini_file=config_uri))
