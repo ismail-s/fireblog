@@ -40,7 +40,7 @@ Any issues, report them there.
 """
 
 
-def setup_first_post(DBSession,script_name):
+def setup_first_post(DBSession, script_name):
     # Don't setup first post if posts already exist. This may be the case
     # if the script is run on an existing db.
     if DBSession.query(Post).count() > 0:
@@ -59,6 +59,11 @@ def setup_first_post(DBSession,script_name):
         me = Users(userid=email_address,
                    group='g:admin')
         DBSession.add(me)
+
+
+def setup_settings_db():
+    from fireblog.settings import make_sure_all_settings_exist_and_are_valid
+    make_sure_all_settings_exist_and_are_valid()
 
 
 def run_alembic_migrations():
@@ -87,6 +92,7 @@ def main(argv=sys.argv):
     DBSession.configure(bind=engine)
     Base.metadata.create_all(engine)
     setup_first_post(DBSession, script_name=os.path.basename(argv[0]))
+    setup_settings_db()
     print('The database has now been setup.')
     print('Run "pserve {ini_file}" to start the blog'.format(
         ini_file=config_uri))
