@@ -79,11 +79,7 @@ def main(global_config, **settings):
     Base.metadata.bind = engine
     # We have to import the settings module after setting up the cache, which
     # is done at the beginnning of this function.
-    from fireblog.settings import (
-        settings_dict,
-        make_sure_all_settings_exist_and_are_valid
-    )
-    make_sure_all_settings_exist_and_are_valid()
+    from fireblog.settings import settings_dict
     # Add all settings from db that are needed for plugins (eg pyramid_persona)
     # so that the plugins can access these settings.
     for name, value in settings_dict.items():
