@@ -1,3 +1,13 @@
+"""
+The initializedb or initialize_fireblog_db script works in 2 ways:
+
+1) It can initialise a db to be used for the blog
+2) If a db already exists, then it will:
+
+  a) Run migrations on it if necessary
+  b) Check the settings table in the db and make sure that all required
+     settings exist and are valid.
+"""
 import os
 from fireblog.compat import Path
 import sys
@@ -40,9 +50,35 @@ Any issues, report them there.
 """
 
 
+def setup_first_post(DBSession, script_name):
+    # Don't setup first post if posts already exist. This may be the case
+    # if the script is run on an existing db.
+    if DBSession.query(Post).count() > 0:
+        print('Skipping setting up an initial post as there already exist '
+              'posts in the db')
+        return
+    post_markdown = first_post.format(script_name=script_name)
+    email_address = input('Please provide an admin email address: ')
+    print('Creating the database for you...')
+    with transaction.manager:
+        post = Post(name='Hello World!',
+                    markdown=post_markdown,
+                    html=markdown(post_markdown))
+        DBSession.add(post)
+    with transaction.manager:
+        me = Users(userid=email_address,
+                   group='g:admin')
+        DBSession.add(me)
+
+
+def setup_settings_db():
+    from fireblog.settings import make_sure_all_settings_exist_and_are_valid
+    make_sure_all_settings_exist_and_are_valid()
+
+
 def run_alembic_migrations():
     current_dir = Path(__file__).parent
-    alembic_cfg_file = current_dir/'..'/'..'/'alembic.ini'
+    alembic_cfg_file = current_dir / '..' / '..' / 'alembic.ini'
     alembic_cfg = Config(str(alembic_cfg_file.resolve()))
     command.upgrade(alembic_cfg, "head")
 
@@ -65,18 +101,8 @@ def main(argv=sys.argv):
     engine = engine_from_config(settings, 'sqlalchemy.')
     DBSession.configure(bind=engine)
     Base.metadata.create_all(engine)
-    post_markdown = first_post.format(script_name=os.path.basename(argv[0]))
-    email_address = input('Please provide an admin email address: ')
-    print('Creating the database for you...')
-    with transaction.manager:
-        post = Post(name='Hello World!',
-                    markdown=post_markdown,
-                    html=markdown(post_markdown))
-        DBSession.add(post)
-    with transaction.manager:
-        me = Users(userid=email_address,
-                   group='g:admin')
-        DBSession.add(me)
+    setup_first_post(DBSession, script_name=os.path.basename(argv[0]))
+    setup_settings_db()
     print('The database has now been setup.')
     print('Run "pserve {ini_file}" to start the blog'.format(
         ini_file=config_uri))

@@ -13,27 +13,27 @@ def make_sure_all_settings_exist_and_are_valid():
     be in it, and make sure they both are in the settings table and are valid.
     For any that aren't valid or don't exist, we get a correct value from the
     user.
-    This function should only be run when the web app is starting up, as it
-    requests user input from the command line."""
-    if len(settings_dict) != len(mapping):
-        with transaction.manager:
-            for entry in mapping:
-                try:
-                    value = settings_dict[entry.registry_name]
-                    valid, value, _ = validate_value(entry, value)
-                    if valid:
-                        continue
-                except KeyError:
-                    pass
-                while True:
-                    # Get value from user
-                    input_str = 'Please provide a value for the setting "{}": '
-                    user_val = input(input_str.format(entry.display_name))
-                    valid, value, _ = validate_value(entry, user_val)
-                    if valid:
-                        break
-                    print('That value is invalid.')
-                settings_dict[entry.registry_name] = value
+    This function is meant to be run as part of a console script, as it uses
+    STDIN to get user input, which doesn't work with some app servers eg
+    uwsgi."""
+    with transaction.manager:
+        for entry in mapping:
+            try:
+                value = settings_dict[entry.registry_name]
+                valid, value, _ = validate_value(entry, value)
+                if valid:
+                    continue
+            except KeyError:
+                pass
+            while True:
+                # Get value from user
+                input_str = 'Please provide a value for the setting "{}": '
+                user_val = input(input_str.format(entry.display_name))
+                valid, value, _ = validate_value(entry, user_val)
+                if valid:
+                    break
+                print('That value is invalid.')
+            settings_dict[entry.registry_name] = value
 
 
 def validate_value(entry: Entry, value):
