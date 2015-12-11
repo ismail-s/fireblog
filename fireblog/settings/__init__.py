@@ -13,8 +13,9 @@ def make_sure_all_settings_exist_and_are_valid():
     be in it, and make sure they both are in the settings table and are valid.
     For any that aren't valid or don't exist, we get a correct value from the
     user.
-    This function should only be run when the web app is starting up, as it
-    requests user input from the command line."""
+    This function is meant to be run as part of a console script, as it uses
+    STDIN to get user input, which doesn't work with some app servers eg
+    uwsgi."""
     with transaction.manager:
         for entry in mapping:
             try:
