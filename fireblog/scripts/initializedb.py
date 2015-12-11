@@ -1,3 +1,13 @@
+"""
+The initializedb or initialize_fireblog_db script works in 2 ways:
+
+1) It can initialise a db to be used for the blog
+2) If a db already exists, then it will:
+
+  a) Run migrations on it if necessary
+  b) Check the settings table in the db and make sure that all required
+     settings exist and are valid.
+"""
 import os
 from fireblog.compat import Path
 import sys
