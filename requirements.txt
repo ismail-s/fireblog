@@ -26,3 +26,4 @@ pathlib2
 uwsgi
 pastescript
 pastedeploy
+redis
