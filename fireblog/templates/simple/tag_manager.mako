@@ -2,13 +2,11 @@
 
 <%block name="header">${title}</%block>
 
-<%block name="head">
-    ${parent.head()}
-    <style>
+<%block name="style">
+    ${parent.style()}
         th, td {
             border: 1px solid black;
         }
-    </style>
 </%block>
 
 <%block name="content">

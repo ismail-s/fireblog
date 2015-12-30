@@ -1,7 +1,6 @@
 <%inherit file="base.mako"/>
-<%block name="head">
-    ${parent.head()}
-    <style>
+<%block name="style">
+    ${parent.style()}
         .navbar {
             display: flex;
             flex-direction: row;
@@ -9,7 +8,6 @@
             justify-content: space-around;
             width: inherit;
         }
-    </style>
 </%block>
 
 <%block name="header_toolbar">

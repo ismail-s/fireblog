@@ -2,8 +2,9 @@
 
 <%block name="header">${title}</%block>
 
-<%block name="content">
 
+<%block name="style">
+    ${parent.style()}
     <%
         if code_styles:
             from pygments.formatters import HtmlFormatter
@@ -11,11 +12,11 @@
         else:
             extra_styles = None
     %>
-
     % if extra_styles:
-        <style>${extra_styles}</style>
+        ${extra_styles}
     % endif
-
+</%block>
+<%block name="content">
     <div>${pager|n}</div>
 
     % for post in posts:

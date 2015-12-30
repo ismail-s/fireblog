@@ -1,19 +1,19 @@
 <%inherit file="navbar.mako"/>
 
-<%block name="content">
-
+<%block name="style">
+    ${parent.style()}
     <%
         if 'class="codehilite"' in html:
             from pygments.formatters import HtmlFormatter
             extra_styles = HtmlFormatter.get_style_defs(HtmlFormatter())
         else:
-                extra_styles = None
+            extra_styles = None
     %>
-
     % if extra_styles:
-        <style>${extra_styles}</style>
+        ${extra_styles}
     % endif
-
+</%block>
+<%block name="content">
     <h2>${title}</h2>
     <div>${html|n}</div>
 

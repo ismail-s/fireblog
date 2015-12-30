@@ -11,6 +11,7 @@
 
         <%block name="head">
             <script src='//www.google.com/recaptcha/api.js'></script>
+            <style><%block name="style"></%block></style>
         </%block>
     </head>
     <body>
