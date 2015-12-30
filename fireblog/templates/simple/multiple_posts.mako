@@ -27,7 +27,6 @@
         </a>
         <div>${post["html"]|n}</div>
         <hr>
-    </a>
 % endfor
 
 <div>${pager|n}</div>
