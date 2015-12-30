@@ -3,7 +3,7 @@
 <%block name="header">Settings</%block>
 
 <%block name="content">
-    <form id = "change-settings" action = "${save_url}" method = "post">
+    <form id="change-settings" action="${save_url}" method="post">
         % for entry in mapping:
             % if entry.min or entry.max:
                 <input type="number"

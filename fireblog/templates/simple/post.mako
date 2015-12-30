@@ -11,9 +11,7 @@
     %>
 
     % if extra_styles:
-        <style>
-            ${extra_styles}
-        </style>
+        <style>${extra_styles}</style>
     % endif
 
     <h2>${title}</h2>
@@ -37,8 +35,6 @@
 
 
     % for section in bottom_of_page_sections:
-        <p>
-            ${section|n}
-        </p>
+        <p>${section|n}</p>
     % endfor
 </%block>

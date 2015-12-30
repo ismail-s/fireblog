@@ -15,7 +15,7 @@
     <p>These are all the tags that are used on this blog. Uncheck a checkbox to delete that tag. Change the text in a textbox to rename a tag.</p>
     <p><i>Please note that deleting a tag is irreversible.</i></p>
 
-    <form id = "tag-manager" action = "${save_url}" method = "post">
+    <form id="tag-manager" action="${save_url}" method="post">
         <table>
             <thead><tr>
                     <th>Keep tag</th>
@@ -29,12 +29,12 @@
                             <input type="checkbox" name="check-${tag}" checked>
                         </th>
                         <th>
-                            <input type="text" name = "text-${tag}"
+                            <input type="text" name="text-${tag}"
                             id="tag-${tag}"
-                            value = "${tag}"></input>
+                            value="${tag}"></input>
                         </th>
                         <th>
-                            <a href = "${request.route_url('tag_view', tag_name = tag)}">${no_of_posts}</a>
+                            <a href="${request.route_url('tag_view', tag_name=tag)}">${no_of_posts}</a>
                         </th>
                     </tr>
                 % endfor

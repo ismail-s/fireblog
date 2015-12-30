@@ -10,23 +10,23 @@
 % endfor
 
 % if request.authenticated_userid:  # All authenticated users can comment.
-<form id = "add-comment" action = "${comment_add_url}" method = "post">
-    <textarea name = "comment"
-        placeholder = "enter your comment here"
+<form id="add-comment" action="${comment_add_url}" method="post">
+    <textarea name="comment"
+        placeholder="enter your comment here"
         id="add-comment"
         label="Add a comment"
         style="width: 100%"></textarea>
     <paper-button raised><input type="hidden" name="post-id" value="${post_id}">
-    <input type = "hidden" name = "form.submitted">
+    <input type="hidden" name="form.submitted">
     <input type="submit" value="Submit"></input>
 </form>
 % else:
 
     ## Sort out comment add anonymous url
-    <form id = "add-comments" name="add-comment" action = "${comment_add_url}" method = "post">
+    <form id="add-comments" name="add-comment" action="${comment_add_url}" method="post">
         <textarea
             name="comment"
-            placeholder = "enter your comment here"
+            placeholder="enter your comment here"
             id="add-comment"
             label="Add a comment anonymously."
             style="width: 100%"></textarea>

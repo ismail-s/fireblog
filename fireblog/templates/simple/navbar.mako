@@ -30,11 +30,11 @@
 
             % if request.matched_route.name in ('view_post', 'home'):
                 % if request.has_permission('edit'):
-                    <div><a href="${request.route_url('change_post', postname = urlify(title), id = post_id, action = 'edit')}">Edit post</a></div>
+                    <div><a href="${request.route_url('change_post', postname=urlify(title), id=post_id, action='edit')}">Edit post</a></div>
                 % endif
                 % if request.has_permission('del'):
-                    <div><a href="${request.route_url('change_post', postname = urlify(title), id = post_id,
-                            action = 'del')}">Delete post</a></div>
+                    <div><a href="${request.route_url('change_post', postname=urlify(title), id=post_id,
+                            action='del')}">Delete post</a></div>
                 % endif
             % endif
             % if 'g:admin' in request.effective_principals:

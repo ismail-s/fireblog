@@ -13,15 +13,13 @@
     %>
 
     % if extra_styles:
-        <style>
-            ${extra_styles}
-        </style>
+        <style>${extra_styles}</style>
     % endif
 
     <div>${pager|n}</div>
 
     % for post in posts:
-        <a href = "${request.route_url('view_post', id=post["id"], postname = urlify(post["name"]))}">
+        <a href="${request.route_url('view_post', id=post["id"], postname=urlify(post["name"]))}">
             <h1>
                 ${post["name"]} <small>Created ${post["date"]}</small>
             </h1>
@@ -35,7 +33,7 @@
 
 % if uuid:
     <p style="text-align: center"><small>
-            <a href="${request.route_url('uuid', uuid = uuid)}">Permalink</a>
+            <a href="${request.route_url('uuid', uuid=uuid)}">Permalink</a>
     </small></p>
 % endif
 
