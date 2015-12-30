@@ -21,10 +21,10 @@
             label="${entry.display_name}"
             value="${entry.value}"
             style="width: 100%"
-            required auto-validate></input>
+            required auto-validate>
             <p>${entry.description}</p>
 
         % endfor
-        <input type="submit" value="Submit"</input>
+        <input type="submit" value="Submit">
         </form>
     </%block>

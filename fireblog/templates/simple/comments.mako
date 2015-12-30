@@ -16,9 +16,9 @@
         id="add-comment"
         label="Add a comment"
         style="width: 100%"></textarea>
-    <paper-button raised><input type="hidden" name="post-id" value="${post_id}">
+    <input type="hidden" name="post-id" value="${post_id}">
     <input type="hidden" name="form.submitted">
-    <input type="submit" value="Submit"></input>
+    <input type="submit" value="Submit">
 </form>
 % else:
 
@@ -39,6 +39,6 @@
         <input type="hidden" name="post-id" value="${post_id}">
         <input type="hidden" name="form.submitted">
         <div class="g-recaptcha" data-sitekey="${settings_dict['fireblog.recaptcha_site_key']}"></div>
-        <input type="submit" value="Submit"></input>
+        <input type="submit" value="Submit">
     </form>
 % endif

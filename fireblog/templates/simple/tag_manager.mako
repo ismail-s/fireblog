@@ -31,7 +31,7 @@
                         <th>
                             <input type="text" name="text-${tag}"
                             id="tag-${tag}"
-                            value="${tag}"></input>
+                            value="${tag}">
                         </th>
                         <th>
                             <a href="${request.route_url('tag_view', tag_name=tag)}">${no_of_posts}</a>
@@ -41,6 +41,6 @@
             </tbody>
         </table>
         <input type="hidden" name="form.submitted">
-        <input type="submit" value="Submit"></input>
+        <input type="submit" value="Submit">
     </form>
 </%block>

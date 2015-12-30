@@ -15,6 +15,6 @@
         label="enter any tags here, separated by commas"
         value="${tags}"></input>
         <input type="hidden" name="form.submitted">
-        <input type="submit" value="Submit"></input>
-        </form>
-    </%block>
+        <input type="submit" value="Submit">
+    </form>
+</%block>

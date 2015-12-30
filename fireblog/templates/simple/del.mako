@@ -7,6 +7,6 @@
 
     <form id="del-post" action="${save_url}" method="post">
         <input type="hidden" name="form.submitted">
-        <input type="submit" value="Delete this post"></input>
+        <input type="submit" value="Delete this post">
     </form>
 </%block>
