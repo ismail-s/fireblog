@@ -69,7 +69,7 @@
     </%block>
     <%block name="footer_js">
     <!-- Placed at the end of the document so the pages load faster -->
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <script src="//login.persona.org/include.js" type="text/javascript"></script>
     <script type="text/javascript">${request.persona_js}</script>
     </%block>
