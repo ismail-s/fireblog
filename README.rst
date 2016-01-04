@@ -23,6 +23,7 @@ Then run the following commands:
   pip install -r requirements.txt
   python setup.py develop
   initialize_fireblog_db development.ini
+  mkdir reload-spooler
   uwsgi --ini-paste-logged development.ini
 
 Do note when running those commands that:
