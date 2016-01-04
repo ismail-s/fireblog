@@ -28,7 +28,7 @@ def groupfinder(userid, request) -> list:
     """Looks up and returns the groups the userid belongs to.
     If the userid doesn't exist, they are created as a commenter, and the
     group they belong to (g:commenter) is returned."""
-    query = DBSession.query(Users). \
+    query = DBSession.query(Users.group). \
         filter(Users.userid == userid)
     try:
         user = query.one()
