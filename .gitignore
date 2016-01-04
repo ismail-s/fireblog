@@ -63,3 +63,6 @@ target/
 
 # Python Hypothesis
 .hypothesis/
+
+# Python rope
+.ropeproject/
