@@ -6,6 +6,10 @@ Fireblog
 .. image:: https://coveralls.io/repos/ismail-s/fireblog/badge.svg?branch=develop&service=github
   :target: https://coveralls.io/github/ismail-s/fireblog?branch=develop
 
+.. image:: https://badge.waffle.io/ismail-s/fireblog.png?label=ready&title=Ready
+  :target: https://waffle.io/ismail-s/fireblog
+  :alt: 'Stories in Ready'
+
 A simple blog, written in Python, using the
 `Pyramid web framework <https://www.github.com/pylons/pyramid>`_. For a live
 version, see `my blog <https://blog.ismail-s.com>`_.
