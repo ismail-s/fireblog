@@ -50,6 +50,7 @@ def tag_view(request):
                               _query='p=$page' + sort_ascending_query_text))
     return TemplateResponseDict(title='Posts tagged with {}'.format(tag),
                                 posts=posts,
+                                page_num=page_num,
                                 pager=pager,
                                 uuid=tag_obj.uuid,
                                 code_styles=code_styles)

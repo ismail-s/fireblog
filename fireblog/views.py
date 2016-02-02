@@ -215,6 +215,7 @@ def view_all_posts(request):
 
     return TemplateResponseDict(title='All posts',
                                 pager=pager,
+                                page_num=page_num,
                                 posts=res,
                                 uuid=None,
                                 code_styles=code_styles)
