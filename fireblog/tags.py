@@ -29,8 +29,10 @@ def tag_view(request):
     page_num = request.params.get('p', None) or 1
     if request.params.get('sort-ascending', False):
         sort_desc = False
+        sort_ascending_query_text = '&sort-ascending=true'
     else:
         sort_desc = True
+        sort_ascending_query_text = ''
     tag = request.matchdict['tag_name']
     try:
         tag_obj = DBSession.query(Tags).filter_by(tag=tag).one()
@@ -44,7 +46,8 @@ def tag_view(request):
     posts, code_styles = utils.create_post_list_from_posts_obj(
         request, page)
     pager = page.pager(
-        url=request.route_url('tag_view', tag_name=tag, _query='p=$page'))
+        url=request.route_url('tag_view', tag_name=tag,
+                              _query='p=$page' + sort_ascending_query_text))
     return TemplateResponseDict(title='Posts tagged with {}'.format(tag),
                                 posts=posts,
                                 pager=pager,
