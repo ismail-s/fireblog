@@ -44,7 +44,8 @@ class Test_functional_tests:
         page = str(res.html)
         assert res.status == '200 OK'
         assert '<h1>Page2 1*2</h1>' in page or\
-            '<h1 class="center">Page2 1*2</h1>' in page
+            '<h1 class="center">Page2 1*2</h1>' in page or\
+            '<h2>Page2 1*2</h2>' in page
         assert '<p>This is page 2</p>' in page
 
     def test_get_page(self, testapp):
@@ -52,7 +53,8 @@ class Test_functional_tests:
         page = str(res.html)
         assert res.status == '200 OK'
         assert '<h1>Page2 1*2</h1>' in page or\
-            '<h1 class="center">Page2 1*2</h1>' in page
+            '<h1 class="center">Page2 1*2</h1>' in page or\
+            '<h2>Page2 1*2</h2>' in page
         assert '<p>This is page 2</p>' in page
         found_comment_h2_elem = False
         for elem in res.html.find_all('h2'):
@@ -130,12 +132,13 @@ class Test_functional_tests:
             form = res.forms["edit-post"]
             form["body"] = 'This is a test body.'
             form["tags"] = 'test2, test1, test1'
-            res = form.submit('form.submitted')
+            res = form.submit(name='form.submitted')
 
             # 2. Read the post
             res = testapp.get('/posts/3/some new page')
             assert res.status == '200 OK'
-            assert '<h1>some new page</h1>' in str(res.html)
+            assert '<h1>some new page</h1>' in str(res.html) or\
+                '<h2>some new page</h2>' in str(res.html)
             assert '<p>This is a test body.</p>' in str(res.html)
             assert 'test1' in str(res.html)
             assert 'test2' in str(res.html)
@@ -153,7 +156,8 @@ class Test_functional_tests:
             # 4. Test the post has been updated
             res = testapp.get('/posts/3/some new page')
             assert res.status == '200 OK'
-            assert '<h1>some new page</h1>' in str(res.html)
+            assert '<h1>some new page</h1>' in str(res.html) or\
+                '<h2>some new page</h2>' in str(res.html)
             assert '<p>This is a brand new test body.</p>' in str(res.html)
             assert 'test2' in str(res.html)
             assert 'test3' in str(res.html)

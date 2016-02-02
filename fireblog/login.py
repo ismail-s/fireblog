@@ -1,6 +1,7 @@
 from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.security import Allow, ALL_PERMISSIONS
 from sqlalchemy.orm.exc import NoResultFound
+from fireblog.dogpile_region import region
 from fireblog.models import (
     DBSession,
     Users
@@ -24,11 +25,12 @@ class Root(object):
         self.request = request
 
 
-def groupfinder(userid, request) -> list:
+@region.cache_on_arguments()
+def groupfinder(userid):
     """Looks up and returns the groups the userid belongs to.
     If the userid doesn't exist, they are created as a commenter, and the
     group they belong to (g:commenter) is returned."""
-    query = DBSession.query(Users). \
+    query = DBSession.query(Users.group). \
         filter(Users.userid == userid)
     try:
         user = query.one()
@@ -57,7 +59,7 @@ def includeme(config):
     config.set_root_factory(Root)
     authn_policy = AuthTktAuthenticationPolicy(
         settings['persona.secret'],
-        callback=groupfinder)
+        callback=lambda x, _: groupfinder(x))
     config.set_authentication_policy(authn_policy)
     # Pyramid_persona has already set an authorization policy, so
     # this has not been done here.
