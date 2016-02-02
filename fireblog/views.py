@@ -196,8 +196,12 @@ def view_all_posts(request):
     """Display a page containing all posts, with a sample of each post and
     links to each post."""
     page_num = request.params.get('p', None) or 1
+    if request.params.get('sort-ascending', False):
+        post_ordering = Post.created
+    else:
+        post_ordering = Post.created.desc()
     query = DBSession.query(Post.id, Post.name, Post.markdown, Post.created).\
-        order_by(Post.created.desc())
+        order_by(post_ordering)
     page = paginate_sqlalchemy.SqlalchemyOrmPage(
         query, page=page_num, items_per_page=20)
     posts = page.items

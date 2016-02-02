@@ -27,6 +27,10 @@ def tag_view(request):
     have the supplied tag on them. The tag supplied is
     ``request.matchdict['tag_name']``."""
     page_num = request.params.get('p', None) or 1
+    if request.params.get('sort-ascending', False):
+        sort_desc = False
+    else:
+        sort_desc = True
     tag = request.matchdict['tag_name']
     try:
         tag_obj = DBSession.query(Tags).filter_by(tag=tag).one()
@@ -34,7 +38,7 @@ def tag_view(request):
         log.debug('No tag found for tag name: {}'.format(tag))
         return HTTPNotFound('no such tag exists.')
     posts_obj = tag_obj.posts
-    posts_obj = sorted(posts_obj, key=attrgetter("created"))
+    posts_obj = sorted(posts_obj, key=attrgetter("created"), reverse=sort_desc)
     page = paginate.Page(
         posts_obj, page=page_num, items_per_page=20)
     posts, code_styles = utils.create_post_list_from_posts_obj(
