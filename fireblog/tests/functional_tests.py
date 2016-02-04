@@ -67,8 +67,18 @@ class Test_functional_tests:
                 found_comment_form_elem = True
         assert found_comment_form_elem
 
-    def test_get_all_page(self, testapp):
-        res = testapp.get('http://localhost/all_posts')
+    @pytest.mark.parametrize('sort_order', ['', '?sort-ascending=true'])
+    def test_get_all_page(self, testapp, sort_order):
+        res = testapp.get('http://localhost/all_posts' + sort_order)
+        assert res.status == '200 OK'
+        assert 'Homepage' in str(res.html)
+        assert '<p>This is the front page</p>' in str(res.html)
+        assert 'Page2' in str(res.html)
+        assert '<p>This is page 2</p>' in str(res.html)
+
+    @pytest.mark.parametrize('sort_order', ['', '?sort-ascending=true'])
+    def test_get_tag_view_page(self, testapp, sort_order):
+        res = testapp.get('http://localhost/tags/tag1' + sort_order)
         assert res.status == '200 OK'
         assert 'Homepage' in str(res.html)
         assert '<p>This is the front page</p>' in str(res.html)
