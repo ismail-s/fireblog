@@ -5,7 +5,8 @@ try:  # pragma: no cover
     from uwsgidecorators import spool
     import uwsgi
 except ImportError:  # pragma: no cover
-    uwsgi = lambda: None
+    def uwsgi():
+        return None
     setattr(uwsgi, 'reload', lambda: None)
 
     def _mock_spool(func):

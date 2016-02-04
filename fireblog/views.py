@@ -196,23 +196,35 @@ def view_all_posts(request):
     """Display a page containing all posts, with a sample of each post and
     links to each post."""
     page_num = request.params.get('p', None) or 1
+    if request.params.get('sort-ascending', False):
+        post_ordering = Post.created
+        sort_ascending_query_text = '&sort-ascending=true'
+    else:
+        post_ordering = Post.created.desc()
+        sort_ascending_query_text = ''
+    oldest_first_url = request.route_url(
+        'view_all_posts', _query=(('p', page_num), ('sort-ascending', 'true')))
+    newest_first_url = request.route_url('view_all_posts',
+                                         _query=[('p', page_num)])
     query = DBSession.query(Post.id, Post.name, Post.markdown, Post.created).\
-        order_by(Post.created.desc())
+        order_by(post_ordering)
     page = paginate_sqlalchemy.SqlalchemyOrmPage(
         query, page=page_num, items_per_page=20)
     posts = page.items
     pager = page.pager(
-        url=request.route_url(
-            'view_all_posts',
-            _query='p=$page'))
+        url=request.route_url('view_all_posts',
+                              _query='p=$page' + sort_ascending_query_text))
     # TODO-log a critical error here maybe if all posts are deleted
     res, code_styles = utils.create_post_list_from_posts_obj(request, posts)
 
     return TemplateResponseDict(title='All posts',
                                 pager=pager,
+                                page_num=page_num,
                                 posts=res,
                                 uuid=None,
-                                code_styles=code_styles)
+                                code_styles=code_styles,
+                                oldest_first_url=oldest_first_url,
+                                newest_first_url=newest_first_url)
 
 
 @view_defaults(route_name='add_post', permission='add')

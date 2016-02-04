@@ -18,6 +18,15 @@ ${extra_styles}
 </style>
 % endif
 
+<div class="btn-group">
+  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    Sort Order <span class="caret"></span>
+  </button>
+  <ul class="dropdown-menu">
+    <li><a href="${oldest_first_url}">Oldest First</a></li>
+    <li><a href="${newest_first_url}">Newest First</a></li>
+  </ul>
+</div>
 <div class="center">${pager|n}</div>
 
 % for post in posts:

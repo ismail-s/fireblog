@@ -10,16 +10,35 @@ pytestmark = pytest.mark.usefixtures("test_with_one_theme")
 class Test_tag_view:
 
     @pytest.mark.parametrize("tag, actual_posts", [
-        ('tag1', [("Homepage", "<p>This is the front page</p>"),
-                  ("Page2 1*2", "<p>This is page 2</p>")]),
+        ('tag1', [("Page2 1*2", "<p>This is page 2</p>"),
+                  ("Homepage", "<p>This is the front page</p>")]),
         ('tag2', [("Page2 1*2", "<p>This is page 2</p>")])])
     def test_success(self, tag, actual_posts, pyramid_config, pyramid_req):
+        '''Test that the right posts are displayed and that
+        they are in the right order by default (newest first).'''
         pyramid_req.matchdict['tag_name'] = tag
         response = fireblog.tags.tag_view(pyramid_req)
+        assert response['newest_first_url'] == 'http://example.com/tags/' +\
+            tag + '?p=1'
+        assert response['oldest_first_url'] == 'http://example.com/tags/' +\
+            tag + '?p=1&sort-ascending=true'
         posts = response['posts']
 
         assert tag in response['title']
         assert not response['code_styles']
+
+        for post, actual_post in zip(posts, actual_posts):
+            assert post["name"] == actual_post[0]
+            assert actual_post[1] in post["html"]
+
+    def test_success_sort_oldest_first(self, pyramid_config, pyramid_req):
+        'Test that posts can be sorted oldest first'
+        actual_posts = [("Homepage", "<p>This is the front page</p>"),
+                        ("Page2 1*2", "<p>This is page 2</p>")]
+        pyramid_req.matchdict['tag_name'] = 'tag1'
+        pyramid_req.params['sort-ascending'] = 'true'
+        response = fireblog.tags.tag_view(pyramid_req)
+        posts = response['posts']
 
         for post, actual_post in zip(posts, actual_posts):
             assert post["name"] == actual_post[0]
