@@ -116,6 +116,10 @@ class Test_view_all_posts:
 
     def test_success(self, pyramid_config, pyramid_req):
         response = views.view_all_posts(pyramid_req)
+        assert response['newest_first_url'] == ('http://example.com/all_posts'
+                                                '?p=1')
+        assert response['oldest_first_url'] == ('http://example.com/all_posts'
+                                                '?p=1&sort-ascending=true')
         assert response["code_styles"] is False
         posts = response["posts"]
 

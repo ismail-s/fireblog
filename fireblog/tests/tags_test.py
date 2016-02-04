@@ -18,6 +18,10 @@ class Test_tag_view:
         they are in the right order by default (newest first).'''
         pyramid_req.matchdict['tag_name'] = tag
         response = fireblog.tags.tag_view(pyramid_req)
+        assert response['newest_first_url'] == 'http://example.com/tags/' +\
+            tag + '?p=1'
+        assert response['oldest_first_url'] == 'http://example.com/tags/' +\
+            tag + '?p=1&sort-ascending=true'
         posts = response['posts']
 
         assert tag in response['title']
