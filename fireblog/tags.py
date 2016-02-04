@@ -34,6 +34,10 @@ def tag_view(request):
         sort_desc = True
         sort_ascending_query_text = ''
     tag = request.matchdict['tag_name']
+    oldest_first_url = request.route_url('tag_view', tag_name=tag,
+                        _query=(('p', page_num), ('sort-ascending', 'true')))
+    newest_first_url = request.route_url('tag_view', tag_name=tag,
+                                        _query=[('p', page_num)])
     try:
         tag_obj = DBSession.query(Tags).filter_by(tag=tag).one()
     except NoResultFound:
@@ -53,7 +57,9 @@ def tag_view(request):
                                 page_num=page_num,
                                 pager=pager,
                                 uuid=tag_obj.uuid,
-                                code_styles=code_styles)
+                                code_styles=code_styles,
+                                oldest_first_url=oldest_first_url,
+                                newest_first_url=newest_first_url)
 
 
 @view_config(route_name='tag_manager', decorator=use_template(

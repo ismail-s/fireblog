@@ -202,6 +202,10 @@ def view_all_posts(request):
     else:
         post_ordering = Post.created.desc()
         sort_ascending_query_text = ''
+    oldest_first_url = request.route_url(
+        'view_all_posts', _query=(('p', page_num), ('sort-ascending', 'true')))
+    newest_first_url = request.route_url('view_all_posts',
+                                         _query=[('p', page_num)])
     query = DBSession.query(Post.id, Post.name, Post.markdown, Post.created).\
         order_by(post_ordering)
     page = paginate_sqlalchemy.SqlalchemyOrmPage(
@@ -218,7 +222,9 @@ def view_all_posts(request):
                                 page_num=page_num,
                                 posts=res,
                                 uuid=None,
-                                code_styles=code_styles)
+                                code_styles=code_styles,
+                                oldest_first_url=oldest_first_url,
+                                newest_first_url=newest_first_url)
 
 
 @view_defaults(route_name='add_post', permission='add')

@@ -26,21 +26,12 @@ ${extra_styles}
 % endif
 
 ## Sort order dropdown
-<%
-if request.matched_route.name == 'tag_view':
-    tag_name = request.matchdict['tag_name']
-    sort_old_url = request.route_url('tag_view', tag_name=tag_name, _query=(('p', page_num), ('sort-ascending', 'true')))
-    sort_new_url = request.route_url('tag_view', tag_name=tag_name, _query=[('p', page_num)])
-else:
-    sort_old_url = request.route_url(request.matched_route.name, _query=(('p', page_num), ('sort-ascending', 'true')))
-    sort_new_url = request.route_url(request.matched_route.name, _query=[('p', page_num)])
-%>
 <paper-dropdown-menu label="Sort Order">
   <paper-menu class="dropdown-content">
-    <a href="${sort_old_url}">
+    <a href="${oldest_first_url}">
         <paper-item>Oldest First</paper-item>
     </a>
-    <a href="${sort_new_url}">
+    <a href="${newest_first_url}">
         <paper-item>Newest First</paper-item>
     </a>
   </paper-menu>
