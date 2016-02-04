@@ -1,5 +1,6 @@
 import pytest
 import re
+import math
 from pyramid.httpexceptions import HTTPNotFound
 import fireblog.views as views
 import fireblog.tags
@@ -192,10 +193,16 @@ that is all.'''
 @pytest.mark.usefixtures("test_with_one_theme")
 class Test_view_multiple_posts_pager:
     "Test the pager functionality on both view_all_posts and tag_view views"
+    # Don't make this variable any smaller than 101, as some of these tests
+    # rely on this value being at least that large
+    extra_posts_created = 101
+    total_posts = extra_posts_created + 2
+    max_pagination_page = math.ceil(total_posts / 20)
+    max_tag_view_pagination_page = math.ceil(extra_posts_created / 20)
 
     @pytest.fixture
-    def create_500_posts(self, mydb, pyramid_config, pyramid_req):
-        for e in range(500):
+    def create_many_posts(self, mydb, pyramid_config, pyramid_req):
+        for e in range(self.extra_posts_created):
             Test_add_post.submit_add_post(
                 pyramid_req,
                 postname='Post ' + str(e),
@@ -204,23 +211,42 @@ class Test_view_multiple_posts_pager:
         mydb.flush()
         self.pyramid_req = pyramid_req
 
-    def test_all_posts_success_first_page(self, create_500_posts, pyramid_req):
+    @classmethod
+    def check_posts_list_is_correct(
+            cls, posts, page_num, sort_ascending=False, tag_view=False):
+        x = cls.extra_posts_created
+        if page_num == 1:
+            assert not sort_ascending
+            range_obj = range(x - 1, x - 21, -1)
+        elif page_num == 2:
+            if sort_ascending:
+                if tag_view:
+                    range_obj = range(20, 40)
+                else:
+                    range_obj = range(20 - 2, 40 - 2)
+            else:
+                range_obj = range(x - 21, x - 41, -1)
+        assert len(posts) == 20
+        expected_posts = [{'html': '<p>Some test body.</p>', 'id': e + 3,
+                           'name': 'Post ' + str(e)} for e in range_obj]
+        for post, expected_post in zip(posts, expected_posts):
+            for k, v in expected_post.items():
+                assert post[k] == v
+
+    def test_all_posts_success_first_page(
+            self, create_many_posts, pyramid_req):
         res = views.view_all_posts(pyramid_req)
         posts = res['posts']
         expected_pager = (
             '1 <a href="http://example.com/all_posts?p=2">2</a> '
             '<a href="http://example.com/all_posts?p=3">3</a> .. '
-            '<a href="http://example.com/all_posts?p=26">26</a>')
+            '<a href="http://example.com/all_posts?p'
+            '={0}">{0}</a>').format(self.max_pagination_page)
         assert res['pager'] == expected_pager
-        assert len(posts) == 20
-        expected_posts = [{'html': '<p>Some test body.</p>', 'id': e + 3,
-            'name': 'Post ' + str(e)} for e in range(499, 479, -1)]
-        for post, expected_post in zip(posts, expected_posts):
-            for k, v in expected_post.items():
-                assert post[k] == v
+        self.check_posts_list_is_correct(posts, 1)
 
     def test_all_posts_success_second_page(
-            self, create_500_posts, pyramid_req):
+            self, create_many_posts, pyramid_req):
         pyramid_req.params['p'] = 2
         res = views.view_all_posts(pyramid_req)
         assert res['newest_first_url'] == 'http://example.com/all_posts?p=2'
@@ -231,17 +257,13 @@ class Test_view_multiple_posts_pager:
             '<a href="http://example.com/all_posts?p=1">1</a> 2 '
             '<a href="http://example.com/all_posts?p=3">3</a> '
             '<a href="http://example.com/all_posts?p=4">4</a> .. '
-            '<a href="http://example.com/all_posts?p=26">26</a>')
+            '<a href="http://example.com/all_posts?'
+            'p={0}">{0}</a>').format(self.max_pagination_page)
         assert res['pager'] == expected_pager
-        assert len(posts) == 20
-        expected_posts = [{'html': '<p>Some test body.</p>', 'id': e + 3,
-            'name': 'Post ' + str(e)} for e in range(479, 459, -1)]
-        for post, expected_post in zip(posts, expected_posts):
-            for k, v in expected_post.items():
-                assert post[k] == v
+        self.check_posts_list_is_correct(posts, 2)
 
     def test_all_posts_success_second_page_oldest_first(
-            self, create_500_posts, pyramid_req):
+            self, create_many_posts, pyramid_req):
         pyramid_req.params['p'] = 2
         pyramid_req.params['sort-ascending'] = 'true'
         res = views.view_all_posts(pyramid_req)
@@ -250,35 +272,30 @@ class Test_view_multiple_posts_pager:
                                            '?p=2&sort-ascending=true')
         posts = res['posts']
         expected_pager = (
-            '<a href="http://example.com/all_posts?p=1&sort-ascending=true">1</a> 2 '
-            '<a href="http://example.com/all_posts?p=3&sort-ascending=true">3</a> '
-            '<a href="http://example.com/all_posts?p=4&sort-ascending=true">4</a> .. '
-            '<a href="http://example.com/all_posts?p=26&sort-ascending=true">26</a>')
+            '<a href="http://example.com/all_posts?p=1&'
+            'sort-ascending=true">1</a> 2 <a href="http://example.com/'
+            'all_posts?p=3&sort-ascending=true">3</a> <a href="'
+            'http://example.com/all_posts?p=4&sort-ascending=true">4</a> .. '
+            '<a href="http://example.com/all_posts?p={0}&sort-ascending=true'
+            '">{0}</a>').format(self.max_pagination_page)
         assert res['pager'] == expected_pager
         assert len(posts) == 20
-        expected_posts = [{'html': '<p>Some test body.</p>', 'id': e + 3,
-            'name': 'Post ' + str(e)} for e in range(18, 38)]
-        for post, expected_post in zip(posts, expected_posts):
-            for k, v in expected_post.items():
-                assert post[k] == v
+        self.check_posts_list_is_correct(posts, 2, True)
 
-    def test_tag_view_success_first_page(self, create_500_posts, pyramid_req):
+    def test_tag_view_success_first_page(self, create_many_posts, pyramid_req):
         pyramid_req.matchdict['tag_name'] = 'ddd'
         res = fireblog.tags.tag_view(pyramid_req)
         posts = res['posts']
         expected_pager = (
             '1 <a href="http://example.com/tags/ddd?p=2">2</a> '
             '<a href="http://example.com/tags/ddd?p=3">3</a> .. '
-            '<a href="http://example.com/tags/ddd?p=25">25</a>')
+            '<a href="http://example.com/tags/ddd?p={0}">'
+            '{0}</a>').format(self.max_tag_view_pagination_page)
         assert res['pager'] == expected_pager
-        assert len(posts) == 20
-        expected_posts = [{'html': '<p>Some test body.</p>', 'id': e + 3,
-            'name': 'Post ' + str(e)} for e in range(499, 479, -1)]
-        for post, expected_post in zip(posts, expected_posts):
-            for k, v in expected_post.items():
-                assert post[k] == v
+        self.check_posts_list_is_correct(posts, 1)
 
-    def test_tag_view_success_second_page(self, create_500_posts, pyramid_req):
+    def test_tag_view_success_second_page(
+            self, create_many_posts, pyramid_req):
         pyramid_req.matchdict['tag_name'] = 'ddd'
         pyramid_req.params['p'] = 2
         res = fireblog.tags.tag_view(pyramid_req)
@@ -290,16 +307,13 @@ class Test_view_multiple_posts_pager:
             '<a href="http://example.com/tags/ddd?p=1">1</a> 2 '
             '<a href="http://example.com/tags/ddd?p=3">3</a> '
             '<a href="http://example.com/tags/ddd?p=4">4</a> .. '
-            '<a href="http://example.com/tags/ddd?p=25">25</a>')
+            '<a href="http://example.com/tags/ddd?p={0}'
+            '">{0}</a>').format(self.max_tag_view_pagination_page)
         assert res['pager'] == expected_pager
-        assert len(posts) == 20
-        expected_posts = [{'html': '<p>Some test body.</p>', 'id': e + 3,
-            'name': 'Post ' + str(e)} for e in range(479, 459, -1)]
-        for post, expected_post in zip(posts, expected_posts):
-            for k, v in expected_post.items():
-                assert post[k] == v
+        self.check_posts_list_is_correct(posts, 2)
 
-    def test_tag_view_success_second_page_oldest_first(self, create_500_posts, pyramid_req):
+    def test_tag_view_success_second_page_oldest_first(
+            self, create_many_posts, pyramid_req):
         pyramid_req.matchdict['tag_name'] = 'ddd'
         pyramid_req.params['p'] = 2
         pyramid_req.params['sort-ascending'] = 'true'
@@ -309,17 +323,14 @@ class Test_view_multiple_posts_pager:
                                            '?p=2&sort-ascending=true')
         posts = res['posts']
         expected_pager = (
-            '<a href="http://example.com/tags/ddd?p=1&sort-ascending=true">1</a> 2 '
-            '<a href="http://example.com/tags/ddd?p=3&sort-ascending=true">3</a> '
-            '<a href="http://example.com/tags/ddd?p=4&sort-ascending=true">4</a> .. '
-            '<a href="http://example.com/tags/ddd?p=25&sort-ascending=true">25</a>')
+            '<a href="http://example.com/tags/ddd?p=1&sort-ascending=true">'
+            '1</a> 2 <a href="http://example.com/tags/ddd?p=3&sort-ascending'
+            '=true">3</a> <a href="http://example.com/tags/ddd?p=4&'
+            'sort-ascending=true">4</a> .. <a href="http://example.com/'
+            'tags/ddd?p={0}&sort-ascending=true">{0}</a>').format(
+            self.max_tag_view_pagination_page)
         assert res['pager'] == expected_pager
-        assert len(posts) == 20
-        expected_posts = [{'html': '<p>Some test body.</p>', 'id': e + 3,
-            'name': 'Post ' + str(e)} for e in range(18, 38, -1)]
-        for post, expected_post in zip(posts, expected_posts):
-            for k, v in expected_post.items():
-                assert post[k] == v
+        self.check_posts_list_is_correct(posts, 2, True, tag_view=True)
 
 
 class Test_edit_post:
