@@ -18,13 +18,22 @@ ${extra_styles}
 </style>
 % endif
 
+<%
+if request.matched_route.name == 'tag_view':
+    tag_name = request.matchdict['tag_name']
+    sort_old_url = request.route_url('tag_view', tag_name=tag_name, _query=(('p', page_num), ('sort-ascending', 'true')))
+    sort_new_url = request.route_url('tag_view', tag_name=tag_name, _query=[('p', page_num)])
+else:
+    sort_old_url = request.route_url(request.matched_route.name, _query=(('p', page_num), ('sort-ascending', 'true')))
+    sort_new_url = request.route_url(request.matched_route.name, _query=[('p', page_num)])
+%>
 <div class="btn-group">
   <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
     Sort Order <span class="caret"></span>
   </button>
   <ul class="dropdown-menu">
-    <li><a href="${request.route_url('view_all_posts', _query=(('p', page_num), ('sort-ascending', 'true')))}">Oldest First</a></li>
-    <li><a href="${request.route_url('view_all_posts', _query=[('p', page_num)])}">Newest First</a></li>
+    <li><a href="${sort_old_url}">Oldest First</a></li>
+    <li><a href="${sort_new_url}">Newest First</a></li>
   </ul>
 </div>
 <div class="center">${pager|n}</div>
