@@ -213,8 +213,8 @@ class Test_view_multiple_posts_pager:
             '<a href="http://example.com/all_posts?p=26">26</a>')
         assert res['pager'] == expected_pager
         assert len(posts) == 20
-        expected_posts = [{'html': '<p>Some test body.</p>', 'id': str(
-            e + 3), 'name': 'Post ' + str(e)} for e in range(480, 500, -1)]
+        expected_posts = [{'html': '<p>Some test body.</p>', 'id': e + 3,
+            'name': 'Post ' + str(e)} for e in range(499, 479, -1)]
         for post, expected_post in zip(posts, expected_posts):
             for k, v in expected_post.items():
                 assert post[k] == v
@@ -223,6 +223,9 @@ class Test_view_multiple_posts_pager:
             self, create_500_posts, pyramid_req):
         pyramid_req.params['p'] = 2
         res = views.view_all_posts(pyramid_req)
+        assert res['newest_first_url'] == 'http://example.com/all_posts?p=2'
+        assert res['oldest_first_url'] == ('http://example.com/all_posts'
+                                           '?p=2&sort-ascending=true')
         posts = res['posts']
         expected_pager = (
             '<a href="http://example.com/all_posts?p=1">1</a> 2 '
@@ -231,8 +234,30 @@ class Test_view_multiple_posts_pager:
             '<a href="http://example.com/all_posts?p=26">26</a>')
         assert res['pager'] == expected_pager
         assert len(posts) == 20
-        expected_posts = [{'html': '<p>Some test body.</p>', 'id': str(
-            e + 3), 'name': 'Post ' + str(e)} for e in range(460, 483, -1)]
+        expected_posts = [{'html': '<p>Some test body.</p>', 'id': e + 3,
+            'name': 'Post ' + str(e)} for e in range(479, 459, -1)]
+        for post, expected_post in zip(posts, expected_posts):
+            for k, v in expected_post.items():
+                assert post[k] == v
+
+    def test_all_posts_success_second_page_oldest_first(
+            self, create_500_posts, pyramid_req):
+        pyramid_req.params['p'] = 2
+        pyramid_req.params['sort-ascending'] = 'true'
+        res = views.view_all_posts(pyramid_req)
+        assert res['newest_first_url'] == 'http://example.com/all_posts?p=2'
+        assert res['oldest_first_url'] == ('http://example.com/all_posts'
+                                           '?p=2&sort-ascending=true')
+        posts = res['posts']
+        expected_pager = (
+            '<a href="http://example.com/all_posts?p=1&sort-ascending=true">1</a> 2 '
+            '<a href="http://example.com/all_posts?p=3&sort-ascending=true">3</a> '
+            '<a href="http://example.com/all_posts?p=4&sort-ascending=true">4</a> .. '
+            '<a href="http://example.com/all_posts?p=26&sort-ascending=true">26</a>')
+        assert res['pager'] == expected_pager
+        assert len(posts) == 20
+        expected_posts = [{'html': '<p>Some test body.</p>', 'id': e + 3,
+            'name': 'Post ' + str(e)} for e in range(18, 38)]
         for post, expected_post in zip(posts, expected_posts):
             for k, v in expected_post.items():
                 assert post[k] == v
@@ -247,8 +272,8 @@ class Test_view_multiple_posts_pager:
             '<a href="http://example.com/tags/ddd?p=25">25</a>')
         assert res['pager'] == expected_pager
         assert len(posts) == 20
-        expected_posts = [{'html': '<p>Some test body.</p>', 'id': str(
-            e + 3), 'name': 'Post ' + str(e)} for e in range(480, 500, -1)]
+        expected_posts = [{'html': '<p>Some test body.</p>', 'id': e + 3,
+            'name': 'Post ' + str(e)} for e in range(499, 479, -1)]
         for post, expected_post in zip(posts, expected_posts):
             for k, v in expected_post.items():
                 assert post[k] == v
@@ -257,6 +282,9 @@ class Test_view_multiple_posts_pager:
         pyramid_req.matchdict['tag_name'] = 'ddd'
         pyramid_req.params['p'] = 2
         res = fireblog.tags.tag_view(pyramid_req)
+        assert res['newest_first_url'] == 'http://example.com/tags/ddd?p=2'
+        assert res['oldest_first_url'] == ('http://example.com/tags/ddd'
+                                           '?p=2&sort-ascending=true')
         posts = res['posts']
         expected_pager = (
             '<a href="http://example.com/tags/ddd?p=1">1</a> 2 '
@@ -265,8 +293,30 @@ class Test_view_multiple_posts_pager:
             '<a href="http://example.com/tags/ddd?p=25">25</a>')
         assert res['pager'] == expected_pager
         assert len(posts) == 20
-        expected_posts = [{'html': '<p>Some test body.</p>', 'id': str(
-            e + 3), 'name': 'Post ' + str(e)} for e in range(460, 483, -1)]
+        expected_posts = [{'html': '<p>Some test body.</p>', 'id': e + 3,
+            'name': 'Post ' + str(e)} for e in range(479, 459, -1)]
+        for post, expected_post in zip(posts, expected_posts):
+            for k, v in expected_post.items():
+                assert post[k] == v
+
+    def test_tag_view_success_second_page_oldest_first(self, create_500_posts, pyramid_req):
+        pyramid_req.matchdict['tag_name'] = 'ddd'
+        pyramid_req.params['p'] = 2
+        pyramid_req.params['sort-ascending'] = 'true'
+        res = fireblog.tags.tag_view(pyramid_req)
+        assert res['newest_first_url'] == 'http://example.com/tags/ddd?p=2'
+        assert res['oldest_first_url'] == ('http://example.com/tags/ddd'
+                                           '?p=2&sort-ascending=true')
+        posts = res['posts']
+        expected_pager = (
+            '<a href="http://example.com/tags/ddd?p=1&sort-ascending=true">1</a> 2 '
+            '<a href="http://example.com/tags/ddd?p=3&sort-ascending=true">3</a> '
+            '<a href="http://example.com/tags/ddd?p=4&sort-ascending=true">4</a> .. '
+            '<a href="http://example.com/tags/ddd?p=25&sort-ascending=true">25</a>')
+        assert res['pager'] == expected_pager
+        assert len(posts) == 20
+        expected_posts = [{'html': '<p>Some test body.</p>', 'id': e + 3,
+            'name': 'Post ' + str(e)} for e in range(18, 38, -1)]
         for post, expected_post in zip(posts, expected_posts):
             for k, v in expected_post.items():
                 assert post[k] == v
