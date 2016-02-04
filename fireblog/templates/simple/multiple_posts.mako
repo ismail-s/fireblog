@@ -16,17 +16,25 @@
         ${extra_styles}
     % endif
 </%block>
-<%block name="content">
-    <div>${pager|n}</div>
 
-    % for post in posts:
-        <a href="${request.route_url('view_post', id=post["id"], postname=urlify(post["name"]))}">
-            <h1>
-                ${post["name"]} <small>Created ${post["date"]}</small>
-            </h1>
-        </a>
-        <div>${post["html"]|n}</div>
-        <hr>
+<%block name="content">
+
+<select name="select" onchange="window.location.href=this.value">
+    <option disabled selected>Sort Order</option>
+    <option value="${oldest_first_url}">Oldest First</option>
+    <option value="${newest_first_url}">Newest First</option>
+</select>
+
+<div>${pager|n}</div>
+
+% for post in posts:
+    <a href="${request.route_url('view_post', id=post["id"], postname=urlify(post["name"]))}">
+        <h1>
+            ${post["name"]} <small>Created ${post["date"]}</small>
+        </h1>
+    </a>
+    <div>${post["html"]|n}</div>
+    <hr>
 % endfor
 
 <div>${pager|n}</div>
