@@ -14,7 +14,7 @@ class Test_tag_view:
                   ("Homepage", "<p>This is the front page</p>")]),
         ('tag2', [("Page2 1*2", "<p>This is page 2</p>")])])
     def test_success(self, tag, actual_posts, pyramid_config, pyramid_req):
-        '''This test both tests that the right posts are displayed and that
+        '''Test that the right posts are displayed and that
         they are in the right order by default (newest first).'''
         pyramid_req.matchdict['tag_name'] = tag
         response = fireblog.tags.tag_view(pyramid_req)
@@ -22,6 +22,19 @@ class Test_tag_view:
 
         assert tag in response['title']
         assert not response['code_styles']
+
+        for post, actual_post in zip(posts, actual_posts):
+            assert post["name"] == actual_post[0]
+            assert actual_post[1] in post["html"]
+
+    def test_success_sort_oldest_first(self, pyramid_config, pyramid_req):
+        'Test that posts can be sorted oldest first'
+        actual_posts = [("Homepage", "<p>This is the front page</p>"),
+                        ("Page2 1*2", "<p>This is page 2</p>")]
+        pyramid_req.matchdict['tag_name'] = 'tag1'
+        pyramid_req.params['sort-ascending'] = 'true'
+        response = fireblog.tags.tag_view(pyramid_req)
+        posts = response['posts']
 
         for post, actual_post in zip(posts, actual_posts):
             assert post["name"] == actual_post[0]

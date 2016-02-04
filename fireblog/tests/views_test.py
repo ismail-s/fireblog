@@ -126,6 +126,18 @@ class Test_view_all_posts:
             assert post["name"] == actual_post[0]
             assert actual_post[1] in post["html"]
 
+    def test_success_sort_oldest_first(self, pyramid_config, pyramid_req):
+        pyramid_req.params['sort-ascending'] = 'true'
+        response = views.view_all_posts(pyramid_req)
+        posts = response["posts"]
+
+        actual_posts = [("Homepage", "<p>This is the front page</p>"),
+                        ("Page2 1*2", "<p>This is page 2</p>")]
+
+        for post, actual_post in zip(posts, actual_posts):
+            assert post["name"] == actual_post[0]
+            assert actual_post[1] in post["html"]
+
     def test_success_with_pygments_code_css_included(self,
                                                      pyramid_config,
                                                      pyramid_req):
@@ -143,13 +155,6 @@ that is all.'''
                                       postname=post_name,
                                       body=post_body, tags='')
 
-        # For some reason, we have to actually view the post before it appears
-        # on view_all_posts page. Not sure why, but I'm not losing sleep over
-        # this atm...
-        pyramid_req.matchdict['postname'] = post_name
-        pyramid_req.matchdict['id'] = 3
-        views.view_post(pyramid_req)
-        del pyramid_req.matchdict['postname']
         response = views.view_all_posts(pyramid_req)
         assert response["code_styles"]
 
