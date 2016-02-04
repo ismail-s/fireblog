@@ -10,10 +10,12 @@ pytestmark = pytest.mark.usefixtures("test_with_one_theme")
 class Test_tag_view:
 
     @pytest.mark.parametrize("tag, actual_posts", [
-        ('tag1', [("Homepage", "<p>This is the front page</p>"),
-                  ("Page2 1*2", "<p>This is page 2</p>")]),
+        ('tag1', [("Page2 1*2", "<p>This is page 2</p>"),
+                  ("Homepage", "<p>This is the front page</p>")]),
         ('tag2', [("Page2 1*2", "<p>This is page 2</p>")])])
     def test_success(self, tag, actual_posts, pyramid_config, pyramid_req):
+        '''This test both tests that the right posts are displayed and that
+        they are in the right order by default (newest first).'''
         pyramid_req.matchdict['tag_name'] = tag
         response = fireblog.tags.tag_view(pyramid_req)
         posts = response['posts']
