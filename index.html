@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-dark.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+
+    <title>Fireblog by ismail-s</title>
+  </head>
+
+  <body>
+
+    <header>
+      <div class="container">
+        <h1>Fireblog</h1>
+        <h2>A basic blog (in Python)</h2>
+
+        <section id="downloads">
+          <a href="https://github.com/ismail-s/fireblog/zipball/master" class="btn">Download as .zip</a>
+          <a href="https://github.com/ismail-s/fireblog/tarball/master" class="btn">Download as .tar.gz</a>
+          <a href="https://github.com/ismail-s/fireblog" class="btn btn-github"><span class="icon"></span>View on GitHub</a>
+        </section>
+      </div>
+    </header>
+
+    <div class="container">
+      <section id="main_content">
+        <h1>
+<a id="fireblog" class="anchor" href="#fireblog" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Fireblog</h1>
+
+<p>A simple blog, written in Python, using the
+<a href="https://www.github.com/pylons/pyramid">Pyramid web framework</a>. For a live
+version, see <a href="https://blog.ismail-s.com">my blog</a>.</p>
+
+<p>Note that this project, whilst being used for my website hasn't been made fully ready to be used on any website. In other words, I hope to make it easier and quicker to setup and manage the website, as well as upgrade it. Hopefully soon.</p>
+
+<h1>
+<a id="getting-started" class="anchor" href="#getting-started" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Getting Started</h1>
+
+<p>First make sure there is a running local instance of <a href="http://redis.io">redis</a>.
+Then run the following commands:</p>
+
+<div class="highlight highlight-source-shell"><pre>  git clone https://github.com/ismail-s/fireblog.git
+  <span class="pl-c1">cd</span> fireblog
+  pip install -r requirements.txt
+  python setup.py develop
+  initialize_fireblog_db development.ini
+  mkdir reload-spooler
+  uwsgi --ini-paste-logged development.ini</pre></div>
+
+<p>Do note when running those commands that:</p>
+
+<ul>
+<li>you use a <a href="https://virtualenv.pypa.io/en/latest/">virtualenv</a>
+</li>
+<li><p>You don't use development.ini when running in production.
+This is because development.ini enables the debug toolbar, which allows
+arbitrary code execution. For a warning of what this could result in, see
+<a href="http://arstechnica.co.uk/security/2015/10/patreon-was-warned-of-serious-website-flaw-5-days-before-it-was-hacked/">this article</a>.</p></li>
+<li><p>If you want to run the server in production mode as a daemon, then run:</p></li>
+</ul>
+
+<div class="highlight highlight-source-shell"><pre>  uwsgi --ini-paste-logged production.ini</pre></div>
+
+<p>If you wish to customise stuff, eg use a database like postgres instead of
+sqlite (the default), then change the .ini file you pass to these commands.</p>
+
+<h1>
+<a id="managing-the-database" class="anchor" href="#managing-the-database" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Managing the database</h1>
+
+<p>The <code>initialize_fireblog_db</code> script does 4 things when run:</p>
+
+<ol>
+<li>Creates the db with the required tables if they don't exist already</li>
+<li>Updates the db to the latest version if necessary</li>
+<li>Creates a first post if no posts exist already</li>
+<li>Makes sure all required settings are in the settings table, prompting the
+user of the script to input values if a value doesn't exist or is invalid.</li>
+</ol>
+
+<p>This means that this script doesn't accept any parameters besides the ini
+file which says where the db is. The script is also safe to run at any
+point, to either create, update or check the db. So, at the moment, the way
+the website can be updated is by doing a <code>git pull</code> to get the latest code,
+taking down the webiste, running the <code>initialize_fireblog_db</code> script and
+then starting the website again.</p>
+      </section>
+    </div>
+
+    
+  </body>
+</html>
