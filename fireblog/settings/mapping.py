@@ -27,6 +27,7 @@ mapping = (
         'The maximum number of items to show in the RSS feed. '
         'The latest posts are shown in the RSS feed.',
         int,
+        default_value=50,
         min=1,
         max=99999),
     Entry(
@@ -35,6 +36,7 @@ mapping = (
         'Some webpages show previews of several posts. '
         'Here, you can set how long those previews can be.',
         int,
+        default_value=150,
         min=1,
         max=99999),
     Entry(
@@ -44,39 +46,49 @@ mapping = (
         'restarted at some point in order to update the display of the '
         'sitename in the login screen.',
         str,
-        validators.sitename_validator),
+        default_value='My blog',
+        validator=validators.sitename_validator),
     Entry(
         'persona.secret',
         'Persona secret',
         'This is a secret required by Mozilla Persona, the authentication '
         'mechanism used on this blog. This should basically be some random '
         'string.',
-        str),
+        str,
+        default_value='change this to a random string'),
     Entry(
         'persona.audiences',
         'Persona audiences',
         'This should be a list of domains this blog is served on. This is '
         'required by the Persona authentication mechanism. If a domain is '
         'not on this list, then logins won\'t work from that domain.',
-        str),
+        str,
+        # This default_value is a list of urls from which you should be able
+        # to login to the website before you have changed this setting.
+        # Changing this could mean that the end user has to modify the settings
+        # db directly just to login for the first time...
+        default_value='http://localhost:8080 https://localhost:8080'),
     Entry(
         'fireblog.recaptcha_secret',
         'Recaptcha secret',
         'The Recaptcha secret used for server-side validation to combat spam. '
         'See https://www.google.com/recaptcha for more details.',
         str,
-        validators.recaptcha_validator),
+        default_value='Replace this with your recaptcha secret.',
+        validator=validators.recaptcha_validator),
     Entry(
         'fireblog.recaptcha_site_key',
         'Recaptcha site key',
         'The Recaptcha site key that is included in the html Recaptcha widget.'
         ' See https://www.google.com/recaptcha for more details.',
         str,
-        validators.recaptcha_validator),
+        default_value='Replace me with your recaptcha site key.',
+        validator=validators.recaptcha_validator),
     Entry(
         'fireblog.theme',
         'Blog theme',
         'The theme for this blog.',
         str,
-        validators.theme_validator)
+        default_value='bootstrap',
+        validator=validators.theme_validator)
 )
