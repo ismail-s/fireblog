@@ -37,12 +37,17 @@ and got it working. Good on you!
 
 When you ran the {script_name} script, you were asked to provide an admin
 email address. Click the sign-in button on this page to sign in using that
-email address.
+email address. Note that, by default, this blog only allows you to login to
+the blog as long as the blog is running on localhost:8080. This generally means
+that you first login can *only* be done from the computer the blog is running
+on. Once you have logged in with your admin account, then you can change the
+settings to make logging in work for whatever domain you want to run the blog
+on.
 
 Once signed in, you can edit this post (posts are written in
 [Markdown](http://daringfireball.net/projects/markdown/), add a new post,
 delete posts and manage tags. I plan to add more functionality in the coming
-months.
+months. As and when I get time.
 
 For more information about this blog, see the
 [github page](https://www.github.com/ismail-s/fireblog).
