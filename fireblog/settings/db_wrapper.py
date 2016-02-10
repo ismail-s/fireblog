@@ -64,7 +64,15 @@ class _settings_dict(MutableMapping):
         self.__getitem__.invalidate(self, key)
 
     def __iter__(self):
-        return (entry.registry_name for entry in mapping)
+        registry_names = []
+        for entry in mapping:
+            registry_names.append(entry.registry_name)
+            yield registry_names[-1]
+        settings = DBSession.query(Settings.name).all()
+        for n in settings:
+            # Avoid returning the same key multiple times
+            if n.name not in registry_names:
+                yield n.name
 
     def __len__(self):
         return DBSession.query(Settings).count()
