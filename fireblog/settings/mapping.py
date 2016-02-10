@@ -8,13 +8,16 @@ Entry = namedtuple('Entry', [
     'type',  # eg int, str... A func that returns an obj of the right type.
     # Validator is a function that takes a value and returns a bool
     # indicating if it is a valid entry
+    'default_value',  # A default value that satisfies validator. This means
+    # that code that depends on a setting always has some value to use, even
+    # if the user hasn't changed the setting yet.
     'validator',
     'min',  # If type is a number, then this can be set to the min allowed num
     'max',  # Max allowed num (if type is a number)
     'value'  # If we know the value of this, then we set this to it.
 ])
 
-entry_defaults = (None,) * 3 + (lambda x: x, lambda x: True) + (None,) * 3
+entry_defaults = (None,) * 3 + (lambda x: x, '',  lambda x: True) + (None,) * 3
 Entry.__new__.__defaults__ = entry_defaults
 
 mapping = (
