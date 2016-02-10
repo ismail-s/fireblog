@@ -23,17 +23,23 @@ class _settings_dict(MutableMapping):
 
     @region.cache_on_arguments()
     def __getitem__(self, key):
-        res = self._get_item_from_db(key)
+        try:
+            res = self._get_item_from_db(key)
+        except KeyError:
+            res = None
         # Cast the value
         for entry in mapping:
             if entry.registry_name == key:
-                return entry.type(res.value)
-        # If there is no corresponding registry entry, we just return rather
-        # than crashing things.
+                if res:
+                    return entry.type(res.value)
+                else:
+                    return entry.type(entry.default_value)
+        # If there is no corresponding registry entry, we log and raise an
+        # error. Tests should prevent this code ever being hit in production...
         log.error('The settings value {} was attempted to be obtained, '
                   'despite it not being an official settings entry in '
                   'the mapping'.format(key))
-        return res.value
+        raise KeyError
 
     def __setitem__(self, key, value):
         try:

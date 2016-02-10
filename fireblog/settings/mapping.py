@@ -17,7 +17,7 @@ Entry = namedtuple('Entry', [
     'value'  # If we know the value of this, then we set this to it.
 ])
 
-entry_defaults = (None,) * 3 + (lambda x: x, '',  lambda x: True) + (None,) * 3
+entry_defaults = (None,) * 3 + (lambda x: x, '', lambda x: True) + (None,) * 3
 Entry.__new__.__defaults__ = entry_defaults
 
 mapping = (
