@@ -18,6 +18,11 @@ class Test_get_settings_during_startup:
     def test_gets_and_stores_all_settings_from_command_line(
             self, pyramid_config, clear_settings_dict, monkeypatch, capsys):
         with transaction.manager:
+            # Make sure values are invalid-otherwise, default values will be
+            # used, and they are all valid, and we will never be asked to
+            # change any settings
+            for key in settings_dict:
+                settings_dict[key] = None
             settings_dict['persona.secret'] = 'somesecret'
         # Setup inputs to be fed in via input func
         inputs = [
