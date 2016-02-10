@@ -64,8 +64,7 @@ class _settings_dict(MutableMapping):
         self.__getitem__.invalidate(self, key)
 
     def __iter__(self):
-        names = DBSession.query(Settings.name).all()
-        return (n.name for n in names)
+        return (entry.registry_name for entry in mapping)
 
     def __len__(self):
         return DBSession.query(Settings).count()
