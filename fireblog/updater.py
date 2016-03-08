@@ -2,6 +2,9 @@ from fireblog.compat import Path
 from git import Repo
 from alembic.script import ScriptDirectory
 from alembic.config import Config
+from pyramid.view import view_config
+from pyramid.httpexceptions import HTTPFound
+from fireblog.theme import use_template, TemplateResponseDict
 import re
 
 current_dir = Path(__file__).parent
@@ -11,8 +14,8 @@ git = repo.git
 
 
 def an_update_is_available():
-    '''returns 2 params: a bool for whether an update is available and a
-    bool for whether a db upgrade is required'''
+    '''returns 1 param: a bool for whether an update is available. No checks
+    are made for whether the db also needs to be upgraded.'''
     # The method used here is detailed in http://stackoverflow.com/a/3278427.
     # Get updates from remotes
     repo.remotes.origin.update()
@@ -30,7 +33,7 @@ def an_update_is_available():
         return False
 
 
-def _db_upgrade_is_required():
+def db_upgrade_is_required():
     '''Should only be called to see if the latest update will require a db
     upgrade. This function assumes that updates have already been fetched
     from the remote.
@@ -48,7 +51,7 @@ def _db_upgrade_is_required():
     # Get alembic versions in update
     alembic_heads = _get_current_alembic_revisions()
     if len(alembic_heads) > 1:
-        # We have had a branch divergence, so should tell the user...
+        # We have had a branch divergence, we should tell the user...
         return False  # TODO-change this...
     alembic_current = alembic_heads[0]
     update_sha = git.rev_parse('@{u}')
@@ -88,8 +91,22 @@ def update_to_latest_version():
     git.pull()
 
 
-def reset_to_previous_commit(commit):
-    '''Reset to a previous commit. Commit parameter should be a reference to a
-    commit, eg 13ddf6 or master^. This function is used for reverting an
-    upgrade.'''
-    git.reset_hard(commit)
+@view_config(route_name='update_check', permission='update-blog',
+             decorator=use_template('updater.mako'), request_method="GET")
+def check_for_updates(request):
+    update_available, db_upgrade_required = False, False
+    if an_update_is_available():
+        if db_upgrade_is_required():
+            update_available, db_upgrade_required = True, True
+        else:
+            update_available, db_upgrade_required = True, False
+    return TemplateResponseDict(update_available=update_available,
+                                db_upgrade_required=db_upgrade_required,
+                                save_url=request.route_url('update_check'))
+
+
+@view_config(route_name='update_check', request_method="POST",
+             request_param='form.submitted', permission='update-blog')
+def update_blog(request):
+    update_to_latest_version()
+    return HTTPFound(location=request.route_url('reload_fireblog'))
