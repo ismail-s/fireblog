@@ -11,7 +11,7 @@ ${parent.head()}
 <%block name="header_toolbar">
 % if request.authenticated_userid:
 
-      <div><a class="navbar-brand" href="/"><paper-icon-button icon="home"></paper-icon-button></a></div>
+    <div><a class="navbar-brand" href="/"><paper-icon-button icon="home" title="Home"></paper-icon-button></a></div>
 ${parent.header_toolbar()}
       <div class="flex-vertical flex-1">
         <div>Signed in as ${get_username(request.authenticated_userid)}</div>
@@ -19,16 +19,21 @@ ${parent.header_toolbar()}
       </div>
     % if request.matched_route.name in ('view_post', 'home'):
         % if request.has_permission('edit'):
-        <div><a href="${request.route_url('change_post', postname = urlify(title), id = post_id, action = 'edit')}"><paper-icon-button icon="create"></paper-icon-button></a></div>
+        <div><a href="${request.route_url('change_post', postname = urlify(title), id = post_id,
+                action = 'edit')}"><paper-icon-button icon="create" title="Edit this post"></paper-icon-button></a></div>
         % endif
         % if request.has_permission('del'):
-        <div><a href="${request.route_url('change_post', postname = urlify(title), id = post_id, action = 'del')}"><paper-icon-button icon="delete"></paper-icon-button></a></div>
+        <div><a href="${request.route_url('change_post', postname = urlify(title), id = post_id,
+                action = 'del')}"><paper-icon-button icon="delete" title="Delete this post"></paper-icon-button></a></div>
         % endif
     % endif
     % if 'g:admin' in request.effective_principals:
-            <div><a href="${request.route_url('tag_manager')}"><paper-icon-button icon="label"></paper-icon-button></a></div>
-            <div><a href="${request.route_url('settings')}"><paper-icon-button icon="settings"></paper-icon-button></a></div>
-            <div><a href="${request.route_url('update_check')}"><paper-icon-button icon="update"></paper-icon-button></a></div>
+            <div><a href="${request.route_url('tag_manager')}"><paper-icon-button icon="label"
+                    title="Manage tags"></paper-icon-button></a></div>
+            <div><a href="${request.route_url('settings')}"><paper-icon-button icon="settings"
+                    title="Settings"></paper-icon-button></a></div>
+            <div><a href="${request.route_url('update_check')}"><paper-icon-button icon="update"
+                    title="Check for updates"></paper-icon-button></a></div>
     % endif
 % else:
 ${parent.header_toolbar()}
@@ -38,7 +43,7 @@ ${parent.header_toolbar()}
 <%block name="main_body">
 ${parent.main_body()}
 % if request.has_permission('add') and request.matched_route.name in ('view_post', 'home'):
-<paper-fab icon="add" id="add"></paper-fab>
+    <paper-fab icon="add" id="add" title="Create a new post"></paper-fab>
 <paper-dialog modal id="add-dialog">
   <h2>Add a new post</h2>
   <paper-dialog-scrollable>
