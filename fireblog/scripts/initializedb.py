@@ -109,5 +109,5 @@ def main(argv=sys.argv):
     setup_first_post(DBSession, script_name=os.path.basename(argv[0]))
     setup_settings_db()
     print('The database has now been setup.')
-    print('Run "pserve {ini_file}" to start the blog'.format(
+    print('Run "uwsgi --ini-paste-logged {ini_file}" to start the blog'.format(
         ini_file=config_uri))
