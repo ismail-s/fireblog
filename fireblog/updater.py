@@ -64,7 +64,8 @@ def db_upgrade_is_required():
     if new_files:
         # Check the files to see if any of them are upgrades to the db
         for file in new_files:
-            file_contents = update_migrations[file].data_stream.read().decode('utf-8')
+            file_contents = update_migrations[
+                file].data_stream.read().decode('utf-8')
             _globals, _locals = {}, {}
             try:
                 exec(file_contents, _globals, _locals)

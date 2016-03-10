@@ -70,7 +70,9 @@ class Test_git_related_funcs:
         monkeypatch.setattr('fireblog.updater.repo', local_repo)
         monkeypatch.setattr('fireblog.updater.repo_dir', Path(str(local)))
         monkeypatch.setattr('fireblog.updater.git', local_repo.git)
-        monkeypatch.setattr('fireblog.updater._get_current_alembic_revisions', lambda: ['first'])
+        monkeypatch.setattr(
+            'fireblog.updater._get_current_alembic_revisions',
+            lambda: ['first'])
         # Create commit on remote
         remote.join('first').write('test')
         (remote / 'alembic' / 'versions' / 'first.py').write('''revision = 'first'
@@ -124,7 +126,8 @@ down_revision = None''', ensure=True)
         assert local_repo.head.object == remote_repo.head.object
 
     def test_db_upgrade_not_required(self, tmpdir, monkeypatch):
-        local, local_repo, remote, remote_repo = self.set_up(tmpdir, monkeypatch)
+        _, _, remote, remote_repo = self.set_up(
+            tmpdir, monkeypatch)
         remote.join('first').write('test1')
         remote_repo.index.add(['first'])
         remote_repo.index.commit('Second commit')
@@ -132,19 +135,24 @@ down_revision = None''', ensure=True)
         assert not updater.db_upgrade_is_required()
 
     def test_db_upgrade_required(self, tmpdir, monkeypatch):
-        local, local_repo, remote, remote_repo = self.set_up(tmpdir, monkeypatch)
+        _, _, remote, remote_repo = self.set_up(
+            tmpdir, monkeypatch)
         remote.join('first').write('test1')
-        (remote / 'alembic' / 'versions' / 'second.py').write('''revision = 'second'
+        (remote / 'alembic' / 'versions' / 'second.py').write(
+            '''revision = 'second'
 down_revision = 'first\'''', ensure=True)
         remote_repo.index.add(['first', 'alembic/versions/second.py'])
         remote_repo.index.commit('Second commit')
         assert updater.an_update_is_available()
         assert updater.db_upgrade_is_required()
 
-    def test_db_upgrade_required_cant_exec_alembic_files(self, tmpdir, monkeypatch):
-        local, local_repo, remote, remote_repo = self.set_up(tmpdir, monkeypatch)
+    def test_db_upgrade_required_cant_exec_alembic_files(
+            self, tmpdir, monkeypatch):
+        _, _, remote, remote_repo = self.set_up(
+            tmpdir, monkeypatch)
         remote.join('first').write('test1')
-        (remote / 'alembic' / 'versions' / 'second.py').write('''revision = 'second'
+        (remote / 'alembic' / 'versions' / 'second.py').write(
+            '''revision = 'second'
 down_revision = 'first'
 invalid syntax''', ensure=True)
         remote_repo.index.add(['first', 'alembic/versions/second.py'])
@@ -152,10 +160,13 @@ invalid syntax''', ensure=True)
         assert updater.an_update_is_available()
         assert updater.db_upgrade_is_required()
 
-    def test_db_upgrade_not_required_but_new_invalid_alembic_file_exists(self, tmpdir, monkeypatch):
-        local, local_repo, remote, remote_repo = self.set_up(tmpdir, monkeypatch)
+    def test_db_upgrade_not_required_but_new_invalid_alembic_file_exists(
+            self, tmpdir, monkeypatch):
+        _, _, remote, remote_repo = self.set_up(
+            tmpdir, monkeypatch)
         remote.join('first').write('test1')
-        (remote / 'alembic' / 'versions' / 'second.py').write('''revision = 'second'
+        (remote / 'alembic' / 'versions' / 'second.py').write(
+            '''revision = 'second'
 down_revision = 'notfirst'
 invalid syntax''', ensure=True)
         remote_repo.index.add(['first', 'alembic/versions/second.py'])
@@ -163,21 +174,25 @@ invalid syntax''', ensure=True)
         assert updater.an_update_is_available()
         assert not updater.db_upgrade_is_required()
 
-    def test_db_upgrade_not_required_but_new_valid_alembic_file_exists(self, tmpdir, monkeypatch):
-        local, local_repo, remote, remote_repo = self.set_up(tmpdir, monkeypatch)
+    def test_db_upgrade_not_required_but_new_valid_alembic_file_exists(
+            self, tmpdir, monkeypatch):
+        _, _, remote, remote_repo = self.set_up(
+            tmpdir, monkeypatch)
         remote.join('first').write('test1')
-        (remote / 'alembic' / 'versions' / 'second.py').write('''revision = 'second'
+        (remote / 'alembic' / 'versions' / 'second.py').write(
+            '''revision = 'second'
 down_revision = 'notfirst\'''', ensure=True)
         remote_repo.index.add(['first', 'alembic/versions/second.py'])
         remote_repo.index.commit('Second commit')
         assert updater.an_update_is_available()
         assert not updater.db_upgrade_is_required()
 
+
 def test_get_current_alembic_revisions(tmpdir, monkeypatch):
     base_dir = tmpdir.mkdir('base')
     # Create alembic.ini
     base_dir.join('alembic.ini').write('[alembic]\n'
-                                'script_location = %(here)s/alembic')
+                                       'script_location = %(here)s/alembic')
     migration_dir = base_dir / 'alembic' / 'versions'
     # Create 2 revision files, one pointing to the other
     migration_dir.join('first.py').write('''revision = 'first'
