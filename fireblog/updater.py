@@ -64,7 +64,7 @@ def db_upgrade_is_required():
     if new_files:
         # Check the files to see if any of them are upgrades to the db
         for file in new_files:
-            file_contents = update_migrations[file].data_stream.read()
+            file_contents = update_migrations[file].data_stream.read().decode('utf-8')
             _globals, _locals = {}, {}
             try:
                 exec(file_contents, _globals, _locals)
@@ -73,8 +73,8 @@ def db_upgrade_is_required():
             except:
                 # If we can't exec the file, we just search it using a regex
                 res = re.search(
-                    'down_revision\s*=\s*(?P<rev>(?:None)|\w+)$',
-                    file_contents)
+                    'down_revision\s*=\s*(?P<rev>(?:None)|[\'"]\w+[\'"])$',
+                    file_contents, flags=re.MULTILINE)
                 if res and eval(res.group('rev')) == alembic_current:
                     return True
     return False
