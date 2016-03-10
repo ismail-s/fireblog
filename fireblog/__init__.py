@@ -25,6 +25,7 @@ def add_routes(config):
 
     config.add_route('tag_view', '/tags/{tag_name}')
     config.add_route('tag_manager', '/tags')
+    config.add_route('update_check', '/check_for_updates')
 
 
 def include_all_components(config):

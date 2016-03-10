@@ -38,7 +38,7 @@
             % if 'g:admin' in request.effective_principals:
                 <div><a href="${request.route_url('tag_manager')}">Manage tags</a></div>
                 <div><a href="${request.route_url('settings')}">Settings</a></div>
-                <div><a href="${request.route_url('reload_fireblog')}">Reload blog</a></div>
+                <div><a href="${request.route_url('update_check')}">Check for Updates</a></div>
             % endif
         % else:
             ${parent.header_toolbar()}

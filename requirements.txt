@@ -27,3 +27,4 @@ uwsgi
 pastescript
 pastedeploy
 redis
+gitpython

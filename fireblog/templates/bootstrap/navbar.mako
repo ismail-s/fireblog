@@ -42,7 +42,7 @@
             <li><a href="#">Manage users</a></li>
             <li><a href="#">Manage comments</a></li>
             <li><a href="${request.route_url('settings')}">Settings</a></li>
-            <li><a href="${request.route_url('reload_fireblog')}">Restart Blog</a></li>
+            <li><a href="${request.route_url('update_check')}">Check for updates</a></li>
           </ul>
         </li>
 % endif
