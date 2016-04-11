@@ -21,6 +21,14 @@ fireblog.comments module
     :undoc-members:
     :show-inheritance:
 
+fireblog.compat module
+----------------------
+
+.. automodule:: fireblog.compat
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 fireblog.dogpile_region module
 ------------------------------
 
@@ -89,6 +97,14 @@ fireblog.theme module
 ---------------------
 
 .. automodule:: fireblog.theme
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+fireblog.updater module
+-----------------------
+
+.. automodule:: fireblog.updater
     :members:
     :undoc-members:
     :show-inheritance:

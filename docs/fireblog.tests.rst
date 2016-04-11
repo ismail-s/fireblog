@@ -75,6 +75,14 @@ fireblog.tests.tasks_test module
     :undoc-members:
     :show-inheritance:
 
+fireblog.tests.updater_test module
+----------------------------------
+
+.. automodule:: fireblog.tests.updater_test
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 fireblog.tests.views_test module
 --------------------------------
 
