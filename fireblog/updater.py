@@ -93,6 +93,22 @@ def update_to_latest_version():
     git.pull()
 
 
+def install_any_new_deps_in_the_update():
+    '''Install all packages in the requirements.txt of the update. This means
+    that any new packages get installed.
+
+    :returns: ``True`` if pip returned 0, else ``False``
+    :rtype: Bool'''
+    update_sha = git.rev_parse('@{u}')
+    req_file = repo.commit(update_sha).tree['requirements.txt']
+    packages = req_file.data_stream.read().decode('utf-8').split('\n')
+    packages = [x for x in packages if x]
+    retcode = pip.main(['install'] + packages)
+    if retcode == 0:
+        return True
+    return False
+
+
 @view_config(route_name='update_check', permission='update-blog',
              decorator=use_template('updater.mako'), request_method="GET")
 def check_for_updates(request):
@@ -111,12 +127,7 @@ def check_for_updates(request):
              request_param='form.submitted', permission='update-blog')
 def update_blog(request):
     # Try to install any new deps
-    update_sha = git.rev_parse('@{u}')
-    req_file = repo.commit(update_sha).tree['requirements.txt']
-    packages = req_file.data_stream.read().decode('utf-8').split('\n')
-    packages = [x for x in packages if x]
-    retcode = pip.main(['install'] + packages)
-    if retcode != 0:
+    if not install_any_new_deps_in_the_update():
         msg = ('Failed to install required packages. ' +
                'Check the server logs to get more information. ')
         request.session.flash(msg)
