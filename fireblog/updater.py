@@ -6,6 +6,7 @@ from pyramid.view import view_config
 from pyramid.httpexceptions import HTTPFound
 from fireblog.theme import use_template, TemplateResponseDict
 import re
+import pip
 
 current_dir = Path(__file__).parent
 repo_dir = current_dir / '..'
@@ -109,5 +110,17 @@ def check_for_updates(request):
 @view_config(route_name='update_check', request_method="POST",
              request_param='form.submitted', permission='update-blog')
 def update_blog(request):
+    # Try to install any new deps
+    update_sha = git.rev_parse('@{u}')
+    req_file = repo.commit(update_sha).tree['requirements.txt']
+    packages = req_file.data_stream.read().decode('utf-8').split('\n')
+    packages = [x for x in packages if x]
+    retcode = pip.main(['install'] + packages)
+    if retcode != 0:
+        msg = ('Failed to install required packages. ' +
+               'Check the server logs to get more information. ')
+        request.session.flash(msg)
+        return HTTPFound(location=request.route_url('update_check'))
+
     update_to_latest_version()
     return HTTPFound(location=request.route_url('reload_fireblog'))
