@@ -11,8 +11,11 @@ Fireblog
   :alt: 'Stories in Ready'
 
 A simple blog, written in Python, using the
-`Pyramid web framework <https://www.github.com/pylons/pyramid>`_. For a live
-version, see `my blog <https://blog.ismail-s.com>`_.
+`Pyramid web framework <https://www.github.com/pylons/pyramid>`_.
+
+*Note: I have switched to using http://gohugo.io for my blog.
+As a result, I no longer use this project, though I can provide support if
+anyone else wants to.*
 
 Getting Started
 ---------------
